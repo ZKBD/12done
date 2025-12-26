@@ -8,6 +8,7 @@ import { AppCacheModule } from './cache';
 import { MailModule } from './mail';
 import { AuthModule } from './modules/auth';
 import { UsersModule } from './modules/users';
+import { InvitationsModule } from './modules/invitations';
 
 @Module({
   imports: [
@@ -41,9 +42,9 @@ import { UsersModule } from './modules/users';
     // Feature modules
     AuthModule,
     UsersModule,
+    InvitationsModule,
 
     // Feature modules will be added here as we implement them:
-    // InvitationsModule,
     // PropertiesModule,
     // SearchModule,
     // FavoritesModule,
