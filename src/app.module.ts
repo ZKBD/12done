@@ -7,6 +7,7 @@ import { DatabaseModule } from './database';
 import { AppCacheModule } from './cache';
 import { MailModule } from './mail';
 import { AuthModule } from './modules/auth';
+import { UsersModule } from './modules/users';
 
 @Module({
   imports: [
@@ -39,9 +40,9 @@ import { AuthModule } from './modules/auth';
 
     // Feature modules
     AuthModule,
+    UsersModule,
 
     // Feature modules will be added here as we implement them:
-    // UsersModule,
     // InvitationsModule,
     // PropertiesModule,
     // SearchModule,
