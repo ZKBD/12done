@@ -15,7 +15,7 @@ ENV NODE_ENV=development
 COPY package*.json ./
 
 # Install all dependencies (including devDependencies)
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -36,11 +36,14 @@ FROM base AS builder
 ENV NODE_ENV=production
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 COPY . .
 RUN npx prisma generate
 RUN npm run build
+
+# Prune dev dependencies after build
+RUN npm prune --production
 
 # ====================
 # Production Stage

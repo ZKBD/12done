@@ -19,7 +19,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
 
-    const errorResponse = {
+    const responseObj = typeof exceptionResponse === 'object' ? exceptionResponse as Record<string, unknown> : null;
+
+    const errorResponse: Record<string, unknown> = {
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
@@ -27,12 +29,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message:
         typeof exceptionResponse === 'string'
           ? exceptionResponse
-          : (exceptionResponse as Record<string, unknown>).message || 'An error occurred',
-      ...(typeof exceptionResponse === 'object' &&
-        (exceptionResponse as Record<string, unknown>).errors && {
-          errors: (exceptionResponse as Record<string, unknown>).errors,
-        }),
+          : responseObj?.message || 'An error occurred',
     };
+
+    if (responseObj?.errors) {
+      errorResponse.errors = responseObj.errors;
+    }
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(

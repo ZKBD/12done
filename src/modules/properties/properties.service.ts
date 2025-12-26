@@ -379,7 +379,7 @@ export class PropertiesService {
     ownerId: string,
     query: PropertyQueryDto,
   ): Promise<PaginatedResponseDto<PropertyListResponseDto>> {
-    const queryWithOwner = { ...query, ownerId };
+    const queryWithOwner = { ...query, ownerId } as PropertyQueryDto & { ownerId: string };
     return this.findAll(queryWithOwner, ownerId, UserRole.USER);
   }
 
