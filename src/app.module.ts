@@ -9,6 +9,7 @@ import { MailModule } from './mail';
 import { AuthModule } from './modules/auth';
 import { UsersModule } from './modules/users';
 import { InvitationsModule } from './modules/invitations';
+import { PropertiesModule } from './modules/properties';
 
 @Module({
   imports: [
@@ -43,9 +44,9 @@ import { InvitationsModule } from './modules/invitations';
     AuthModule,
     UsersModule,
     InvitationsModule,
+    PropertiesModule,
 
     // Feature modules will be added here as we implement them:
-    // PropertiesModule,
     // SearchModule,
     // FavoritesModule,
     // NotificationsModule,

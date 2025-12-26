@@ -1,0 +1,655 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
+import { PropertyStatus, UserRole, ListingType } from '@prisma/client';
+import { PropertiesService } from './properties.service';
+import {
+  AvailabilityService,
+  InspectionService,
+  PricingService,
+  MediaService,
+} from './services';
+import { JwtAuthGuard, OptionalJwtAuthGuard } from '@/modules/auth/guards';
+import { RolesGuard } from '@/common/guards';
+import { CurrentUser, CurrentUserData, Roles } from '@/common/decorators';
+import { PaginatedResponseDto } from '@/common/dto';
+import {
+  CreatePropertyDto,
+  UpdatePropertyDto,
+  PropertyResponseDto,
+  PropertyListResponseDto,
+  PropertyQueryDto,
+  CreateAvailabilitySlotDto,
+  UpdateAvailabilitySlotDto,
+  BulkAvailabilityDto,
+  AvailabilitySlotResponseDto,
+  AvailabilityQueryDto,
+  CalculateCostDto,
+  CostCalculationResponseDto,
+  CreateInspectionSlotDto,
+  BulkInspectionSlotsDto,
+  InspectionSlotResponseDto,
+  InspectionQueryDto,
+  CreateDynamicPricingRuleDto,
+  UpdateDynamicPricingRuleDto,
+  DynamicPricingRuleResponseDto,
+  CreatePropertyMediaDto,
+  UpdatePropertyMediaDto,
+  ReorderMediaDto,
+  CreateFloorPlanDto,
+  UpdateFloorPlanDto,
+} from './dto';
+import { PropertyMediaResponseDto, FloorPlanResponseDto } from './dto/property-response.dto';
+
+@ApiTags('properties')
+@Controller('properties')
+export class PropertiesController {
+  constructor(
+    private readonly propertiesService: PropertiesService,
+    private readonly availabilityService: AvailabilityService,
+    private readonly inspectionService: InspectionService,
+    private readonly pricingService: PricingService,
+    private readonly mediaService: MediaService,
+  ) {}
+
+  // ============ PROPERTY CRUD ============
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new property listing (PROD-020, PROD-021)' })
+  @ApiResponse({
+    status: 201,
+    description: 'Property created successfully',
+    type: PropertyResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async create(
+    @Body() dto: CreatePropertyDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PropertyResponseDto> {
+    return this.propertiesService.create(dto, user.id);
+  }
+
+  @Get()
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'List properties with filters (PROD-042)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of properties',
+  })
+  async findAll(
+    @Query() query: PropertyQueryDto,
+    @CurrentUser() user?: CurrentUserData,
+  ): Promise<PaginatedResponseDto<PropertyListResponseDto>> {
+    return this.propertiesService.findAll(
+      query,
+      user?.id,
+      user?.role as UserRole,
+    );
+  }
+
+  @Get('my')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List current user\'s properties' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of user\'s properties',
+  })
+  async getMyProperties(
+    @Query() query: PropertyQueryDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PaginatedResponseDto<PropertyListResponseDto>> {
+    return this.propertiesService.getMyProperties(user.id, query);
+  }
+
+  @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Get property by ID (PROD-027)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Property details',
+    type: PropertyResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Property not found' })
+  async findById(
+    @Param('id') id: string,
+    @CurrentUser() user?: CurrentUserData,
+  ): Promise<PropertyResponseDto> {
+    return this.propertiesService.findById(id, user?.id, user?.role as UserRole);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update property' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Property updated successfully',
+    type: PropertyResponseDto,
+  })
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdatePropertyDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PropertyResponseDto> {
+    return this.propertiesService.update(id, dto, user.id, user.role as UserRole);
+  }
+
+  @Patch(':id/listing-types')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update property listing types (PROD-022)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Listing types updated',
+    type: PropertyResponseDto,
+  })
+  async updateListingTypes(
+    @Param('id') id: string,
+    @Body('listingTypes') listingTypes: ListingType[],
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PropertyResponseDto> {
+    return this.propertiesService.updateListingTypes(
+      id,
+      listingTypes,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Patch(':id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update property status (publish, pause, etc.)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Status updated',
+    type: PropertyResponseDto,
+  })
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: PropertyStatus,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PropertyResponseDto> {
+    return this.propertiesService.updateStatus(
+      id,
+      status,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete property (soft delete)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({ status: 200, description: 'Property deleted' })
+  async delete(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ message: string }> {
+    return this.propertiesService.softDelete(id, user.id, user.role as UserRole);
+  }
+
+  // ============ AVAILABILITY (PROD-024) ============
+
+  @Post(':id/availability')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add availability slot' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async createAvailabilitySlot(
+    @Param('id') propertyId: string,
+    @Body() dto: CreateAvailabilitySlotDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<AvailabilitySlotResponseDto> {
+    return this.availabilityService.createSlot(
+      propertyId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Post(':id/availability/bulk')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add multiple availability slots' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async createBulkAvailabilitySlots(
+    @Param('id') propertyId: string,
+    @Body() dto: BulkAvailabilityDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<AvailabilitySlotResponseDto[]> {
+    return this.availabilityService.createBulkSlots(
+      propertyId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Get(':id/availability')
+  @ApiOperation({ summary: 'Get availability calendar (PROD-024)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async getAvailabilitySlots(
+    @Param('id') propertyId: string,
+    @Query() query: AvailabilityQueryDto,
+  ): Promise<AvailabilitySlotResponseDto[]> {
+    return this.availabilityService.getSlots(propertyId, query);
+  }
+
+  @Patch(':id/availability/:slotId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update availability slot' })
+  async updateAvailabilitySlot(
+    @Param('id') propertyId: string,
+    @Param('slotId') slotId: string,
+    @Body() dto: UpdateAvailabilitySlotDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<AvailabilitySlotResponseDto> {
+    return this.availabilityService.updateSlot(
+      propertyId,
+      slotId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Delete(':id/availability/:slotId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete availability slot' })
+  async deleteAvailabilitySlot(
+    @Param('id') propertyId: string,
+    @Param('slotId') slotId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ message: string }> {
+    return this.availabilityService.deleteSlot(
+      propertyId,
+      slotId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Post(':id/availability/calculate-cost')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Calculate rental cost for date range' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async calculateCost(
+    @Param('id') propertyId: string,
+    @Body() dto: CalculateCostDto,
+  ): Promise<CostCalculationResponseDto> {
+    return this.availabilityService.calculateCost(propertyId, dto);
+  }
+
+  // ============ INSPECTIONS (PROD-025) ============
+
+  @Post(':id/inspections')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create inspection slot (PROD-025)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async createInspectionSlot(
+    @Param('id') propertyId: string,
+    @Body() dto: CreateInspectionSlotDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<InspectionSlotResponseDto> {
+    return this.inspectionService.createSlot(
+      propertyId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Post(':id/inspections/bulk')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create multiple inspection slots' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async createBulkInspectionSlots(
+    @Param('id') propertyId: string,
+    @Body() dto: BulkInspectionSlotsDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<InspectionSlotResponseDto[]> {
+    return this.inspectionService.createBulkSlots(
+      propertyId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Get(':id/inspections')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Get inspection slots' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async getInspectionSlots(
+    @Param('id') propertyId: string,
+    @Query() query: InspectionQueryDto,
+    @CurrentUser() user?: CurrentUserData,
+  ): Promise<InspectionSlotResponseDto[]> {
+    return this.inspectionService.getSlots(
+      propertyId,
+      query,
+      user?.id,
+      user?.role as UserRole,
+    );
+  }
+
+  @Post(':id/inspections/:slotId/book')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Book an inspection slot' })
+  async bookInspection(
+    @Param('id') propertyId: string,
+    @Param('slotId') slotId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<InspectionSlotResponseDto> {
+    return this.inspectionService.bookSlot(propertyId, slotId, user.id);
+  }
+
+  @Post(':id/inspections/:slotId/cancel')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cancel an inspection booking' })
+  async cancelInspection(
+    @Param('id') propertyId: string,
+    @Param('slotId') slotId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<InspectionSlotResponseDto> {
+    return this.inspectionService.cancelBooking(
+      propertyId,
+      slotId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Delete(':id/inspections/:slotId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete inspection slot' })
+  async deleteInspectionSlot(
+    @Param('id') propertyId: string,
+    @Param('slotId') slotId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ message: string }> {
+    return this.inspectionService.deleteSlot(
+      propertyId,
+      slotId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  // ============ DYNAMIC PRICING (PROD-023) ============
+
+  @Post(':id/pricing/rules')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create dynamic pricing rule (PROD-023)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async createPricingRule(
+    @Param('id') propertyId: string,
+    @Body() dto: CreateDynamicPricingRuleDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<DynamicPricingRuleResponseDto> {
+    return this.pricingService.createRule(
+      propertyId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Get(':id/pricing/rules')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all pricing rules for property' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async getPricingRules(
+    @Param('id') propertyId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<DynamicPricingRuleResponseDto[]> {
+    return this.pricingService.getRules(propertyId, user.id, user.role as UserRole);
+  }
+
+  @Patch(':id/pricing/rules/:ruleId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update pricing rule' })
+  async updatePricingRule(
+    @Param('id') propertyId: string,
+    @Param('ruleId') ruleId: string,
+    @Body() dto: UpdateDynamicPricingRuleDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<DynamicPricingRuleResponseDto> {
+    return this.pricingService.updateRule(
+      propertyId,
+      ruleId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Delete(':id/pricing/rules/:ruleId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete pricing rule' })
+  async deletePricingRule(
+    @Param('id') propertyId: string,
+    @Param('ruleId') ruleId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ message: string }> {
+    return this.pricingService.deleteRule(
+      propertyId,
+      ruleId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  // ============ MEDIA (PROD-028) ============
+
+  @Post(':id/media')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add property media (PROD-028)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async addMedia(
+    @Param('id') propertyId: string,
+    @Body() dto: CreatePropertyMediaDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PropertyMediaResponseDto> {
+    return this.mediaService.addMedia(
+      propertyId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Get(':id/media')
+  @ApiOperation({ summary: 'Get property media' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async getMedia(
+    @Param('id') propertyId: string,
+  ): Promise<PropertyMediaResponseDto[]> {
+    return this.mediaService.getMedia(propertyId);
+  }
+
+  @Patch(':id/media/:mediaId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update property media' })
+  async updateMedia(
+    @Param('id') propertyId: string,
+    @Param('mediaId') mediaId: string,
+    @Body() dto: UpdatePropertyMediaDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PropertyMediaResponseDto> {
+    return this.mediaService.updateMedia(
+      propertyId,
+      mediaId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Delete(':id/media/:mediaId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete property media' })
+  async deleteMedia(
+    @Param('id') propertyId: string,
+    @Param('mediaId') mediaId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ message: string }> {
+    return this.mediaService.deleteMedia(
+      propertyId,
+      mediaId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Post(':id/media/reorder')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reorder property media' })
+  async reorderMedia(
+    @Param('id') propertyId: string,
+    @Body() dto: ReorderMediaDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PropertyMediaResponseDto[]> {
+    return this.mediaService.reorderMedia(
+      propertyId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Post(':id/media/:mediaId/set-primary')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Set media as primary/featured image' })
+  async setPrimaryMedia(
+    @Param('id') propertyId: string,
+    @Param('mediaId') mediaId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PropertyMediaResponseDto> {
+    return this.mediaService.setPrimaryMedia(
+      propertyId,
+      mediaId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  // ============ FLOOR PLANS (PROD-027) ============
+
+  @Post(':id/floor-plans')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add floor plan (PROD-027)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async addFloorPlan(
+    @Param('id') propertyId: string,
+    @Body() dto: CreateFloorPlanDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<FloorPlanResponseDto> {
+    return this.mediaService.addFloorPlan(
+      propertyId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Get(':id/floor-plans')
+  @ApiOperation({ summary: 'Get property floor plans' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  async getFloorPlans(
+    @Param('id') propertyId: string,
+  ): Promise<FloorPlanResponseDto[]> {
+    return this.mediaService.getFloorPlans(propertyId);
+  }
+
+  @Patch(':id/floor-plans/:floorPlanId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update floor plan' })
+  async updateFloorPlan(
+    @Param('id') propertyId: string,
+    @Param('floorPlanId') floorPlanId: string,
+    @Body() dto: UpdateFloorPlanDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<FloorPlanResponseDto> {
+    return this.mediaService.updateFloorPlan(
+      propertyId,
+      floorPlanId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Delete(':id/floor-plans/:floorPlanId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete floor plan' })
+  async deleteFloorPlan(
+    @Param('id') propertyId: string,
+    @Param('floorPlanId') floorPlanId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ message: string }> {
+    return this.mediaService.deleteFloorPlan(
+      propertyId,
+      floorPlanId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+}
