@@ -38,15 +38,24 @@ export class MailService {
   }
 
   private async loadTemplate(templateName: string): Promise<handlebars.TemplateDelegate> {
-    const templatePath = path.join(__dirname, 'templates', `${templateName}.hbs`);
+    // Try multiple paths to find templates (handles both dev and prod)
+    const possiblePaths = [
+      path.join(__dirname, 'templates', `${templateName}.hbs`),
+      path.join(process.cwd(), 'src', 'mail', 'templates', `${templateName}.hbs`),
+      path.join(process.cwd(), 'dist', 'mail', 'templates', `${templateName}.hbs`),
+    ];
 
-    try {
-      const templateSource = fs.readFileSync(templatePath, 'utf-8');
-      return handlebars.compile(templateSource);
-    } catch {
-      this.logger.warn(`Template ${templateName} not found, using fallback`);
-      return handlebars.compile('<html><body>{{{content}}}</body></html>');
+    for (const templatePath of possiblePaths) {
+      try {
+        const templateSource = fs.readFileSync(templatePath, 'utf-8');
+        return handlebars.compile(templateSource);
+      } catch {
+        // Try next path
+      }
     }
+
+    this.logger.warn(`Template ${templateName} not found in any location, using fallback`);
+    return handlebars.compile('<html><body>{{{content}}}</body></html>');
   }
 
   async sendMail(options: EmailOptions): Promise<void> {
