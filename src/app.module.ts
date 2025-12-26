@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AppConfigModule } from './config';
+import { DatabaseModule } from './database';
+import { AppCacheModule } from './cache';
+import { MailModule } from './mail';
 
 @Module({
   imports: [
-    // Configuration
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-    }),
+    // Configuration with validation
+    AppConfigModule,
 
     // Rate limiting
     ThrottlerModule.forRoot([
@@ -31,10 +31,12 @@ import { AppService } from './app.service';
       },
     ]),
 
+    // Core infrastructure modules
+    DatabaseModule,
+    AppCacheModule,
+    MailModule,
+
     // Feature modules will be added here as we implement them:
-    // DatabaseModule,
-    // CacheModule,
-    // MailModule,
     // AuthModule,
     // UsersModule,
     // InvitationsModule,

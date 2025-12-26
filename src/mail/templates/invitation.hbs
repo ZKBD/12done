@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You're invited to 12done.com</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #4F46E5; }
+    .logo { font-size: 24px; font-weight: bold; color: #4F46E5; }
+    .content { padding: 30px 0; }
+    .button { display: inline-block; background: #4F46E5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+    .highlight { background: #EEF2FF; border-left: 4px solid #4F46E5; padding: 15px 20px; margin: 20px 0; }
+    .feature { display: inline-block; width: 45%; padding: 10px; vertical-align: top; }
+    .feature-icon { font-size: 24px; margin-bottom: 5px; }
+    .footer { text-align: center; padding: 20px 0; color: #666; font-size: 12px; border-top: 1px solid #eee; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">12done.com</div>
+  </div>
+
+  <div class="content">
+    <h1>You've been invited!</h1>
+
+    <div class="highlight">
+      <p style="margin: 0;"><strong>{{inviterName}}</strong> thinks you'd love 12done.com - the comprehensive real estate and services platform.</p>
+    </div>
+
+    <p>Join 12done.com to:</p>
+
+    <div style="text-align: center;">
+      <div class="feature">
+        <div class="feature-icon">&#127968;</div>
+        <strong>Find Properties</strong><br>
+        Buy, rent, or barter real estate
+      </div>
+      <div class="feature">
+        <div class="feature-icon">&#128200;</div>
+        <strong>List & Earn</strong><br>
+        List your properties and services
+      </div>
+    </div>
+
+    <p style="text-align: center;">
+      <a href="{{invitationUrl}}" class="button">Accept Invitation</a>
+    </p>
+
+    <p style="color: #666; font-size: 14px;">This invitation link will expire in 7 days.</p>
+
+    <p>If the button doesn't work, copy and paste this link into your browser:</p>
+    <p style="word-break: break-all; color: #4F46E5;">{{invitationUrl}}</p>
+  </div>
+
+  <div class="footer">
+    <p>&copy; {{year}} 12done.com. All rights reserved.</p>
+    <p>You received this email because {{inviterName}} invited you to join 12done.com</p>
+  </div>
+</body>
+</html>

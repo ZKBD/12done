@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to 12done.com</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #4F46E5; }
+    .logo { font-size: 24px; font-weight: bold; color: #4F46E5; }
+    .content { padding: 30px 0; }
+    .button { display: inline-block; background: #4F46E5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+    .feature { padding: 15px 0; border-bottom: 1px solid #eee; }
+    .feature h3 { margin: 0 0 5px 0; color: #4F46E5; }
+    .feature p { margin: 0; color: #666; }
+    .footer { text-align: center; padding: 20px 0; color: #666; font-size: 12px; border-top: 1px solid #eee; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">12done.com</div>
+  </div>
+
+  <div class="content">
+    <h1>Welcome to 12done.com!</h1>
+
+    <p>Hi {{firstName}},</p>
+
+    <p>Your account is now fully set up and ready to use. Welcome to the comprehensive real estate and services platform!</p>
+
+    <h2>What you can do:</h2>
+
+    <div class="feature">
+      <h3>Browse Properties</h3>
+      <p>Search for properties to buy, rent, or barter with advanced filters and map-based search.</p>
+    </div>
+
+    <div class="feature">
+      <h3>List Your Property</h3>
+      <p>Create listings for sale, rent, events, or barter. Set your pricing and availability.</p>
+    </div>
+
+    <div class="feature">
+      <h3>Save Searches</h3>
+      <p>Create search agents to get notified when new properties match your criteria.</p>
+    </div>
+
+    <div class="feature">
+      <h3>Invite Friends</h3>
+      <p>Share 12done.com with your network and earn rewards through our referral program.</p>
+    </div>
+
+    <p style="text-align: center;">
+      <a href="{{loginUrl}}" class="button">Start Exploring</a>
+    </p>
+
+    <p>If you have any questions, our support team is here to help.</p>
+
+    <p>Best regards,<br>The 12done.com Team</p>
+  </div>
+
+  <div class="footer">
+    <p>&copy; {{year}} 12done.com. All rights reserved.</p>
+  </div>
+</body>
+</html>
