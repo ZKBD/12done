@@ -6,6 +6,7 @@ import { AppConfigModule } from './config';
 import { DatabaseModule } from './database';
 import { AppCacheModule } from './cache';
 import { MailModule } from './mail';
+import { AuthModule } from './modules/auth';
 
 @Module({
   imports: [
@@ -36,8 +37,10 @@ import { MailModule } from './mail';
     AppCacheModule,
     MailModule,
 
+    // Feature modules
+    AuthModule,
+
     // Feature modules will be added here as we implement them:
-    // AuthModule,
     // UsersModule,
     // InvitationsModule,
     // PropertiesModule,
