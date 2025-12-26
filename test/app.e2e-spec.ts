@@ -6,7 +6,7 @@ import { AppModule } from '../src/app.module';
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -21,10 +21,12 @@ describe('AppController (e2e)', () => {
       }),
     );
     await app.init();
-  });
+  }, 30000); // 30 second timeout for app initialization
 
-  afterEach(async () => {
-    await app.close();
+  afterAll(async () => {
+    if (app) {
+      await app.close();
+    }
   });
 
   describe('/ (GET)', () => {
@@ -35,6 +37,50 @@ describe('AppController (e2e)', () => {
         .expect((res) => {
           expect(res.body).toHaveProperty('status', 'ok');
           expect(res.body).toHaveProperty('timestamp');
+        });
+    });
+  });
+
+  describe('/api/health (GET)', () => {
+    it('should return detailed health check', () => {
+      return request(app.getHttpServer())
+        .get('/api/health')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('status', 'healthy');
+          expect(res.body).toHaveProperty('services');
+          expect(res.body.services).toHaveProperty('database');
+          expect(res.body.services).toHaveProperty('cache');
+        });
+    });
+
+    it('should return liveness probe', () => {
+      return request(app.getHttpServer())
+        .get('/api/health/live')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('status', 'ok');
+        });
+    });
+
+    it('should return readiness probe', () => {
+      return request(app.getHttpServer())
+        .get('/api/health/ready')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('status', 'ok');
+          expect(res.body).toHaveProperty('ready', true);
+        });
+    });
+  });
+
+  describe('/api/countries (GET)', () => {
+    it('should return list of countries', () => {
+      return request(app.getHttpServer())
+        .get('/api/countries')
+        .expect(200)
+        .expect((res) => {
+          expect(Array.isArray(res.body)).toBe(true);
         });
     });
   });
