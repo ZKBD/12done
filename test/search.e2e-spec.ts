@@ -1,0 +1,462 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from '../src/app.module';
+import { PrismaService } from '../src/database/prisma.service';
+
+describe('SearchController (e2e)', () => {
+  let app: INestApplication;
+  let prisma: PrismaService;
+
+  // Test user credentials
+  const testEmail = `search.test.${Date.now()}@example.com`;
+  const testPassword = 'SecureP@ss123';
+
+  let accessToken: string;
+  let userId: string;
+  let propertyId: string;
+  let searchAgentId: string;
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix('api');
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
+
+    prisma = moduleFixture.get<PrismaService>(PrismaService);
+    await app.init();
+
+    // Create and verify test user
+    await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send({
+        email: testEmail,
+        firstName: 'Search',
+        lastName: 'Tester',
+        password: testPassword,
+        confirmPassword: testPassword,
+      });
+
+    const verificationToken = await prisma.emailVerificationToken.findFirst({
+      where: { user: { email: testEmail } },
+    });
+
+    const verifyResponse = await request(app.getHttpServer())
+      .post('/api/auth/verify-email')
+      .send({ token: verificationToken!.token });
+
+    accessToken = verifyResponse.body.tokens.accessToken;
+    userId = verifyResponse.body.user.id;
+
+    // Complete profile
+    await request(app.getHttpServer())
+      .post('/api/auth/complete-profile')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        address: '123 Test Street',
+        postalCode: '1051',
+        city: 'Budapest',
+        country: 'HU',
+        phone: '+36201234567',
+      });
+
+    // Login to get fresh token
+    const loginResponse = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: testEmail, password: testPassword });
+
+    accessToken = loginResponse.body.tokens.accessToken;
+
+    // Create a test property for favorites tests
+    const propertyResponse = await request(app.getHttpServer())
+      .post('/api/properties')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'Test Property for Search',
+        address: '456 Search Street',
+        postalCode: '1012',
+        city: 'Budapest',
+        country: 'HU',
+        listingTypes: ['FOR_SALE'],
+        basePrice: '200000.00',
+        currency: 'EUR',
+        squareMeters: 75,
+        bedrooms: 2,
+        bathrooms: 1,
+      });
+
+    propertyId = propertyResponse.body.id;
+
+    // Publish the property so it can be searched
+    await request(app.getHttpServer())
+      .patch(`/api/properties/${propertyId}/status`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ status: 'ACTIVE' });
+  }, 60000);
+
+  afterAll(async () => {
+    // Clean up: delete properties first, then user
+    if (userId) {
+      await prisma.property.deleteMany({
+        where: { ownerId: userId },
+      });
+      await prisma.user.delete({
+        where: { id: userId },
+      });
+    }
+
+    if (app) {
+      await app.close();
+    }
+  });
+
+  // ============ SEARCH AGENTS ============
+
+  describe('POST /api/search-agents', () => {
+    it('should create a search agent', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/search-agents')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Budapest Apartments',
+          criteria: {
+            city: 'Budapest',
+            listingTypes: ['FOR_SALE'],
+            minPrice: 100000,
+            maxPrice: 300000,
+          },
+          emailNotifications: true,
+          inAppNotifications: true,
+        })
+        .expect(201);
+
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.name).toBe('Budapest Apartments');
+      expect(response.body.isActive).toBe(true);
+      expect(response.body.criteria).toHaveProperty('city', 'Budapest');
+      searchAgentId = response.body.id;
+    });
+
+    it('should reject without authentication', () => {
+      return request(app.getHttpServer())
+        .post('/api/search-agents')
+        .send({
+          name: 'Unauthorized Agent',
+          criteria: { city: 'Vienna' },
+        })
+        .expect(401);
+    });
+
+    it('should reject with missing required fields', () => {
+      return request(app.getHttpServer())
+        .post('/api/search-agents')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Missing Criteria',
+        })
+        .expect(400);
+    });
+
+    it('should create another search agent with different criteria', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/search-agents')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Large Properties',
+          criteria: {
+            minSquareMeters: 100,
+            minBedrooms: 3,
+          },
+          emailNotifications: false,
+          inAppNotifications: true,
+        })
+        .expect(201);
+
+      expect(response.body.name).toBe('Large Properties');
+      expect(response.body.emailNotifications).toBe(false);
+    });
+  });
+
+  describe('GET /api/search-agents', () => {
+    it('should list user\'s search agents', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/search-agents')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should reject without authentication', () => {
+      return request(app.getHttpServer())
+        .get('/api/search-agents')
+        .expect(401);
+    });
+  });
+
+  describe('GET /api/search-agents/:id', () => {
+    it('should get search agent by ID', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/search-agents/${searchAgentId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body.id).toBe(searchAgentId);
+      expect(response.body.name).toBe('Budapest Apartments');
+    });
+
+    it('should return 404 for non-existent search agent', () => {
+      return request(app.getHttpServer())
+        .get('/api/search-agents/00000000-0000-0000-0000-000000000000')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(404);
+    });
+  });
+
+  describe('PATCH /api/search-agents/:id', () => {
+    it('should update search agent', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/search-agents/${searchAgentId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Updated Budapest Search',
+          emailNotifications: false,
+        })
+        .expect(200);
+
+      expect(response.body.name).toBe('Updated Budapest Search');
+      expect(response.body.emailNotifications).toBe(false);
+    });
+
+    it('should update search criteria', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/search-agents/${searchAgentId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          criteria: {
+            city: 'Budapest',
+            listingTypes: ['FOR_SALE', 'LONG_TERM_RENT'],
+            maxPrice: 400000,
+          },
+        })
+        .expect(200);
+
+      expect(response.body.criteria.maxPrice).toBe(400000);
+    });
+  });
+
+  describe('POST /api/search-agents/:id/toggle-active', () => {
+    it('should deactivate search agent', async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/search-agents/${searchAgentId}/toggle-active`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ isActive: false })
+        .expect(200);
+
+      expect(response.body.isActive).toBe(false);
+    });
+
+    it('should activate search agent', async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/search-agents/${searchAgentId}/toggle-active`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ isActive: true })
+        .expect(200);
+
+      expect(response.body.isActive).toBe(true);
+    });
+  });
+
+  describe('POST /api/search-agents/:id/run', () => {
+    it('should run search agent and return matching properties', async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/search-agents/${searchAgentId}/run`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('propertyIds');
+      expect(response.body).toHaveProperty('count');
+      expect(Array.isArray(response.body.propertyIds)).toBe(true);
+    });
+  });
+
+  // ============ FAVORITES ============
+
+  describe('POST /api/favorites/:propertyId', () => {
+    it('should add property to favorites', async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/favorites/${propertyId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(201);
+
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.propertyId).toBe(propertyId);
+    });
+
+    it('should reject adding same property again', () => {
+      return request(app.getHttpServer())
+        .post(`/api/favorites/${propertyId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(409);
+    });
+
+    it('should reject without authentication', () => {
+      return request(app.getHttpServer())
+        .post(`/api/favorites/${propertyId}`)
+        .expect(401);
+    });
+
+    it('should reject for non-existent property', () => {
+      return request(app.getHttpServer())
+        .post('/api/favorites/00000000-0000-0000-0000-000000000000')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(404);
+    });
+  });
+
+  describe('GET /api/favorites', () => {
+    it('should list user\'s favorites', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/favorites')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('propertyId', propertyId);
+    });
+
+    it('should reject without authentication', () => {
+      return request(app.getHttpServer())
+        .get('/api/favorites')
+        .expect(401);
+    });
+  });
+
+  describe('GET /api/favorites/ids', () => {
+    it('should return list of favorite property IDs', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/favorites/ids')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body).toContain(propertyId);
+    });
+  });
+
+  describe('GET /api/favorites/stats', () => {
+    it('should return favorite statistics', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/favorites/stats')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('total');
+      expect(response.body.total).toBeGreaterThan(0);
+      expect(response.body).toHaveProperty('byListingType');
+    });
+  });
+
+  describe('GET /api/favorites/:propertyId/check', () => {
+    it('should return true for favorited property', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/favorites/${propertyId}/check`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body.isFavorite).toBe(true);
+    });
+
+    it('should return false for non-favorited property', async () => {
+      // Create another property
+      const anotherProperty = await request(app.getHttpServer())
+        .post('/api/properties')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          title: 'Another Property',
+          address: '789 Other Street',
+          postalCode: '1013',
+          city: 'Vienna',
+          country: 'AT',
+          listingTypes: ['FOR_SALE'],
+          basePrice: '150000.00',
+        });
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/favorites/${anotherProperty.body.id}/check`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body.isFavorite).toBe(false);
+    });
+  });
+
+  describe('POST /api/favorites/:propertyId/toggle', () => {
+    it('should toggle favorite off', async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/favorites/${propertyId}/toggle`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body.isFavorite).toBe(false);
+    });
+
+    it('should toggle favorite on', async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/favorites/${propertyId}/toggle`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body.isFavorite).toBe(true);
+    });
+  });
+
+  describe('DELETE /api/favorites/:propertyId', () => {
+    it('should remove property from favorites', async () => {
+      const response = await request(app.getHttpServer())
+        .delete(`/api/favorites/${propertyId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('message');
+    });
+
+    it('should return 404 when removing non-favorited property', () => {
+      return request(app.getHttpServer())
+        .delete(`/api/favorites/${propertyId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(404);
+    });
+  });
+
+  // ============ SEARCH AGENT CLEANUP ============
+
+  describe('DELETE /api/search-agents/:id', () => {
+    it('should delete search agent', async () => {
+      const response = await request(app.getHttpServer())
+        .delete(`/api/search-agents/${searchAgentId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('message');
+    });
+
+    it('should return 404 for already deleted search agent', () => {
+      return request(app.getHttpServer())
+        .delete(`/api/search-agents/${searchAgentId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(404);
+    });
+  });
+});
