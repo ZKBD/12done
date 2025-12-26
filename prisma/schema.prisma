@@ -1,6 +1,6 @@
 // 12done.com Database Schema
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Comprehensive Real Estate & Services Platform
+// Phase 1: User Management, Properties, Search
 
 generator client {
   provider = "prisma-client-js"
@@ -11,4 +11,488 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Schema will be populated in the next step
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING_VERIFICATION // Email not verified yet
+  PENDING_PROFILE      // Email verified, profile incomplete
+  ACTIVE               // Fully registered
+  SUSPENDED
+  DELETED
+}
+
+enum VerificationStatus {
+  NOT_STARTED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+enum ListingType {
+  FOR_SALE
+  SHORT_TERM_RENT
+  LONG_TERM_RENT
+  EVENTS
+  BARTER
+}
+
+enum PropertyStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  SOLD
+  RENTED
+  EXPIRED
+  DELETED
+}
+
+enum EnergyEfficiencyRating {
+  A_PLUS_PLUS
+  A_PLUS
+  A
+  B
+  C
+  D
+  E
+  F
+  G
+  NOT_RATED
+}
+
+enum NotificationType {
+  EMAIL_VERIFICATION
+  WELCOME
+  PASSWORD_RESET
+  SEARCH_AGENT_MATCH
+  INVITATION_SENT
+  INVITATION_ACCEPTED
+  PROPERTY_INQUIRY
+  INSPECTION_BOOKED
+  INSPECTION_REMINDER
+}
+
+// ============================================
+// USER MANAGEMENT (PROD-001 to PROD-011)
+// ============================================
+
+model User {
+  id                    String              @id @default(uuid())
+  email                 String              @unique
+  passwordHash          String
+  firstName             String
+  lastName              String
+  phone                 String?             // International format (PROD-002)
+  address               String?             // (PROD-002)
+  postalCode            String?             // (PROD-002)
+  city                  String?             // (PROD-002)
+  country               String?             // ISO 3166-1 alpha-2 (PROD-002)
+  role                  UserRole            @default(USER) // (PROD-004)
+  status                UserStatus          @default(PENDING_VERIFICATION)
+
+  // Email verification (PROD-001)
+  emailVerified         Boolean             @default(false)
+  emailVerifiedAt       DateTime?
+
+  // ID Verification (PROD-008, PROD-010)
+  idVerificationStatus  VerificationStatus  @default(NOT_STARTED)
+  idVerifiedAt          DateTime?
+
+  // Background Check (PROD-009)
+  backgroundCheckStatus VerificationStatus  @default(NOT_STARTED)
+  backgroundCheckAt     DateTime?
+
+  // Social Media Profiles (PROD-005)
+  socialProfiles        SocialProfile[]
+
+  // Invitation System (PROD-006, PROD-007)
+  invitedById           String?
+  invitedBy             User?               @relation("InvitedBy", fields: [invitedById], references: [id])
+  invitees              User[]              @relation("InvitedBy")
+  sentInvitations       Invitation[]        @relation("SentInvitations")
+  receivedInvitation    Invitation?         @relation("ReceivedInvitation")
+
+  // Properties (PROD-020+)
+  properties            Property[]
+
+  // Search & Favorites (PROD-040+)
+  searchAgents          SearchAgent[]
+  favoriteProperties    FavoriteProperty[]
+  browsingHistory       BrowsingHistory[]
+
+  // Notifications (USER-020+)
+  notifications         Notification[]
+
+  // Auth Tokens
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  refreshTokens           RefreshToken[]
+
+  // Inspection bookings
+  bookedInspections     InspectionSlot[]
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@index([email])
+  @@index([invitedById])
+  @@index([status])
+  @@index([role])
+}
+
+// Social Media Profiles (PROD-005)
+model SocialProfile {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform   String   // facebook, instagram, linkedin, twitter, etc.
+  profileUrl String
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, platform])
+  @@index([userId])
+}
+
+// Email Verification Token (PROD-001)
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+// Password Reset Token
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+// JWT Refresh Token
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+// ============================================
+// INVITATION SYSTEM (PROD-006, PROD-007)
+// ============================================
+
+model Invitation {
+  id               String           @id @default(uuid())
+  email            String
+  inviterId        String
+  inviter          User             @relation("SentInvitations", fields: [inviterId], references: [id])
+  status           InvitationStatus @default(PENDING)
+  token            String           @unique
+
+  // Track if invitation converted to user
+  acceptedUserId   String?          @unique
+  acceptedUser     User?            @relation("ReceivedInvitation", fields: [acceptedUserId], references: [id])
+
+  // Kick-back eligibility tracking (PROD-006)
+  kickbackEligible Boolean          @default(true)
+
+  expiresAt        DateTime
+  acceptedAt       DateTime?
+  createdAt        DateTime         @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@index([inviterId])
+  @@index([status])
+}
+
+// ============================================
+// PROPERTY LISTINGS (PROD-020 to PROD-031)
+// ============================================
+
+model Property {
+  id                     String                 @id @default(uuid())
+  ownerId                String
+  owner                  User                   @relation(fields: [ownerId], references: [id])
+
+  // Location (PROD-020)
+  address                String
+  postalCode             String
+  city                   String
+  country                String                 // ISO 3166-1 alpha-2
+  latitude               Float?
+  longitude              Float?
+
+  // Basic Info (PROD-021)
+  title                  String
+  description            String?
+  aiGeneratedDescription String?                // (PROD-029)
+  descriptionTone        String?                // luxury, family-friendly, investment-focused
+
+  // Listing Types (PROD-022) - Multi-choice stored as array
+  listingTypes           ListingType[]
+
+  // Pricing (PROD-021, PROD-023)
+  basePrice              Decimal                @db.Decimal(12, 2)
+  currency               String                 @default("EUR")
+  priceNegotiable        Boolean                @default(false)
+  negotiabilityRange     Decimal?               @db.Decimal(5, 2) // Percentage, e.g., 10.00 = 10%
+  dynamicPricingEnabled  Boolean                @default(false)
+
+  // Dimensions & Characteristics (PROD-021, PROD-027)
+  squareMeters           Float?
+  lotSize                Float?                 // (PROD-042)
+  bedrooms               Int?
+  bathrooms              Int?
+  floors                 Int?
+  yearBuilt              Int?                   // (PROD-042)
+
+  // Property Details (PROD-027)
+  energyEfficiency       EnergyEfficiencyRating @default(NOT_RATED)
+  energyCertificateUrl   String?
+  hoaFees                Decimal?               @db.Decimal(10, 2)
+  hoaInfo                String?
+  propertyTaxHistory     Json?                  // Array of {year, amount}
+  utilitiesCostHistory   Json?                  // Array of {month, electricity, gas, water}
+
+  // Features (PROD-042)
+  petFriendly            Boolean                @default(false)
+  newlyBuilt             Boolean                @default(false)
+  accessible             Boolean                @default(false)
+
+  // No Agents Tag (PROD-026)
+  noAgents               Boolean                @default(false)
+
+  // Status
+  status                 PropertyStatus         @default(DRAFT)
+  publishedAt            DateTime?
+
+  // Relations
+  media                  PropertyMedia[]
+  floorPlans             FloorPlan[]
+  availabilitySlots      AvailabilitySlot[]
+  inspectionSlots        InspectionSlot[]
+  dynamicPricingRules    DynamicPricingRule[]
+  favoritedBy            FavoriteProperty[]
+  browsingHistory        BrowsingHistory[]
+
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  @@index([ownerId])
+  @@index([city])
+  @@index([country])
+  @@index([status])
+  @@index([listingTypes])
+  @@index([basePrice])
+  @@index([latitude, longitude])
+}
+
+// Property Media (PROD-028)
+model PropertyMedia {
+  id           String   @id @default(uuid())
+  propertyId   String
+  property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  type         String   // photo, video, tour_360, tour_3d
+  url          String
+  thumbnailUrl String?
+  caption      String?
+  sortOrder    Int      @default(0)
+  isPrimary    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([propertyId])
+  @@index([type])
+}
+
+// Floor Plans (PROD-027)
+model FloorPlan {
+  id         String   @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name       String   // "Ground Floor", "First Floor", etc.
+  imageUrl   String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId])
+}
+
+// Availability Calendar (PROD-024)
+model AvailabilitySlot {
+  id            String   @id @default(uuid())
+  propertyId    String
+  property      Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  startDate     DateTime
+  endDate       DateTime
+  isAvailable   Boolean  @default(true)
+  pricePerNight Decimal? @db.Decimal(10, 2) // For short-term rentals
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@index([propertyId])
+  @@index([startDate, endDate])
+  @@index([isAvailable])
+}
+
+// Inspection Scheduling (PROD-025)
+model InspectionSlot {
+  id         String    @id @default(uuid())
+  propertyId String
+  property   Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  date       DateTime
+  startTime  String    // "09:00"
+  endTime    String    // "09:30"
+  isBooked   Boolean   @default(false)
+  bookedById String?
+  bookedBy   User?     @relation(fields: [bookedById], references: [id])
+  bookedAt   DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([propertyId])
+  @@index([date])
+  @@index([isBooked])
+}
+
+// Dynamic Pricing Rules (PROD-023)
+model DynamicPricingRule {
+  id              String    @id @default(uuid())
+  propertyId      String
+  property        Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name            String    // "Summer Season", "Holiday Premium", "Weekend Rate"
+  startDate       DateTime?
+  endDate         DateTime?
+  dayOfWeek       Int?      // 0-6 (Sunday-Saturday) for recurring weekly rules
+  priceMultiplier Decimal   @db.Decimal(4, 2) // 1.20 = 20% increase, 0.80 = 20% discount
+  isActive        Boolean   @default(true)
+  priority        Int       @default(0) // Higher priority rules applied first
+  createdAt       DateTime  @default(now())
+
+  @@index([propertyId])
+  @@index([isActive])
+}
+
+// ============================================
+// SEARCH & DISCOVERY (PROD-040 to PROD-050)
+// ============================================
+
+// Search Agent (PROD-040, PROD-041)
+model SearchAgent {
+  id                  String    @id @default(uuid())
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                String
+
+  // Search Criteria (PROD-040, PROD-042) - Flexible JSON structure
+  // Example: { listingTypes: ["FOR_SALE"], country: "HU", minPrice: 100000, maxPrice: 500000, ... }
+  criteria            Json
+
+  // Notifications (PROD-041)
+  emailNotifications  Boolean   @default(true)
+  inAppNotifications  Boolean   @default(true)
+
+  isActive            Boolean   @default(true)
+  lastTriggeredAt     DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+// Favorite Properties (PROD-049)
+model FavoriteProperty {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, propertyId])
+  @@index([userId])
+  @@index([propertyId])
+}
+
+// Browsing History for AI Recommendations (PROD-050)
+model BrowsingHistory {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  viewedAt   DateTime @default(now())
+  duration   Int?     // Seconds spent viewing
+
+  @@index([userId])
+  @@index([propertyId])
+  @@index([viewedAt])
+}
+
+// ============================================
+// NOTIFICATIONS (USER-020 to USER-023)
+// ============================================
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?            // Additional context (propertyId, invitationId, etc.)
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ============================================
+// LOCALIZATION (USER-030 to USER-034, USER-040)
+// ============================================
+
+model Country {
+  code        String  @id // ISO 3166-1 alpha-2
+  name        String
+  nativeName  String? // Name in local language
+  phonePrefix String  // "+1", "+44", "+36", etc.
+  currency    String  // ISO 4217 currency code
+  isActive    Boolean @default(true)
+
+  @@index([isActive])
+}
