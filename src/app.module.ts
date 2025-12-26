@@ -11,6 +11,9 @@ import { UsersModule } from './modules/users';
 import { InvitationsModule } from './modules/invitations';
 import { PropertiesModule } from './modules/properties';
 import { SearchModule } from './modules/search';
+import { NotificationsModule } from './modules/notifications';
+import { CountriesModule } from './modules/countries';
+import { HealthModule } from './modules/health';
 
 @Module({
   imports: [
@@ -47,12 +50,9 @@ import { SearchModule } from './modules/search';
     InvitationsModule,
     PropertiesModule,
     SearchModule,
-
-    // Feature modules will be added here as we implement them:
-    // FavoritesModule,
-    // NotificationsModule,
-    // CountriesModule,
-    // HealthModule,
+    NotificationsModule,
+    CountriesModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
