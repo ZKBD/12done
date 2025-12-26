@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth';
 import { UsersModule } from './modules/users';
 import { InvitationsModule } from './modules/invitations';
 import { PropertiesModule } from './modules/properties';
+import { SearchModule } from './modules/search';
 
 @Module({
   imports: [
@@ -45,9 +46,9 @@ import { PropertiesModule } from './modules/properties';
     UsersModule,
     InvitationsModule,
     PropertiesModule,
+    SearchModule,
 
     // Feature modules will be added here as we implement them:
-    // SearchModule,
     // FavoritesModule,
     // NotificationsModule,
     // CountriesModule,
