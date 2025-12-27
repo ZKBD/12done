@@ -360,6 +360,24 @@ CI Pipeline includes:
 - **E2E Tests** - Jest E2E with PostgreSQL + Redis + MailHog services
 - **Build** - TypeScript compilation and artifact upload
 
+### Branch Protection
+
+**Ruleset:** "Protect main branch" (Active)
+**Target:** Default branch (main)
+
+| Required Check | Source | Status |
+|----------------|--------|--------|
+| Lint | GitHub Actions | ✅ Required |
+| Unit Tests | GitHub Actions | ✅ Required |
+| E2E Tests | GitHub Actions | ✅ Required |
+| Build | GitHub Actions | ✅ Required |
+
+**Additional Rules:**
+- Restrict deletions (enabled)
+- Block force pushes (enabled)
+
+All PRs to `main` must pass all 4 CI checks before merging.
+
 ### Latest Test Run
 
 | Date | Unit Tests | E2E Tests | CI Status | Notes |
@@ -434,6 +452,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-27 | Claude | Initial matrix creation with all Phase 1 requirements |
 | 2025-12-27 | Claude | Added environment requirements section; tests blocked due to Docker unavailability |
 | 2025-12-27 | Claude | Added CI/CD status section; GitHub Actions now fully operational with all tests passing |
+| 2025-12-27 | Claude | Added branch protection section; main branch now requires all 4 CI checks to pass |
 
 ---
 
