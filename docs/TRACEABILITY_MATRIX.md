@@ -245,15 +245,30 @@ All tests passing locally and in CI.
 | PROD-042.4 | `findAll > returns paginated results` | properties.controller.spec.ts | Verifies pagination works | ✅ |
 | PROD-042 | `GET /properties with filters` | properties.e2e-spec.ts | End-to-end test of property search | ✅ |
 
-### PROD-043 to PROD-047: Advanced Search Features
+### PROD-043: Map-Based Search (Geo Search)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-043 | N/A | N/A | Map-based search - not yet implemented | 🚧 |
-| PROD-044 | N/A | N/A | Voice search - not yet implemented | 🚧 |
-| PROD-045 | N/A | N/A | Visual search - not yet implemented | 🚧 |
-| PROD-046 | N/A | N/A | AR property discovery - not yet implemented | 🚧 |
-| PROD-047 | N/A | N/A | Lifestyle matching - not yet implemented | 🚧 |
+| PROD-043.1 | `findAll > should filter by geo bounding box` | properties.service.spec.ts | Verifies viewport/bounding box search using sw/ne coordinates | ✅ |
+| PROD-043.2 | `findAll > should filter by radius search using bounding box approximation` | properties.service.spec.ts | Verifies radius search using center point and radius in km | ✅ |
+| PROD-043.3 | `findAll > should filter by polygon search using bounding box approximation` | properties.service.spec.ts | Verifies polygon search using array of coordinates | ✅ |
+| PROD-043.4 | `findAll > should not apply polygon filter with less than 3 points` | properties.service.spec.ts | Verifies polygon validation (minimum 3 points) | ✅ |
+| PROD-043.5 | `Geo-based Search > should find property within bounding box` | properties.e2e-spec.ts | E2E test of viewport search | ✅ |
+| PROD-043.6 | `Geo-based Search > should NOT find property outside bounding box` | properties.e2e-spec.ts | E2E test of bounding box exclusion | ✅ |
+| PROD-043.7 | `Geo-based Search > should find property within radius` | properties.e2e-spec.ts | E2E test of radius search | ✅ |
+| PROD-043.8 | `Geo-based Search > should NOT find property outside radius` | properties.e2e-spec.ts | E2E test of radius exclusion | ✅ |
+| PROD-043.9 | `Geo-based Search > should find property within polygon` | properties.e2e-spec.ts | E2E test of polygon search | ✅ |
+| PROD-043.10 | `Geo-based Search > should NOT find property outside polygon` | properties.e2e-spec.ts | E2E test of polygon exclusion | ✅ |
+| PROD-043.11 | `Geo-based Search > should combine geo filters with other filters` | properties.e2e-spec.ts | E2E test of combined geo + property filters | ✅ |
+
+### PROD-044 to PROD-047: Advanced Search Features (Phase 4)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-044 | N/A | N/A | Voice search - Phase 4 feature | 🚧 |
+| PROD-045 | N/A | N/A | Visual search - Phase 4 feature | 🚧 |
+| PROD-046 | N/A | N/A | AR property discovery - Phase 4 feature | 🚧 |
+| PROD-047 | N/A | N/A | Lifestyle matching - Phase 4 feature | 🚧 |
 
 ### PROD-048: Open House Filtering
 
@@ -478,7 +493,7 @@ The following requirements do not yet have test coverage:
 | PROD-029 | AI Description Generation | Not yet implemented |
 | PROD-030 | Virtual Staging | Not yet implemented |
 | PROD-031 | Time-of-Day Photos | Not yet implemented |
-| PROD-043-047 | Advanced Search Features | Not yet implemented |
+| PROD-044-047 | Advanced Search Features (Voice, Visual, AR, Lifestyle) | Phase 4 features |
 | PROD-050 | AI Recommendations | Not yet implemented |
 | PROD-060-068 | Service Providers | Partial implementation |
 | PROD-080-097 | Transactions & Payments | Partial implementation |
@@ -499,6 +514,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-27 | Claude | Implemented PROD-041 (Search Agent Notifications); added 6 test cases covering notification trigger |
 | 2025-12-27 | Claude | Implemented PROD-026 (No Agents Tag); added AGENT role, 12 test cases covering search exclusion and access control |
 | 2025-12-27 | Claude | Implemented PROD-048 (Open House Filtering); added OpenHouseEvent model, 20 test cases covering CRUD and search filter |
+| 2025-12-27 | Claude | Implemented PROD-043 (Map-Based Search); added bounding box, radius, and polygon search; 11 test cases |
 
 ---
 

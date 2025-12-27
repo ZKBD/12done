@@ -825,6 +825,150 @@ describe('PropertiesController (e2e)', () => {
     });
   });
 
+  // PROD-043: Geo-based Search
+  describe('Geo-based Search (PROD-043)', () => {
+    let geoPropertyId: string;
+
+    beforeAll(async () => {
+      // Create a property with specific coordinates for geo testing
+      const propertyResponse = await request(app.getHttpServer())
+        .post('/api/properties')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          title: 'Geo Test Property in Budapest',
+          address: '1 Andrassy ut',
+          postalCode: '1061',
+          city: 'Budapest',
+          country: 'HU',
+          latitude: 47.5025,
+          longitude: 19.0640,
+          listingTypes: ['FOR_SALE'],
+          basePrice: '500000.00',
+        });
+
+      geoPropertyId = propertyResponse.body.id;
+
+      // Publish the property
+      await request(app.getHttpServer())
+        .patch(`/api/properties/${geoPropertyId}/status`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ status: 'ACTIVE' });
+    });
+
+    // PROD-043.6: Bounding box / viewport search
+    it('should find property within bounding box', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/properties')
+        .query({
+          swLat: 47.4,
+          swLng: 19.0,
+          neLat: 47.6,
+          neLng: 19.2,
+        })
+        .expect(200);
+
+      const propertyIds = response.body.data.map((p: { id: string }) => p.id);
+      expect(propertyIds).toContain(geoPropertyId);
+    });
+
+    it('should NOT find property outside bounding box', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/properties')
+        .query({
+          swLat: 48.0,
+          swLng: 20.0,
+          neLat: 48.5,
+          neLng: 20.5,
+        })
+        .expect(200);
+
+      const propertyIds = response.body.data.map((p: { id: string }) => p.id);
+      expect(propertyIds).not.toContain(geoPropertyId);
+    });
+
+    // PROD-043: Radius search
+    it('should find property within radius', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/properties')
+        .query({
+          centerLat: 47.5,
+          centerLng: 19.05,
+          radiusKm: 5,
+        })
+        .expect(200);
+
+      const propertyIds = response.body.data.map((p: { id: string }) => p.id);
+      expect(propertyIds).toContain(geoPropertyId);
+    });
+
+    it('should NOT find property outside radius', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/properties')
+        .query({
+          centerLat: 48.2,
+          centerLng: 16.4, // Vienna
+          radiusKm: 5,
+        })
+        .expect(200);
+
+      const propertyIds = response.body.data.map((p: { id: string }) => p.id);
+      expect(propertyIds).not.toContain(geoPropertyId);
+    });
+
+    // PROD-043.5: Polygon search
+    it('should find property within polygon', async () => {
+      const polygon = JSON.stringify([
+        { lat: 47.4, lng: 19.0 },
+        { lat: 47.6, lng: 19.0 },
+        { lat: 47.6, lng: 19.2 },
+        { lat: 47.4, lng: 19.2 },
+      ]);
+
+      const response = await request(app.getHttpServer())
+        .get('/api/properties')
+        .query({ polygon })
+        .expect(200);
+
+      const propertyIds = response.body.data.map((p: { id: string }) => p.id);
+      expect(propertyIds).toContain(geoPropertyId);
+    });
+
+    it('should NOT find property outside polygon', async () => {
+      const polygon = JSON.stringify([
+        { lat: 48.0, lng: 20.0 },
+        { lat: 48.5, lng: 20.0 },
+        { lat: 48.5, lng: 20.5 },
+        { lat: 48.0, lng: 20.5 },
+      ]);
+
+      const response = await request(app.getHttpServer())
+        .get('/api/properties')
+        .query({ polygon })
+        .expect(200);
+
+      const propertyIds = response.body.data.map((p: { id: string }) => p.id);
+      expect(propertyIds).not.toContain(geoPropertyId);
+    });
+
+    // Combined filters
+    it('should combine geo filters with other filters', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/properties')
+        .query({
+          city: 'Budapest',
+          centerLat: 47.5,
+          centerLng: 19.05,
+          radiusKm: 10,
+          minPrice: 100000,
+          maxPrice: 1000000,
+        })
+        .expect(200);
+
+      const propertyIds = response.body.data.map((p: { id: string }) => p.id);
+      expect(propertyIds).toContain(geoPropertyId);
+    });
+  });
+
   // PROD-048: Open House Events
   describe('Open House Events (PROD-048)', () => {
     let openHousePropertyId: string;

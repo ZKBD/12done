@@ -534,7 +534,7 @@ export class PropertiesService {
       });
     }
 
-    // Geo bounding box
+    // Geo bounding box (PROD-043.6 - Viewport search)
     if (
       query.swLat !== undefined &&
       query.swLng !== undefined &&
@@ -544,6 +544,41 @@ export class PropertiesService {
       andConditions.push(
         { latitude: { gte: query.swLat, lte: query.neLat } },
         { longitude: { gte: query.swLng, lte: query.neLng } },
+      );
+    }
+
+    // Radius search (PROD-043) - Uses bounding box approximation
+    // For production, consider using PostGIS for accurate distance calculations
+    if (
+      query.centerLat !== undefined &&
+      query.centerLng !== undefined &&
+      query.radiusKm !== undefined
+    ) {
+      // Convert radius to approximate degrees
+      // 1 degree latitude ≈ 111 km
+      // 1 degree longitude ≈ 111 * cos(latitude) km
+      const latDelta = query.radiusKm / 111;
+      const lngDelta = query.radiusKm / (111 * Math.cos((query.centerLat * Math.PI) / 180));
+
+      andConditions.push(
+        { latitude: { gte: query.centerLat - latDelta, lte: query.centerLat + latDelta } },
+        { longitude: { gte: query.centerLng - lngDelta, lte: query.centerLng + lngDelta } },
+      );
+    }
+
+    // Polygon search (PROD-043.5) - Uses bounding box of polygon as approximation
+    // For production, use PostGIS ST_Contains for accurate point-in-polygon
+    if (query.polygon && query.polygon.length >= 3) {
+      const lats = query.polygon.map((p) => p.lat);
+      const lngs = query.polygon.map((p) => p.lng);
+      const minLat = Math.min(...lats);
+      const maxLat = Math.max(...lats);
+      const minLng = Math.min(...lngs);
+      const maxLng = Math.max(...lngs);
+
+      andConditions.push(
+        { latitude: { gte: minLat, lte: maxLat } },
+        { longitude: { gte: minLng, lte: maxLng } },
       );
     }
 

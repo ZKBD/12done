@@ -14,6 +14,21 @@ import { Type, Transform } from 'class-transformer';
 import { ListingType, PropertyStatus, EnergyEfficiencyRating } from '@prisma/client';
 import { PaginationQueryDto } from '@/common/dto';
 
+/**
+ * Coordinate point for polygon search
+ */
+export class GeoCoordinate {
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  lat: number;
+
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  lng: number;
+}
+
 export class PropertyQueryDto extends PaginationQueryDto {
   // Text search
   @ApiPropertyOptional({
@@ -262,6 +277,73 @@ export class PropertyQueryDto extends PaginationQueryDto {
   @IsNumber()
   @Type(() => Number)
   neLng?: number;
+
+  // Radius search (PROD-043)
+  @ApiPropertyOptional({
+    description: 'Center latitude for radius search (PROD-043)',
+    example: 47.4979,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  @Type(() => Number)
+  centerLat?: number;
+
+  @ApiPropertyOptional({
+    description: 'Center longitude for radius search (PROD-043)',
+    example: 19.0402,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  @Type(() => Number)
+  centerLng?: number;
+
+  @ApiPropertyOptional({
+    description: 'Search radius in kilometers (PROD-043)',
+    example: 5,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0.1)
+  @Max(100)
+  @Type(() => Number)
+  radiusKm?: number;
+
+  // Polygon search (PROD-043)
+  @ApiPropertyOptional({
+    description: 'Polygon coordinates as JSON array for custom area search (PROD-043). Format: [{"lat":47.5,"lng":19.0},...]',
+    example: '[{"lat":47.5,"lng":19.0},{"lat":47.6,"lng":19.0},{"lat":47.6,"lng":19.2},{"lat":47.5,"lng":19.2}]',
+    type: String,
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        // Validate structure: must be array of objects with lat/lng numbers
+        if (
+          Array.isArray(parsed) &&
+          parsed.every(
+            (p) =>
+              typeof p === 'object' &&
+              p !== null &&
+              typeof p.lat === 'number' &&
+              typeof p.lng === 'number',
+          )
+        ) {
+          return parsed;
+        }
+        return null; // Invalid structure
+      } catch {
+        return null;
+      }
+    }
+    return value;
+  })
+  polygon?: GeoCoordinate[];
 
   // Owner filter (admin/own properties)
   @ApiPropertyOptional({

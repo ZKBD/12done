@@ -365,6 +365,93 @@ describe('PropertiesService', () => {
       );
     });
 
+    // PROD-043: Radius search
+    it('should filter by radius search using bounding box approximation', async () => {
+      (prismaService.property.findMany as jest.Mock).mockResolvedValue([]);
+      (prismaService.property.count as jest.Mock).mockResolvedValue(0);
+
+      // 5km radius from Budapest center (47.4979, 19.0402)
+      await service.findAll(createQueryDto({
+        centerLat: 47.4979,
+        centerLng: 19.0402,
+        radiusKm: 5,
+      }));
+
+      // 5km ≈ 0.045 degrees latitude
+      // 5km ≈ 0.066 degrees longitude at this latitude
+      expect(prismaService.property.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            AND: expect.arrayContaining([
+              expect.objectContaining({
+                latitude: expect.objectContaining({
+                  gte: expect.any(Number),
+                  lte: expect.any(Number),
+                }),
+              }),
+              expect.objectContaining({
+                longitude: expect.objectContaining({
+                  gte: expect.any(Number),
+                  lte: expect.any(Number),
+                }),
+              }),
+            ]),
+          }),
+        }),
+      );
+    });
+
+    // PROD-043.5: Polygon search
+    it('should filter by polygon search using bounding box approximation', async () => {
+      (prismaService.property.findMany as jest.Mock).mockResolvedValue([]);
+      (prismaService.property.count as jest.Mock).mockResolvedValue(0);
+
+      // Triangle polygon
+      await service.findAll(createQueryDto({
+        polygon: [
+          { lat: 47.5, lng: 19.0 },
+          { lat: 47.6, lng: 19.1 },
+          { lat: 47.5, lng: 19.2 },
+        ],
+      }));
+
+      // Should use bounding box of polygon: lat 47.5-47.6, lng 19.0-19.2
+      expect(prismaService.property.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            AND: expect.arrayContaining([
+              { latitude: { gte: 47.5, lte: 47.6 } },
+              { longitude: { gte: 19.0, lte: 19.2 } },
+            ]),
+          }),
+        }),
+      );
+    });
+
+    it('should not apply polygon filter with less than 3 points', async () => {
+      (prismaService.property.findMany as jest.Mock).mockResolvedValue([]);
+      (prismaService.property.count as jest.Mock).mockResolvedValue(0);
+
+      // Only 2 points - should not apply polygon filter
+      await service.findAll(createQueryDto({
+        polygon: [
+          { lat: 47.5, lng: 19.0 },
+          { lat: 47.6, lng: 19.1 },
+        ],
+      }));
+
+      // Should not have polygon-based lat/lng filter in AND
+      expect(prismaService.property.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.not.objectContaining({
+            AND: expect.arrayContaining([
+              expect.objectContaining({ latitude: expect.anything() }),
+            ]),
+          }),
+        }),
+      );
+    });
+
     it('should default to ACTIVE status for public queries', async () => {
       (prismaService.property.findMany as jest.Mock).mockResolvedValue([]);
       (prismaService.property.count as jest.Mock).mockResolvedValue(0);
