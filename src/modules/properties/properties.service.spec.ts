@@ -379,6 +379,49 @@ describe('PropertiesService', () => {
         }),
       );
     });
+
+    // PROD-026.3: No Agents Tag filtering for AGENT users
+    it('should exclude noAgents properties for AGENT users', async () => {
+      (prismaService.property.findMany as jest.Mock).mockResolvedValue([]);
+      (prismaService.property.count as jest.Mock).mockResolvedValue(0);
+
+      await service.findAll(createQueryDto(), 'agent-123', UserRole.AGENT);
+
+      expect(prismaService.property.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            AND: expect.arrayContaining([
+              {
+                OR: [
+                  { noAgents: false },
+                  { ownerId: 'agent-123' },
+                ],
+              },
+            ]),
+          }),
+        }),
+      );
+    });
+
+    it('should not apply noAgents filter for regular USER', async () => {
+      (prismaService.property.findMany as jest.Mock).mockResolvedValue([]);
+      (prismaService.property.count as jest.Mock).mockResolvedValue(0);
+
+      await service.findAll(createQueryDto(), 'user-123', UserRole.USER);
+
+      const call = (prismaService.property.findMany as jest.Mock).mock.calls[0][0];
+      expect(call.where.AND).toBeUndefined();
+    });
+
+    it('should not apply noAgents filter for ADMIN', async () => {
+      (prismaService.property.findMany as jest.Mock).mockResolvedValue([]);
+      (prismaService.property.count as jest.Mock).mockResolvedValue(0);
+
+      await service.findAll(createQueryDto(), 'admin-123', UserRole.ADMIN);
+
+      const call = (prismaService.property.findMany as jest.Mock).mock.calls[0][0];
+      expect(call.where.AND).toBeUndefined();
+    });
   });
 
   describe('findById', () => {
@@ -440,6 +483,42 @@ describe('PropertiesService', () => {
       const result = await service.findById('property-123');
 
       expect(result.favoriteCount).toBe(5);
+    });
+
+    // PROD-026.3: No Agents Tag - block agents from viewing noAgents properties
+    it('should throw ForbiddenException for AGENT viewing noAgents property', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue({
+        ...mockProperty,
+        noAgents: true,
+        ownerId: 'other-owner',
+      });
+
+      await expect(
+        service.findById('property-123', 'agent-123', UserRole.AGENT),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow AGENT to view their own noAgents property', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue({
+        ...mockProperty,
+        noAgents: true,
+        ownerId: 'agent-123',
+      });
+
+      const result = await service.findById('property-123', 'agent-123', UserRole.AGENT);
+
+      expect(result.id).toBe(mockProperty.id);
+    });
+
+    it('should allow regular USER to view noAgents property', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue({
+        ...mockProperty,
+        noAgents: true,
+      });
+
+      const result = await service.findById('property-123', 'user-123', UserRole.USER);
+
+      expect(result.id).toBe(mockProperty.id);
     });
   });
 

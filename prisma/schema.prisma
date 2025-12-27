@@ -17,6 +17,7 @@ datasource db {
 
 enum UserRole {
   USER
+  AGENT  // Real estate agent (PROD-026)
   ADMIN
 }
 

@@ -705,4 +705,123 @@ describe('PropertiesController (e2e)', () => {
         .expect(403);
     });
   });
+
+  // PROD-026: No Agents Tag
+  describe('No Agents Tag (PROD-026)', () => {
+    const agentEmail = `agent.${Date.now()}@example.com`;
+    let agentAccessToken: string;
+    let noAgentsPropertyId: string;
+
+    beforeAll(async () => {
+      // Create and verify agent user
+      await request(app.getHttpServer())
+        .post('/api/auth/register')
+        .send({
+          email: agentEmail,
+          firstName: 'Agent',
+          lastName: 'User',
+          password: testPassword,
+          confirmPassword: testPassword,
+        });
+
+      const agentVerificationToken = await prisma.emailVerificationToken.findFirst({
+        where: { user: { email: agentEmail } },
+      });
+
+      const agentVerifyResponse = await request(app.getHttpServer())
+        .post('/api/auth/verify-email')
+        .send({ token: agentVerificationToken!.token });
+
+      agentAccessToken = agentVerifyResponse.body.tokens.accessToken;
+
+      // Complete agent profile
+      await request(app.getHttpServer())
+        .post('/api/auth/complete-profile')
+        .set('Authorization', `Bearer ${agentAccessToken}`)
+        .send({
+          address: '456 Agent Street',
+          postalCode: '1052',
+          city: 'Budapest',
+          country: 'HU',
+          phone: '+36209876543',
+        });
+
+      // Set user role to AGENT
+      const agentUser = await prisma.user.findUnique({
+        where: { email: agentEmail },
+      });
+      await prisma.user.update({
+        where: { id: agentUser!.id },
+        data: { role: 'AGENT' },
+      });
+
+      // Login again to get token with updated role
+      const agentLoginResponse = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: agentEmail, password: testPassword });
+
+      agentAccessToken = agentLoginResponse.body.tokens.accessToken;
+
+      // Create a noAgents property as regular user
+      const noAgentsPropertyResponse = await request(app.getHttpServer())
+        .post('/api/properties')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          title: 'No Agents Property',
+          address: '999 No Agents Lane',
+          postalCode: '1099',
+          city: 'Budapest',
+          country: 'HU',
+          listingTypes: ['FOR_SALE'],
+          basePrice: '500000.00',
+          noAgents: true,
+        });
+
+      noAgentsPropertyId = noAgentsPropertyResponse.body.id;
+
+      // Publish the property
+      await request(app.getHttpServer())
+        .patch(`/api/properties/${noAgentsPropertyId}/status`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ status: 'ACTIVE' });
+    });
+
+    it('should exclude noAgents properties from AGENT search results', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/properties')
+        .set('Authorization', `Bearer ${agentAccessToken}`)
+        .query({ city: 'Budapest' })
+        .expect(200);
+
+      const propertyIds = response.body.data.map((p: { id: string }) => p.id);
+      expect(propertyIds).not.toContain(noAgentsPropertyId);
+    });
+
+    it('should show noAgents properties to regular USER in search', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/properties')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .query({ city: 'Budapest' })
+        .expect(200);
+
+      const propertyIds = response.body.data.map((p: { id: string }) => p.id);
+      expect(propertyIds).toContain(noAgentsPropertyId);
+    });
+
+    it('should block AGENT from viewing noAgents property directly', async () => {
+      await request(app.getHttpServer())
+        .get(`/api/properties/${noAgentsPropertyId}`)
+        .set('Authorization', `Bearer ${agentAccessToken}`)
+        .expect(403);
+    });
+
+    it('should allow regular USER to view noAgents property', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/properties/${noAgentsPropertyId}`)
+        .set('Authorization', `Bearer ${otherAccessToken}`)
+        .expect(200);
+
+      expect(response.body.noAgents).toBe(true);
+    });
+  });
 });

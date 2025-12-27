@@ -178,11 +178,27 @@ All tests passing locally and in CI.
 | PROD-025.5 | `cancelBooking > cancels inspection` | inspection.service.spec.ts | Verifies booking can be cancelled | ✅ |
 | PROD-025.6 | `bookInspection > controller endpoint` | properties.controller.spec.ts | Verifies booking endpoint | ✅ |
 
-### PROD-026 to PROD-031: Advanced Property Features
+### PROD-026: No Agents Tag
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-026 | N/A | N/A | No agents tag - partial implementation | 🚧 |
+| PROD-026.1 | `create > creates property with noAgents field` | properties.service.spec.ts | Verifies noAgents boolean can be set on property creation | ✅ |
+| PROD-026.2 | `findAll > filters by noAgents` | properties.service.spec.ts | Verifies noAgents filter in search query | ✅ |
+| PROD-026.3 | `findAll > should exclude noAgents properties for AGENT users` | properties.service.spec.ts | Verifies AGENT users cannot see noAgents=true properties | ✅ |
+| PROD-026.4 | `findAll > should not apply noAgents filter for regular USER` | properties.service.spec.ts | Verifies regular users can see noAgents properties | ✅ |
+| PROD-026.5 | `findAll > should not apply noAgents filter for ADMIN` | properties.service.spec.ts | Verifies admins can see all properties | ✅ |
+| PROD-026.6 | `findById > should throw ForbiddenException for AGENT viewing noAgents property` | properties.service.spec.ts | Verifies AGENT cannot view noAgents property directly | ✅ |
+| PROD-026.7 | `findById > should allow AGENT to view their own noAgents property` | properties.service.spec.ts | Verifies AGENT can view their own noAgents property | ✅ |
+| PROD-026.8 | `findById > should allow regular USER to view noAgents property` | properties.service.spec.ts | Verifies regular users can view noAgents properties | ✅ |
+| PROD-026 | `No Agents Tag > should exclude noAgents properties from AGENT search` | properties.e2e-spec.ts | E2E test of AGENT search exclusion | ✅ |
+| PROD-026 | `No Agents Tag > should show noAgents properties to regular USER` | properties.e2e-spec.ts | E2E test of regular user search inclusion | ✅ |
+| PROD-026 | `No Agents Tag > should block AGENT from viewing noAgents property directly` | properties.e2e-spec.ts | E2E test of direct property access blocking | ✅ |
+| PROD-026 | `No Agents Tag > should allow regular USER to view noAgents property` | properties.e2e-spec.ts | E2E test of regular user direct access | ✅ |
+
+### PROD-027 to PROD-031: Advanced Property Features
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
 | PROD-027.1 | `addFloorPlan > creates floor plan` | media.service.spec.ts | Verifies floor plan upload | ✅ |
 | PROD-027.2 | `getFloorPlans > returns floor plans` | media.service.spec.ts | Verifies floor plan retrieval | ✅ |
 | PROD-028.1 | `addMedia > creates property media` | media.service.spec.ts | Verifies media upload | ✅ |
@@ -435,7 +451,6 @@ The following requirements do not yet have test coverage:
 | PROD-009 | Background Checks | Not yet implemented |
 | PROD-010 | Verified Badges | Not yet implemented |
 | PROD-011 | Biometric Authentication | Not yet implemented |
-| PROD-026 | No Agents Tag | Partial implementation |
 | PROD-029 | AI Description Generation | Not yet implemented |
 | PROD-030 | Virtual Staging | Not yet implemented |
 | PROD-031 | Time-of-Day Photos | Not yet implemented |
@@ -458,6 +473,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-27 | Claude | Added CI/CD status section; GitHub Actions now fully operational with all tests passing |
 | 2025-12-27 | Claude | Added branch protection section; main branch now requires all 4 CI checks to pass |
 | 2025-12-27 | Claude | Implemented PROD-041 (Search Agent Notifications); added 6 test cases covering notification trigger |
+| 2025-12-27 | Claude | Implemented PROD-026 (No Agents Tag); added AGENT role, 12 test cases covering search exclusion and access control |
 
 ---
 

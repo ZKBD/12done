@@ -164,6 +164,13 @@ export class PropertiesService {
       }
     }
 
+    // PROD-026.3: noAgents properties not visible to agents (unless owner)
+    if (property.noAgents && requesterRole === UserRole.AGENT) {
+      if (property.ownerId !== requesterId) {
+        throw new ForbiddenException('This property is not available to agents');
+      }
+    }
+
     return this.mapToResponseDto(property);
   }
 
@@ -499,6 +506,20 @@ export class PropertiesService {
     if (query.accessible !== undefined) where.accessible = query.accessible;
     if (query.noAgents !== undefined) where.noAgents = query.noAgents;
 
+    // Collect AND conditions
+    const andConditions: Prisma.PropertyWhereInput[] = [];
+
+    // PROD-026.3: Exclude noAgents properties from AGENT user searches
+    // Agents cannot see properties marked as "no agents" unless they own them
+    if (requesterRole === UserRole.AGENT && query.noAgents === undefined) {
+      andConditions.push({
+        OR: [
+          { noAgents: false },
+          { ownerId: requesterId }, // Agents can always see their own properties
+        ],
+      });
+    }
+
     // Geo bounding box
     if (
       query.swLat !== undefined &&
@@ -506,10 +527,15 @@ export class PropertiesService {
       query.neLat !== undefined &&
       query.neLng !== undefined
     ) {
-      where.AND = [
+      andConditions.push(
         { latitude: { gte: query.swLat, lte: query.neLat } },
         { longitude: { gte: query.swLng, lte: query.neLng } },
-      ];
+      );
+    }
+
+    // Apply AND conditions if any
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     return where;
