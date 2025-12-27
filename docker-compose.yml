@@ -69,6 +69,28 @@ services:
     networks:
       - 12done-network
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: builder
+    container_name: 12done-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:${APP_PORT:-3002}
+      - NEXT_PUBLIC_APP_URL=http://localhost:${FRONTEND_PORT:-3000}
+    depends_on:
+      - app
+    command: npm run dev
+    networks:
+      - 12done-network
+
 volumes:
   postgres_data:
   redis_data:
