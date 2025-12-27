@@ -338,7 +338,32 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Date | Unit Tests | E2E Tests | Coverage | Notes |
 |------|------------|-----------|----------|-------|
-| *Not yet run in Docker* | ⏳ | ⏳ | ⏳ | Run `docker-compose exec app npm test` |
+| 2025-12-27 | ⏳ Blocked | ⏳ Blocked | ⏳ | Docker not available - see instructions below |
+
+### Environment Requirements
+
+Tests MUST be run inside Docker containers. To execute tests:
+
+```bash
+# 1. Ensure Docker Desktop is running
+# 2. Start the development environment
+docker-compose up -d
+
+# 3. Run unit tests
+docker-compose exec app npm test
+
+# 4. Run e2e tests
+docker-compose exec app npm run test:e2e
+
+# 5. Run tests with coverage
+docker-compose exec app npm run test:cov
+```
+
+**Why Docker is required:**
+- Project uses bcrypt which requires native compilation
+- Path with spaces (iCloud) breaks native module builds
+- Database and Redis dependencies need to be running
+- Consistent test environment across machines
 
 ### Test File Inventory
 
@@ -381,6 +406,7 @@ The following requirements do not yet have test coverage:
 | Date | Author | Changes |
 |------|--------|---------|
 | 2025-12-27 | Claude | Initial matrix creation with all Phase 1 requirements |
+| 2025-12-27 | Claude | Added environment requirements section; tests blocked due to Docker unavailability |
 
 ---
 
