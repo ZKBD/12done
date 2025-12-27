@@ -61,7 +61,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/twelvedone_test?schema=public
       REDIS_HOST: localhost
       REDIS_PORT: 6379
-      JWT_SECRET: test-jwt-secret-for-ci
+      JWT_SECRET: test-jwt-secret-for-ci-must-be-32-chars
       JWT_EXPIRATION: 15m
       JWT_REFRESH_EXPIRATION: 7d
       NODE_ENV: test
@@ -120,7 +120,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/twelvedone_test?schema=public
       REDIS_HOST: localhost
       REDIS_PORT: 6379
-      JWT_SECRET: test-jwt-secret-for-ci
+      JWT_SECRET: test-jwt-secret-for-ci-must-be-32-chars
       JWT_EXPIRATION: 15m
       JWT_REFRESH_EXPIRATION: 7d
       NODE_ENV: test
