@@ -158,4 +158,52 @@ export class MailService {
       },
     });
   }
+
+  async sendPaymentSuccessEmail(
+    email: string,
+    firstName: string,
+    transactionId: string,
+    propertyTitle: string,
+    amount: string,
+    currency: string,
+    paidAt: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: 'Payment Successful - 12done.com',
+      template: 'payment-success',
+      context: {
+        firstName,
+        transactionId,
+        propertyTitle,
+        amount,
+        currency,
+        paidAt,
+        dashboardUrl: `${this.frontendUrl}/transactions/${transactionId}`,
+      },
+    });
+  }
+
+  async sendPaymentFailedEmail(
+    email: string,
+    firstName: string,
+    transactionId: string,
+    propertyTitle: string,
+    amount: string,
+    currency: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: 'Payment Failed - 12done.com',
+      template: 'payment-failed',
+      context: {
+        firstName,
+        transactionId,
+        propertyTitle,
+        amount,
+        currency,
+        retryUrl: `${this.frontendUrl}/transactions/${transactionId}/pay`,
+      },
+    });
+  }
 }

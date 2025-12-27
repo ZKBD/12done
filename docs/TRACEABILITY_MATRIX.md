@@ -15,9 +15,9 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 864 | 0 | 864 | 100% |
-| E2E Tests | 193 | 0 | 193 | 100% |
-| **Total** | **1057** | **0** | **1057** | **100%** |
+| Unit Tests | 901 | 0 | 901 | 100% |
+| E2E Tests | 207 | 0 | 207 | 100% |
+| **Total** | **1108** | **0** | **1108** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -486,6 +486,93 @@ All tests passing locally and in CI.
 
 ---
 
+## 7.5 Payment Processing (PROD-093, PROD-094, NFR-013)
+
+### PROD-093: Payment Processing
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-093.1 | `should be defined` | payments.service.spec.ts | Verifies service initialization | ✅ |
+| PROD-093.2 | `createCheckoutSession > should throw NotFoundException if transaction not found` | payments.service.spec.ts | Verifies transaction validation | ✅ |
+| PROD-093.3 | `createCheckoutSession > should throw ForbiddenException if user is not the payer` | payments.service.spec.ts | Verifies only payer can initiate payment | ✅ |
+| PROD-093.4 | `createCheckoutSession > should throw BadRequestException if transaction is not PENDING` | payments.service.spec.ts | Verifies transaction state validation | ✅ |
+| PROD-093.5 | `createCheckoutSession > should create checkout session and update transaction` | payments.service.spec.ts | Verifies Stripe session creation | ✅ |
+| PROD-093.6 | `getPaymentStatus > should throw NotFoundException if transaction not found` | payments.service.spec.ts | Verifies not found handling | ✅ |
+| PROD-093.7 | `getPaymentStatus > should throw ForbiddenException if user is not buyer or seller` | payments.service.spec.ts | Verifies access control | ✅ |
+| PROD-093.8 | `getPaymentStatus > should return payment status for buyer` | payments.service.spec.ts | Verifies buyer can view status | ✅ |
+| PROD-093.9 | `getPaymentStatus > should return payment status for seller` | payments.service.spec.ts | Verifies seller can view status | ✅ |
+| PROD-093.10 | `processRefund > should throw NotFoundException if transaction not found` | payments.service.spec.ts | Verifies refund validation | ✅ |
+| PROD-093.11 | `processRefund > should throw ForbiddenException if user is not the seller` | payments.service.spec.ts | Verifies only seller can refund | ✅ |
+| PROD-093.12 | `processRefund > should throw BadRequestException if transaction is not COMPLETED` | payments.service.spec.ts | Verifies refund state validation | ✅ |
+| PROD-093.13 | `processRefund > should process refund and update transaction` | payments.service.spec.ts | Verifies refund processing | ✅ |
+
+### PROD-094: Stripe Integration
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-094.1 | `should be defined` | stripe.service.spec.ts | Verifies Stripe service initialization | ✅ |
+| PROD-094.2 | `isConfigured > should return false when Stripe is not configured` | stripe.service.spec.ts | Verifies config detection (unconfigured) | ✅ |
+| PROD-094.3 | `isConfigured > should return true when Stripe is configured` | stripe.service.spec.ts | Verifies config detection (configured) | ✅ |
+| PROD-094.4 | `createCheckoutSession > should throw error when Stripe is not configured` | stripe.service.spec.ts | Verifies graceful degradation | ✅ |
+| PROD-094.5 | `retrieveSession > should throw error when Stripe is not configured` | stripe.service.spec.ts | Verifies graceful degradation | ✅ |
+| PROD-094.6 | `retrievePaymentIntent > should throw error when Stripe is not configured` | stripe.service.spec.ts | Verifies graceful degradation | ✅ |
+| PROD-094.7 | `createRefund > should throw error when Stripe is not configured` | stripe.service.spec.ts | Verifies graceful degradation | ✅ |
+| PROD-094.8 | `constructWebhookEvent > should throw error when Stripe is not configured` | stripe.service.spec.ts | Verifies graceful degradation | ✅ |
+
+### Webhook Handling
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| WEBHOOK-001 | `handleWebhookEvent > checkout.session.completed > should update transaction to COMPLETED` | payments.service.spec.ts | Verifies payment success handling | ✅ |
+| WEBHOOK-002 | `handleWebhookEvent > checkout.session.completed > should skip if transactionId not in metadata` | payments.service.spec.ts | Verifies metadata validation | ✅ |
+| WEBHOOK-003 | `handleWebhookEvent > checkout.session.expired > should update transaction to CANCELLED` | payments.service.spec.ts | Verifies expired session handling | ✅ |
+| WEBHOOK-004 | `handleWebhookEvent > payment_intent.payment_failed > should update transaction to FAILED` | payments.service.spec.ts | Verifies payment failure handling | ✅ |
+| WEBHOOK-005 | `handleWebhookEvent > charge.refunded > should update transaction to REFUNDED` | payments.service.spec.ts | Verifies refund event handling | ✅ |
+| WEBHOOK-006 | `handleWebhookEvent > should handle unknown event types gracefully` | payments.service.spec.ts | Verifies unknown event handling | ✅ |
+
+### NFR-013: PCI-DSS Compliance
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| NFR-013.1 | Stripe Checkout Sessions used (no card data on server) | payments.service.ts | Architecture ensures PCI compliance | ✅ |
+| NFR-013.2 | Webhook signature verification | payments.controller.spec.ts | Verifies signature check | ✅ |
+
+### Payment Controller Tests
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| N/A | `should be defined` | payments.controller.spec.ts | Verifies controller initialization | ✅ |
+| N/A | `createCheckoutSession > should call paymentsService.createCheckoutSession with correct params` | payments.controller.spec.ts | Verifies checkout endpoint routing | ✅ |
+| N/A | `createCheckoutSession > should pass custom success and cancel URLs` | payments.controller.spec.ts | Verifies URL customization | ✅ |
+| N/A | `getPaymentStatus > should call paymentsService.getPaymentStatus with correct params` | payments.controller.spec.ts | Verifies status endpoint routing | ✅ |
+| N/A | `processRefund > should call paymentsService.processRefund with correct params` | payments.controller.spec.ts | Verifies refund endpoint routing | ✅ |
+| N/A | `processRefund > should pass amount and reason for partial refund` | payments.controller.spec.ts | Verifies partial refund support | ✅ |
+| N/A | `handleWebhook > should throw BadRequestException if signature is missing` | payments.controller.spec.ts | Verifies webhook security | ✅ |
+| N/A | `handleWebhook > should throw BadRequestException if raw body is missing` | payments.controller.spec.ts | Verifies webhook security | ✅ |
+| N/A | `handleWebhook > should process valid webhook event` | payments.controller.spec.ts | Verifies webhook processing | ✅ |
+| N/A | `handleWebhook > should throw BadRequestException on invalid signature` | payments.controller.spec.ts | Verifies signature rejection | ✅ |
+
+### Payment E2E Tests
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| E2E-PAY-001 | `GET /api/payments/:transactionId > should require authentication` | payments.e2e-spec.ts | E2E auth check for payment status | ✅ |
+| E2E-PAY-002 | `GET /api/payments/:transactionId > should return payment status for buyer` | payments.e2e-spec.ts | E2E buyer payment status | ✅ |
+| E2E-PAY-003 | `GET /api/payments/:transactionId > should return payment status for seller` | payments.e2e-spec.ts | E2E seller payment status | ✅ |
+| E2E-PAY-004 | `GET /api/payments/:transactionId > should return 403 for unauthorized user` | payments.e2e-spec.ts | E2E access control | ✅ |
+| E2E-PAY-005 | `GET /api/payments/:transactionId > should return 404 for non-existent transaction` | payments.e2e-spec.ts | E2E not found handling | ✅ |
+| E2E-PAY-006 | `POST /api/payments/:transactionId/checkout > should require authentication` | payments.e2e-spec.ts | E2E auth check for checkout | ✅ |
+| E2E-PAY-007 | `POST /api/payments/:transactionId/checkout > should return 403 if not the payer` | payments.e2e-spec.ts | E2E payer validation | ✅ |
+| E2E-PAY-008 | `POST /api/payments/:transactionId/checkout > should return 404 for non-existent transaction` | payments.e2e-spec.ts | E2E not found handling | ✅ |
+| E2E-PAY-009 | `POST /api/payments/:transactionId/checkout > should fail without Stripe configuration` | payments.e2e-spec.ts | E2E graceful degradation | ✅ |
+| E2E-PAY-010 | `POST /api/payments/:transactionId/refund > should require authentication` | payments.e2e-spec.ts | E2E auth check for refund | ✅ |
+| E2E-PAY-011 | `POST /api/payments/:transactionId/refund > should return 403 if not the seller` | payments.e2e-spec.ts | E2E seller validation | ✅ |
+| E2E-PAY-012 | `POST /api/payments/:transactionId/refund > should return 400 if transaction is not COMPLETED` | payments.e2e-spec.ts | E2E refund state validation | ✅ |
+| E2E-PAY-013 | `POST /api/payments/webhook > should return 400 without stripe-signature header` | payments.e2e-spec.ts | E2E webhook security | ✅ |
+| E2E-PAY-014 | `POST /api/payments/webhook > should return 400 with invalid signature` | payments.e2e-spec.ts | E2E webhook signature validation | ✅ |
+
+---
+
 ## 8. E2E Test Coverage
 
 ### End-to-End Test Summary
@@ -499,6 +586,7 @@ All tests passing locally and in CI.
 | Search | search.e2e-spec.ts | 6+ | Search and favorites | ✅ |
 | Invitations | invitations.e2e-spec.ts | 8+ | Invitation system | ✅ |
 | Negotiations | negotiations.e2e-spec.ts | 19 | Negotiation and transaction flow | ✅ |
+| Payments | payments.e2e-spec.ts | 14 | Payment processing and webhooks | ✅ |
 
 ---
 
@@ -540,7 +628,7 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | CI Status | Notes |
 |------|------------|-----------|-----------|-------|
-| 2025-12-27 | ✅ 864 passed | ✅ 193 passed | ✅ Passing | All tests pass locally and in CI |
+| 2025-12-27 | ✅ 901 passed | ✅ 207 passed | ✅ Passing | Added Stripe payment integration (37 unit + 14 E2E) |
 
 ### Environment Requirements
 
@@ -594,7 +682,6 @@ The following requirements do not yet have test coverage:
 | PROD-044-047 | Advanced Search Features (Voice, Visual, AR, Lifestyle) | Phase 4 features |
 | PROD-050 | AI Recommendations | Not yet implemented |
 | PROD-060-068 | Service Providers | Partial implementation |
-| PROD-080-089 | Payment Gateway Integration | Not yet implemented (Stripe stub only) |
 | PROD-096-097 | Advanced Transaction Features | Not yet implemented |
 | PROD-100-108 | Property Management | Partial implementation |
 | PROD-120-133 | AI Tour Guide | Not yet implemented |
@@ -615,6 +702,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-27 | Claude | Implemented PROD-048 (Open House Filtering); added OpenHouseEvent model, 20 test cases covering CRUD and search filter |
 | 2025-12-27 | Claude | Implemented PROD-043 (Map-Based Search); added bounding box, radius, and polygon search; 11 test cases |
 | 2025-12-27 | Claude | Implemented PROD-090-095 (Negotiations & Transactions); added Negotiation, Offer, Transaction models; 62 test cases (43 unit + 19 E2E) |
+| 2025-12-27 | Claude | Implemented Stripe payment integration (PROD-093, PROD-094, NFR-013); added PaymentsModule with checkout, refund, webhooks; 51 test cases (37 unit + 14 E2E) |
 
 ---
 

@@ -15,6 +15,7 @@ import { NotificationsModule } from './modules/notifications';
 import { NegotiationsModule } from './modules/negotiations';
 import { CountriesModule } from './modules/countries';
 import { HealthModule } from './modules/health';
+import { PaymentsModule } from './payments';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { HealthModule } from './modules/health';
     NegotiationsModule,
     CountriesModule,
     HealthModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

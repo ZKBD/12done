@@ -22,4 +22,8 @@ export default () => ({
     pass: process.env.SMTP_PASS,
     from: process.env.FROM_EMAIL || 'noreply@12done.com',
   },
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY,
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+  },
 });
