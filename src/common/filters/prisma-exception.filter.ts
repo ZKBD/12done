@@ -14,7 +14,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     let message = 'Database error';
 
     switch (exception.code) {
-      case 'P2002':
+      case 'P2002': {
         // Unique constraint violation
         status = HttpStatus.CONFLICT;
         const target = exception.meta?.target as string[] | undefined;
@@ -22,6 +22,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
           ? `A record with this ${target.join(', ')} already exists`
           : 'A record with this value already exists';
         break;
+      }
 
       case 'P2003':
         // Foreign key constraint violation

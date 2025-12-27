@@ -188,8 +188,8 @@ export class UsersService {
 
   async getSocialProfiles(
     userId: string,
-    requesterId: string,
-    requesterRole: UserRole,
+    _requesterId: string,
+    _requesterRole: UserRole,
   ): Promise<SocialProfileResponseDto[]> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

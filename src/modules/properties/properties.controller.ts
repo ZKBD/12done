@@ -28,7 +28,7 @@ import {
 } from './services';
 import { JwtAuthGuard, OptionalJwtAuthGuard } from '@/modules/auth/guards';
 import { RolesGuard } from '@/common/guards';
-import { CurrentUser, CurrentUserData, Roles } from '@/common/decorators';
+import { CurrentUser, CurrentUserData } from '@/common/decorators';
 import { PaginatedResponseDto } from '@/common/dto';
 import {
   CreatePropertyDto,

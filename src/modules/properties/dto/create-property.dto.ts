@@ -11,7 +11,6 @@ import {
   Max,
   MaxLength,
   IsISO31661Alpha2,
-  IsDecimal,
   ArrayMinSize,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';

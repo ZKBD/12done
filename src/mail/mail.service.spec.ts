@@ -12,7 +12,6 @@ jest.mock('fs');
 
 describe('MailService', () => {
   let service: MailService;
-  let configService: jest.Mocked<ConfigService>;
   let mockTransporter: {
     sendMail: jest.Mock;
   };
@@ -55,7 +54,6 @@ describe('MailService', () => {
     }).compile();
 
     service = module.get<MailService>(MailService);
-    configService = module.get(ConfigService);
   });
 
   it('should be defined', () => {
