@@ -17,7 +17,7 @@ describe('MailService', () => {
     sendMail: jest.Mock;
   };
 
-  const mockConfig = {
+  const mockConfig: Record<string, string | number | null> = {
     'mail.from': 'test@12done.com',
     'mail.host': 'smtp.test.com',
     'mail.port': 587,
@@ -78,7 +78,7 @@ describe('MailService', () => {
     it('should create transporter without auth when no credentials', async () => {
       jest.clearAllMocks();
 
-      const configWithoutAuth = {
+      const configWithoutAuth: Record<string, string | number | null> = {
         'mail.from': 'test@12done.com',
         'mail.host': 'smtp.test.com',
         'mail.port': 587,

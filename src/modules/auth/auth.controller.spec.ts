@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { UserRole, UserStatus } from '@prisma/client';
+import { UserRole, UserStatus, VerificationStatus } from '@prisma/client';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -14,12 +14,17 @@ describe('AuthController', () => {
     lastName: 'Doe',
     role: UserRole.USER,
     status: UserStatus.ACTIVE,
+    emailVerified: true,
+    idVerificationStatus: VerificationStatus.PENDING,
+    backgroundCheckStatus: VerificationStatus.PENDING,
     createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   const mockTokens = {
     accessToken: 'mock-access-token',
     refreshToken: 'mock-refresh-token',
+    expiresIn: 900,
   };
 
   beforeEach(async () => {
@@ -121,6 +126,7 @@ describe('AuthController', () => {
     const completeProfileDto = {
       address: '123 Main St',
       city: 'Budapest',
+      postalCode: '1011',
       country: 'HU',
       phone: '+36201234567',
     };
@@ -322,6 +328,7 @@ describe('AuthController', () => {
       id: 'user-123',
       email: 'test@example.com',
       role: UserRole.USER,
+      status: UserStatus.ACTIVE,
     };
 
     it('should call authService.getMe with user id', async () => {
@@ -395,7 +402,7 @@ describe('AuthController', () => {
     it('getMe should return UserResponseDto shape', async () => {
       authService.getMe.mockResolvedValue(mockUser);
 
-      const result = await controller.getMe({ id: 'user-123', email: 'test@example.com', role: UserRole.USER });
+      const result = await controller.getMe({ id: 'user-123', email: 'test@example.com', role: UserRole.USER, status: UserStatus.ACTIVE });
 
       expect(result).toHaveProperty('id');
       expect(result).toHaveProperty('email');

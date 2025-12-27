@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { UserRole, UserStatus } from '@prisma/client';
+import { UserRole, UserStatus, VerificationStatus } from '@prisma/client';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -14,13 +14,19 @@ describe('UsersController', () => {
     lastName: 'Doe',
     role: UserRole.USER,
     status: UserStatus.ACTIVE,
+    emailVerified: true,
+    idVerificationStatus: VerificationStatus.PENDING,
+    backgroundCheckStatus: VerificationStatus.PENDING,
     createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   const mockPublicUser = {
     id: 'user-123',
     firstName: 'John',
     lastName: 'Doe',
+    emailVerified: true,
+    idVerificationStatus: VerificationStatus.PENDING,
     createdAt: new Date(),
   };
 
@@ -28,12 +34,14 @@ describe('UsersController', () => {
     id: 'user-123',
     email: 'test@example.com',
     role: UserRole.USER,
+    status: UserStatus.ACTIVE,
   };
 
   const mockAdminUser = {
     id: 'admin-123',
     email: 'admin@example.com',
     role: UserRole.ADMIN,
+    status: UserStatus.ACTIVE,
   };
 
   beforeEach(async () => {
@@ -67,10 +75,10 @@ describe('UsersController', () => {
   });
 
   describe('findAll', () => {
-    const query = { page: 1, limit: 20 };
+    const query = { page: 1, limit: 20, skip: 0, take: 20 } as any;
     const paginatedResponse = {
-      items: [mockUser],
-      meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      data: [mockUser],
+      meta: { total: 1, page: 1, limit: 20, totalPages: 1, hasNextPage: false, hasPreviousPage: false },
     };
 
     it('should call usersService.findAll with query', async () => {
@@ -87,7 +95,7 @@ describe('UsersController', () => {
 
       const result = await controller.findAll(query);
 
-      expect(result.items).toHaveLength(1);
+      expect(result.data).toHaveLength(1);
       expect(result.meta.total).toBe(1);
     });
 
@@ -227,8 +235,8 @@ describe('UsersController', () => {
 
   describe('getSocialProfiles', () => {
     const mockProfiles = [
-      { platform: 'LINKEDIN', url: 'https://linkedin.com/in/johndoe' },
-      { platform: 'TWITTER', url: 'https://twitter.com/johndoe' },
+      { id: 'profile-1', platform: 'linkedin', profileUrl: 'https://linkedin.com/in/johndoe', createdAt: new Date() },
+      { id: 'profile-2', platform: 'twitter', profileUrl: 'https://twitter.com/johndoe', createdAt: new Date() },
     ];
 
     it('should call usersService.getSocialProfiles with id and current user info', async () => {
@@ -250,7 +258,7 @@ describe('UsersController', () => {
       const result = await controller.getSocialProfiles('user-123', mockCurrentUser);
 
       expect(result).toHaveLength(2);
-      expect(result[0].platform).toBe('LINKEDIN');
+      expect(result[0].platform).toBe('linkedin');
     });
 
     it('should return empty array when no profiles', async () => {
@@ -273,11 +281,11 @@ describe('UsersController', () => {
   describe('updateSocialProfiles', () => {
     const updateDto = {
       profiles: [
-        { platform: 'LINKEDIN', url: 'https://linkedin.com/in/janedoe' },
+        { platform: 'linkedin', profileUrl: 'https://linkedin.com/in/janedoe' },
       ],
     };
     const updatedProfiles = [
-      { platform: 'LINKEDIN', url: 'https://linkedin.com/in/janedoe' },
+      { id: 'profile-1', platform: 'linkedin', profileUrl: 'https://linkedin.com/in/janedoe', createdAt: new Date() },
     ];
 
     it('should call usersService.updateSocialProfiles with id, dto, and current user info', async () => {
@@ -321,12 +329,14 @@ describe('UsersController', () => {
 
   describe('getInvitationNetwork', () => {
     const mockNetwork = {
-      upstreamChain: [
-        { id: 'inviter-1', firstName: 'Parent', lastName: 'User' },
+      userId: 'user-123',
+      upstream: [
+        { userId: 'inviter-1', firstName: 'Parent', lastName: 'User', level: 1, joinedAt: new Date() },
       ],
       directInvitees: [
-        { id: 'invitee-1', firstName: 'Child', lastName: 'User' },
+        { userId: 'invitee-1', firstName: 'Child', lastName: 'User', level: 1, joinedAt: new Date() },
       ],
+      totalDownstreamCount: 1,
     };
 
     it('should call usersService.getInvitationNetwork with id and current user info', async () => {
@@ -347,7 +357,7 @@ describe('UsersController', () => {
 
       const result = await controller.getInvitationNetwork('user-123', mockCurrentUser);
 
-      expect(result.upstreamChain).toHaveLength(1);
+      expect(result.upstream).toHaveLength(1);
       expect(result.directInvitees).toHaveLength(1);
     });
 
@@ -499,8 +509,10 @@ describe('UsersController', () => {
 
     it('should pass user role to getInvitationNetwork', async () => {
       usersService.getInvitationNetwork.mockResolvedValue({
-        upstreamChain: [],
+        userId: 'other-user',
+        upstream: [],
         directInvitees: [],
+        totalDownstreamCount: 0,
       });
 
       await controller.getInvitationNetwork('other-user', mockAdminUser);

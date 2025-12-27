@@ -11,12 +11,14 @@ describe('InvitationsController', () => {
     id: 'user-123',
     email: 'test@example.com',
     role: UserRole.USER,
+    status: 'ACTIVE',
   };
 
   const mockAdminUser = {
     id: 'admin-123',
     email: 'admin@example.com',
     role: UserRole.ADMIN,
+    status: 'ACTIVE',
   };
 
   const mockInvitation = {
@@ -103,10 +105,10 @@ describe('InvitationsController', () => {
   });
 
   describe('findAll', () => {
-    const query = { page: 1, limit: 20 };
+    const query = { page: 1, limit: 20, skip: 0, take: 20 } as any;
     const paginatedResponse = {
-      items: [mockInvitation],
-      meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      data: [mockInvitation],
+      meta: { total: 1, page: 1, limit: 20, totalPages: 1, hasNextPage: false, hasPreviousPage: false },
     };
 
     it('should call invitationsService.findAll with userId and query', async () => {
@@ -123,7 +125,7 @@ describe('InvitationsController', () => {
 
       const result = await controller.findAll(query as any, mockUser);
 
-      expect(result.items).toHaveLength(1);
+      expect(result.data).toHaveLength(1);
       expect(result.meta.total).toBe(1);
     });
 
@@ -501,14 +503,14 @@ describe('InvitationsController', () => {
   describe('edge cases', () => {
     it('should handle empty invitation list', async () => {
       const emptyResponse = {
-        items: [],
-        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0, hasNextPage: false, hasPreviousPage: false },
       };
       invitationsService.findAll.mockResolvedValue(emptyResponse as any);
 
       const result = await controller.findAll({} as any, mockUser);
 
-      expect(result.items).toHaveLength(0);
+      expect(result.data).toHaveLength(0);
       expect(result.meta.total).toBe(0);
     });
 

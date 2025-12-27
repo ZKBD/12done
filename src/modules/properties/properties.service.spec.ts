@@ -590,7 +590,7 @@ describe('PropertiesService', () => {
       (prismaService.property.findUnique as jest.Mock).mockResolvedValue(mockProperty);
 
       await expect(
-        service.updateStatus('property-123', PropertyStatus.INACTIVE, 'other-user', UserRole.USER),
+        service.updateStatus('property-123', PropertyStatus.PAUSED, 'other-user', UserRole.USER),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -659,7 +659,7 @@ describe('PropertiesService', () => {
       const existingPublishedAt = new Date('2024-01-01');
       (prismaService.property.findUnique as jest.Mock).mockResolvedValue({
         ...mockProperty,
-        status: PropertyStatus.INACTIVE,
+        status: PropertyStatus.PAUSED,
         publishedAt: existingPublishedAt,
       });
       (prismaService.property.update as jest.Mock).mockResolvedValue({

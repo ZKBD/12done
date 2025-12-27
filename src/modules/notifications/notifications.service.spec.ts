@@ -23,9 +23,9 @@ describe('NotificationsService', () => {
   const mockReadNotification = {
     ...mockNotification,
     id: 'notif-456',
-    type: NotificationType.PROPERTY_UPDATE,
-    title: 'Property updated',
-    message: 'A property you favorited has been updated',
+    type: NotificationType.PROPERTY_INQUIRY,
+    title: 'Property inquiry',
+    message: 'You received an inquiry about your property',
     isRead: true,
     readAt: new Date(),
   };
@@ -398,9 +398,9 @@ describe('NotificationsService', () => {
 
       const result = await service.create(
         'user-123',
-        NotificationType.PROPERTY_UPDATE,
-        'Update',
-        'Property updated',
+        NotificationType.PROPERTY_INQUIRY,
+        'Inquiry',
+        'Property inquiry received',
       );
 
       expect(result.id).toBeDefined();
@@ -431,10 +431,10 @@ describe('NotificationsService', () => {
     it('should handle different notification types', async () => {
       const types = [
         NotificationType.SEARCH_AGENT_MATCH,
-        NotificationType.PROPERTY_UPDATE,
+        NotificationType.PROPERTY_INQUIRY,
         NotificationType.INVITATION_ACCEPTED,
         NotificationType.INSPECTION_BOOKED,
-        NotificationType.INSPECTION_CANCELLED,
+        NotificationType.INSPECTION_REMINDER,
       ];
 
       for (const type of types) {

@@ -7,6 +7,7 @@ import {
 import { PropertyStatus, UserRole } from '@prisma/client';
 import { MediaService } from './media.service';
 import { PrismaService } from '@/database';
+import { MediaType } from '../dto/media.dto';
 
 describe('MediaService', () => {
   let service: MediaService;
@@ -93,7 +94,7 @@ describe('MediaService', () => {
 
   describe('addMedia', () => {
     const createDto = {
-      type: 'IMAGE',
+      type: MediaType.PHOTO,
       url: 'https://example.com/new-image.jpg',
       thumbnailUrl: 'https://example.com/new-thumb.jpg',
       caption: 'New image',

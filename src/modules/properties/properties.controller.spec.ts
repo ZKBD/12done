@@ -21,6 +21,7 @@ describe('PropertiesController', () => {
     id: 'user-123',
     email: 'test@example.com',
     role: UserRole.USER,
+    status: 'ACTIVE',
   };
 
   const mockProperty = {
@@ -177,10 +178,10 @@ describe('PropertiesController', () => {
   });
 
   describe('findAll', () => {
-    const query = { page: 1, limit: 20 };
+    const query = { page: 1, limit: 20, skip: 0, take: 20 } as any;
     const paginatedResponse = {
-      items: [mockProperty],
-      meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      data: [mockProperty],
+      meta: { total: 1, page: 1, limit: 20, totalPages: 1, hasNextPage: false, hasPreviousPage: false },
     };
 
     it('should call propertiesService.findAll with query and user info', async () => {
@@ -273,18 +274,18 @@ describe('PropertiesController', () => {
     it('should call propertiesService.updateStatus', async () => {
       propertiesService.updateStatus.mockResolvedValue({
         ...mockProperty,
-        status: PropertyStatus.INACTIVE,
+        status: PropertyStatus.PAUSED,
       } as any);
 
-      const result = await controller.updateStatus('property-123', PropertyStatus.INACTIVE, mockUser);
+      const result = await controller.updateStatus('property-123', PropertyStatus.PAUSED, mockUser);
 
       expect(propertiesService.updateStatus).toHaveBeenCalledWith(
         'property-123',
-        PropertyStatus.INACTIVE,
+        PropertyStatus.PAUSED,
         'user-123',
         UserRole.USER,
       );
-      expect(result.status).toBe(PropertyStatus.INACTIVE);
+      expect(result.status).toBe(PropertyStatus.PAUSED);
     });
   });
 
@@ -385,8 +386,17 @@ describe('PropertiesController', () => {
 
   describe('calculateCost', () => {
     it('should call availabilityService.calculateCost', async () => {
-      const costResponse = { totalCost: '700', currency: 'EUR', nights: 7 };
-      availabilityService.calculateCost.mockResolvedValue(costResponse as any);
+      const costResponse = {
+        checkIn: new Date('2025-01-01'),
+        checkOut: new Date('2025-01-08'),
+        nights: 7,
+        basePricePerNight: '100',
+        breakdown: [],
+        subtotal: '700',
+        total: '700',
+        currency: 'EUR',
+      };
+      availabilityService.calculateCost.mockResolvedValue(costResponse);
 
       const result = await controller.calculateCost('property-123', {
         startDate: '2025-01-01',
@@ -397,7 +407,7 @@ describe('PropertiesController', () => {
         startDate: '2025-01-01',
         endDate: '2025-01-08',
       });
-      expect(result.totalCost).toBe('700');
+      expect(result.total).toBe('700');
     });
   });
 

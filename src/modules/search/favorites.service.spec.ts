@@ -119,8 +119,8 @@ describe('FavoritesService', () => {
       const result = await service.addFavorite('property-123', 'user-123');
 
       expect(result.property).toBeDefined();
-      expect(result.property.title).toBe(mockProperty.title);
-      expect(result.property.primaryImageUrl).toBe('https://example.com/image.jpg');
+      expect(result.property!.title).toBe(mockProperty.title);
+      expect(result.property!.primaryImageUrl).toBe('https://example.com/image.jpg');
     });
   });
 
@@ -324,8 +324,8 @@ describe('FavoritesService', () => {
       expect(result.id).toBe(mockFavorite.id);
       expect(result.propertyId).toBe(mockFavorite.propertyId);
       expect(result.userId).toBe(mockFavorite.userId);
-      expect(result.property.basePrice).toBe('200000');
-      expect(result.property.primaryImageUrl).toBe('https://example.com/image.jpg');
+      expect(result.property!.basePrice).toBe('200000');
+      expect(result.property!.primaryImageUrl).toBe('https://example.com/image.jpg');
     });
 
     it('should handle null values correctly', async () => {
@@ -347,10 +347,10 @@ describe('FavoritesService', () => {
 
       const result = await service.addFavorite('property-123', 'user-123');
 
-      expect(result.property.squareMeters).toBeUndefined();
-      expect(result.property.bedrooms).toBeUndefined();
-      expect(result.property.bathrooms).toBeUndefined();
-      expect(result.property.primaryImageUrl).toBeUndefined();
+      expect(result.property!.squareMeters).toBeUndefined();
+      expect(result.property!.bedrooms).toBeUndefined();
+      expect(result.property!.bathrooms).toBeUndefined();
+      expect(result.property!.primaryImageUrl).toBeUndefined();
     });
   });
 });

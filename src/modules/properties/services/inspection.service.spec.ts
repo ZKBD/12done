@@ -438,10 +438,10 @@ describe('InspectionService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException for inactive property', async () => {
+    it('should throw BadRequestException for paused property', async () => {
       (prismaService.property.findUnique as jest.Mock).mockResolvedValue({
         ...mockProperty,
-        status: PropertyStatus.INACTIVE,
+        status: PropertyStatus.PAUSED,
       });
 
       await expect(
