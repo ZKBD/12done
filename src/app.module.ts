@@ -12,6 +12,7 @@ import { InvitationsModule } from './modules/invitations';
 import { PropertiesModule } from './modules/properties';
 import { SearchModule } from './modules/search';
 import { NotificationsModule } from './modules/notifications';
+import { NegotiationsModule } from './modules/negotiations';
 import { CountriesModule } from './modules/countries';
 import { HealthModule } from './modules/health';
 
@@ -51,6 +52,7 @@ import { HealthModule } from './modules/health';
     PropertiesModule,
     SearchModule,
     NotificationsModule,
+    NegotiationsModule,
     CountriesModule,
     HealthModule,
   ],

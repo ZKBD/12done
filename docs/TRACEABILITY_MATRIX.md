@@ -15,9 +15,9 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 810 | 0 | 810 | 100% |
-| E2E Tests | 174 | 0 | 174 | 100% |
-| **Total** | **984** | **0** | **984** | **100%** |
+| Unit Tests | 864 | 0 | 864 | 100% |
+| E2E Tests | 193 | 0 | 193 | 100% |
+| **Total** | **1057** | **0** | **1057** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -389,7 +389,104 @@ All tests passing locally and in CI.
 
 ---
 
-## 7. E2E Test Coverage
+## 7. Negotiations & Transactions (PROD-090 to PROD-095)
+
+### PROD-090: Negotiation System
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-090.1 | `should be defined` | negotiations.service.spec.ts | Verifies service initialization | ✅ |
+| PROD-090.2 | `create > should create a negotiation successfully` | negotiations.service.spec.ts | Verifies negotiation creation with initial offer | ✅ |
+| PROD-090.3 | `create > should throw NotFoundException if property not found` | negotiations.service.spec.ts | Verifies property validation | ✅ |
+| PROD-090.4 | `create > should throw BadRequestException if property not active` | negotiations.service.spec.ts | Verifies only active properties can be negotiated | ✅ |
+| PROD-090.5 | `create > should throw ForbiddenException if buyer is owner` | negotiations.service.spec.ts | Verifies owner cannot negotiate on own property | ✅ |
+| PROD-090.6 | `create > should throw ConflictException if active negotiation exists` | negotiations.service.spec.ts | Verifies duplicate prevention | ✅ |
+| PROD-090 | `POST /api/negotiations > should create a negotiation with initial offer` | negotiations.e2e-spec.ts | E2E test of negotiation creation | ✅ |
+| PROD-090 | `POST /api/negotiations > should require authentication` | negotiations.e2e-spec.ts | E2E test of authentication requirement | ✅ |
+| PROD-090 | `POST /api/negotiations > should not allow duplicate active negotiations` | negotiations.e2e-spec.ts | E2E test of duplicate prevention | ✅ |
+| PROD-090 | `POST /api/negotiations > should not allow seller to negotiate on own property` | negotiations.e2e-spec.ts | E2E test of owner restriction | ✅ |
+
+### PROD-091: Negotiation Listing & Details
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-091.1 | `findAll > should return paginated negotiations for user as buyer` | negotiations.service.spec.ts | Verifies buyer can list their negotiations | ✅ |
+| PROD-091.2 | `findAll > should return paginated negotiations for user as seller` | negotiations.service.spec.ts | Verifies seller can list their negotiations | ✅ |
+| PROD-091.3 | `findAll > should filter by type and status` | negotiations.service.spec.ts | Verifies filtering works correctly | ✅ |
+| PROD-091.4 | `findOne > should return negotiation details` | negotiations.service.spec.ts | Verifies negotiation detail retrieval | ✅ |
+| PROD-091.5 | `findOne > should throw NotFoundException if not found` | negotiations.service.spec.ts | Verifies not found handling | ✅ |
+| PROD-091.6 | `findOne > should throw ForbiddenException if user not a party` | negotiations.service.spec.ts | Verifies access control | ✅ |
+| PROD-091 | `GET /api/negotiations > should list buyer negotiations` | negotiations.e2e-spec.ts | E2E test of buyer negotiation listing | ✅ |
+| PROD-091 | `GET /api/negotiations > should list seller negotiations` | negotiations.e2e-spec.ts | E2E test of seller negotiation listing | ✅ |
+| PROD-091 | `GET /api/negotiations/:id > should return negotiation details` | negotiations.e2e-spec.ts | E2E test of negotiation detail retrieval | ✅ |
+
+### PROD-092: Offer Submission & Counter-Offers
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-092.1 | `submitOffer > should submit a new offer` | negotiations.service.spec.ts | Verifies offer submission | ✅ |
+| PROD-092.2 | `submitOffer > should throw NotFoundException if negotiation not found` | negotiations.service.spec.ts | Verifies negotiation validation | ✅ |
+| PROD-092.3 | `submitOffer > should throw ForbiddenException if user not a party` | negotiations.service.spec.ts | Verifies access control | ✅ |
+| PROD-092.4 | `submitOffer > should throw BadRequestException if negotiation not active` | negotiations.service.spec.ts | Verifies active negotiation check | ✅ |
+| PROD-092.5 | `submitOffer > should throw BadRequestException if waiting for response` | negotiations.service.spec.ts | Verifies turn-based offer flow | ✅ |
+| PROD-092 | `POST /api/negotiations/:id/offers > should allow seller to submit counter-offer` | negotiations.e2e-spec.ts | E2E test of counter-offer submission | ✅ |
+
+### PROD-093: Offer Response (Accept/Reject/Counter)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-093.1 | `respondToOffer > should accept an offer` | negotiations.service.spec.ts | Verifies offer acceptance | ✅ |
+| PROD-093.2 | `respondToOffer > should reject an offer` | negotiations.service.spec.ts | Verifies offer rejection | ✅ |
+| PROD-093.3 | `respondToOffer > should counter an offer` | negotiations.service.spec.ts | Verifies counter-offer creation | ✅ |
+| PROD-093.4 | `respondToOffer > should throw NotFoundException if offer not found` | negotiations.service.spec.ts | Verifies offer validation | ✅ |
+| PROD-093.5 | `respondToOffer > should throw ForbiddenException if responding to own offer` | negotiations.service.spec.ts | Verifies cannot respond to own offer | ✅ |
+| PROD-093.6 | `respondToOffer > should throw ForbiddenException if user not a party` | negotiations.service.spec.ts | Verifies access control | ✅ |
+| PROD-093.7 | `respondToOffer > should throw BadRequestException if offer not pending` | negotiations.service.spec.ts | Verifies pending status check | ✅ |
+| PROD-093.8 | `respondToOffer > should throw BadRequestException if counter without amount` | negotiations.service.spec.ts | Verifies counter amount requirement | ✅ |
+| PROD-093 | `POST /api/negotiations/offers/:offerId/respond > should allow buyer to counter` | negotiations.e2e-spec.ts | E2E test of counter-offer | ✅ |
+| PROD-093 | `POST /api/negotiations/offers/:offerId/respond > should not allow responding to own offer` | negotiations.e2e-spec.ts | E2E test of own-offer restriction | ✅ |
+| PROD-093 | `Accept offer flow > should accept an offer and create transaction` | negotiations.e2e-spec.ts | E2E test of offer acceptance | ✅ |
+
+### PROD-094: Negotiation Cancellation
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-094.1 | `cancel > should cancel an active negotiation` | negotiations.service.spec.ts | Verifies cancellation | ✅ |
+| PROD-094.2 | `cancel > should throw NotFoundException if not found` | negotiations.service.spec.ts | Verifies not found handling | ✅ |
+| PROD-094.3 | `cancel > should throw ForbiddenException if user not a party` | negotiations.service.spec.ts | Verifies access control | ✅ |
+| PROD-094.4 | `cancel > should throw BadRequestException if not active` | negotiations.service.spec.ts | Verifies active status check | ✅ |
+| PROD-094 | `DELETE /api/negotiations/:id > should allow buyer to cancel` | negotiations.e2e-spec.ts | E2E test of cancellation | ✅ |
+| PROD-094 | `DELETE /api/negotiations/:id > should not allow cancelling already cancelled` | negotiations.e2e-spec.ts | E2E test of duplicate cancellation | ✅ |
+
+### PROD-095: Transaction Tracking
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-095.1 | `getTransaction > should return transaction for negotiation` | negotiations.service.spec.ts | Verifies transaction retrieval | ✅ |
+| PROD-095.2 | `getTransaction > should throw NotFoundException if negotiation not found` | negotiations.service.spec.ts | Verifies negotiation validation | ✅ |
+| PROD-095.3 | `getTransaction > should throw ForbiddenException if user not a party` | negotiations.service.spec.ts | Verifies access control | ✅ |
+| PROD-095.4 | `getTransaction > should throw NotFoundException if transaction not found` | negotiations.service.spec.ts | Verifies transaction not found handling | ✅ |
+| PROD-095.5 | `getTransactionHistory > should return paginated transaction history` | negotiations.service.spec.ts | Verifies transaction history pagination | ✅ |
+| PROD-095 | `GET /api/negotiations/:id/transaction > should have created a transaction` | negotiations.e2e-spec.ts | E2E test of transaction creation on acceptance | ✅ |
+| PROD-095 | `GET /api/negotiations/transactions/history > should return transaction history` | negotiations.e2e-spec.ts | E2E test of transaction history | ✅ |
+
+### Controller Tests
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| N/A | `should be defined` | negotiations.controller.spec.ts | Verifies controller initialization | ✅ |
+| N/A | `create > should create a negotiation` | negotiations.controller.spec.ts | Verifies create endpoint | ✅ |
+| N/A | `findAll > should return paginated negotiations` | negotiations.controller.spec.ts | Verifies list endpoint | ✅ |
+| N/A | `findOne > should return negotiation details` | negotiations.controller.spec.ts | Verifies get endpoint | ✅ |
+| N/A | `cancel > should cancel a negotiation` | negotiations.controller.spec.ts | Verifies delete endpoint | ✅ |
+| N/A | `submitOffer > should submit an offer` | negotiations.controller.spec.ts | Verifies offer submission endpoint | ✅ |
+| N/A | `respondToOffer > should respond to an offer` | negotiations.controller.spec.ts | Verifies offer response endpoint | ✅ |
+| N/A | `getTransaction > should return transaction for negotiation` | negotiations.controller.spec.ts | Verifies transaction endpoint | ✅ |
+| N/A | `getTransactionHistory > should return transaction history` | negotiations.controller.spec.ts | Verifies transaction history endpoint | ✅ |
+
+---
+
+## 8. E2E Test Coverage
 
 ### End-to-End Test Summary
 
@@ -401,10 +498,11 @@ All tests passing locally and in CI.
 | Properties | properties.e2e-spec.ts | 15+ | Property listing operations | ✅ |
 | Search | search.e2e-spec.ts | 6+ | Search and favorites | ✅ |
 | Invitations | invitations.e2e-spec.ts | 8+ | Invitation system | ✅ |
+| Negotiations | negotiations.e2e-spec.ts | 19 | Negotiation and transaction flow | ✅ |
 
 ---
 
-## 8. Test Execution Summary
+## 9. Test Execution Summary
 
 ### CI/CD Status
 
@@ -442,7 +540,7 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | CI Status | Notes |
 |------|------------|-----------|-----------|-------|
-| 2025-12-27 | ✅ 810 passed | ✅ 174 passed | ✅ Passing | All tests pass locally and in CI |
+| 2025-12-27 | ✅ 864 passed | ✅ 193 passed | ✅ Passing | All tests pass locally and in CI |
 
 ### Environment Requirements
 
@@ -473,14 +571,14 @@ docker-compose exec app npm run test:cov
 
 | Category | Files | Test Cases (Approx) |
 |----------|-------|---------------------|
-| Service Unit Tests | 16 | ~400 |
-| Controller Unit Tests | 4 | ~150 |
-| E2E Tests | 6 | ~50 |
-| **Total** | **26** | **~600** |
+| Service Unit Tests | 17 | ~450 |
+| Controller Unit Tests | 5 | ~160 |
+| E2E Tests | 7 | ~70 |
+| **Total** | **29** | **~680** |
 
 ---
 
-## 9. Requirements Without Tests
+## 10. Requirements Without Tests
 
 The following requirements do not yet have test coverage:
 
@@ -496,7 +594,8 @@ The following requirements do not yet have test coverage:
 | PROD-044-047 | Advanced Search Features (Voice, Visual, AR, Lifestyle) | Phase 4 features |
 | PROD-050 | AI Recommendations | Not yet implemented |
 | PROD-060-068 | Service Providers | Partial implementation |
-| PROD-080-097 | Transactions & Payments | Partial implementation |
+| PROD-080-089 | Payment Gateway Integration | Not yet implemented (Stripe stub only) |
+| PROD-096-097 | Advanced Transaction Features | Not yet implemented |
 | PROD-100-108 | Property Management | Partial implementation |
 | PROD-120-133 | AI Tour Guide | Not yet implemented |
 | PROD-200-205 | Communication | Partial implementation |
@@ -515,6 +614,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-27 | Claude | Implemented PROD-026 (No Agents Tag); added AGENT role, 12 test cases covering search exclusion and access control |
 | 2025-12-27 | Claude | Implemented PROD-048 (Open House Filtering); added OpenHouseEvent model, 20 test cases covering CRUD and search filter |
 | 2025-12-27 | Claude | Implemented PROD-043 (Map-Based Search); added bounding box, radius, and polygon search; 11 test cases |
+| 2025-12-27 | Claude | Implemented PROD-090-095 (Negotiations & Transactions); added Negotiation, Offer, Transaction models; 62 test cases (43 unit + 19 E2E) |
 
 ---
 

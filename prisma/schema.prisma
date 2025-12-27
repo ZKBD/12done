@@ -84,6 +84,48 @@ enum NotificationType {
   PROPERTY_INQUIRY
   INSPECTION_BOOKED
   INSPECTION_REMINDER
+  NEGOTIATION_STARTED
+  OFFER_RECEIVED
+  OFFER_ACCEPTED
+  OFFER_REJECTED
+  OFFER_COUNTERED
+  PAYMENT_RECEIVED
+  PAYMENT_FAILED
+}
+
+// ============================================
+// NEGOTIATIONS & TRANSACTIONS (PROD-090 to PROD-095)
+// ============================================
+
+enum NegotiationType {
+  BUY       // Purchasing property
+  RENT      // Renting property (short or long term)
+}
+
+enum NegotiationStatus {
+  ACTIVE      // Negotiation is ongoing
+  ACCEPTED    // Final offer accepted
+  REJECTED    // Negotiation rejected/cancelled
+  COMPLETED   // Transaction completed
+  EXPIRED     // Negotiation timed out
+}
+
+enum OfferStatus {
+  PENDING     // Awaiting response
+  ACCEPTED    // Offer accepted
+  REJECTED    // Offer rejected
+  COUNTERED   // Counter-offer made
+  EXPIRED     // Offer expired
+  WITHDRAWN   // Offer withdrawn by maker
+}
+
+enum TransactionStatus {
+  PENDING         // Payment not yet initiated
+  PROCESSING      // Payment in progress
+  COMPLETED       // Payment successful
+  FAILED          // Payment failed
+  REFUNDED        // Payment refunded
+  CANCELLED       // Transaction cancelled
 }
 
 // ============================================
@@ -144,6 +186,12 @@ model User {
 
   // Inspection bookings
   bookedInspections     InspectionSlot[]
+
+  // Negotiations & Transactions (PROD-090+)
+  buyerNegotiations     Negotiation[]       @relation("BuyerNegotiations")
+  sellerNegotiations    Negotiation[]       @relation("SellerNegotiations")
+  madeOffers            Offer[]
+  transactions          Transaction[]
 
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
@@ -308,6 +356,7 @@ model Property {
   dynamicPricingRules    DynamicPricingRule[]
   favoritedBy            FavoriteProperty[]
   browsingHistory        BrowsingHistory[]
+  negotiations           Negotiation[]        // (PROD-090)
 
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
@@ -515,4 +564,119 @@ model Country {
   isActive    Boolean @default(true)
 
   @@index([isActive])
+}
+
+// ============================================
+// NEGOTIATIONS & TRANSACTIONS (PROD-090 to PROD-095)
+// ============================================
+
+// Negotiation (PROD-090)
+model Negotiation {
+  id           String            @id @default(uuid())
+  propertyId   String
+  property     Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Parties
+  buyerId      String            // The interested party (buyer/renter)
+  buyer        User              @relation("BuyerNegotiations", fields: [buyerId], references: [id])
+  sellerId     String            // The property owner
+  seller       User              @relation("SellerNegotiations", fields: [sellerId], references: [id])
+
+  // Negotiation details
+  type         NegotiationType   // BUY or RENT
+  status       NegotiationStatus @default(ACTIVE)
+
+  // For rentals
+  startDate    DateTime?         // Rental start date
+  endDate      DateTime?         // Rental end date
+
+  // Message/notes
+  initialMessage String?         // Initial message from buyer
+
+  // Relations
+  offers       Offer[]
+  transaction  Transaction?
+
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([propertyId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@index([type])
+}
+
+// Offer (PROD-090)
+model Offer {
+  id            String      @id @default(uuid())
+  negotiationId String
+  negotiation   Negotiation @relation(fields: [negotiationId], references: [id], onDelete: Cascade)
+
+  // Who made this offer
+  madeById      String
+  madeBy        User        @relation(fields: [madeById], references: [id])
+
+  // Offer details
+  amount        Decimal     @db.Decimal(12, 2)
+  currency      String      @default("EUR")
+
+  // Terms (flexible JSON for additional conditions)
+  terms         Json?       // { "moveInDate": "2024-01-15", "includesFurniture": true, ... }
+  message       String?     // Message accompanying the offer
+
+  // Status tracking
+  status        OfferStatus @default(PENDING)
+  expiresAt     DateTime?   // Optional expiry for the offer
+  respondedAt   DateTime?   // When seller/buyer responded
+
+  // Counter-offer reference
+  counterToId   String?     // If this is a counter-offer, reference to original offer
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([negotiationId])
+  @@index([madeById])
+  @@index([status])
+}
+
+// Transaction (PROD-093, PROD-095)
+model Transaction {
+  id              String            @id @default(uuid())
+  negotiationId   String            @unique
+  negotiation     Negotiation       @relation(fields: [negotiationId], references: [id])
+
+  // Payment details
+  amount          Decimal           @db.Decimal(12, 2)
+  currency        String            @default("EUR")
+
+  // Fee breakdown (PROD-095)
+  platformFee     Decimal           @db.Decimal(10, 2) // Platform's fee
+  platformFeeRate Decimal           @db.Decimal(5, 4)  // e.g., 0.0250 = 2.5%
+  sellerAmount    Decimal           @db.Decimal(12, 2) // Amount seller receives
+
+  // Stripe integration (PROD-094)
+  stripePaymentIntentId String?     @unique
+  stripeSessionId       String?
+
+  // Status
+  status          TransactionStatus @default(PENDING)
+
+  // Payer info
+  payerId         String
+  payer           User              @relation(fields: [payerId], references: [id])
+
+  // Timestamps
+  paidAt          DateTime?
+  failedAt        DateTime?
+  refundedAt      DateTime?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([negotiationId])
+  @@index([payerId])
+  @@index([status])
+  @@index([stripePaymentIntentId])
 }
