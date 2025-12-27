@@ -6,6 +6,7 @@ import {
   InspectionService,
   PricingService,
   MediaService,
+  OpenHouseService,
 } from './services';
 import { SearchModule } from '../search/search.module';
 
@@ -18,6 +19,7 @@ import { SearchModule } from '../search/search.module';
     InspectionService,
     PricingService,
     MediaService,
+    OpenHouseService,
   ],
   exports: [PropertiesService],
 })

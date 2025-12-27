@@ -520,6 +520,20 @@ export class PropertiesService {
       });
     }
 
+    // PROD-048: Filter properties with upcoming open house events
+    if (query.hasUpcomingOpenHouse) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      andConditions.push({
+        openHouseEvents: {
+          some: {
+            date: { gte: today },
+            isPublic: true,
+          },
+        },
+      });
+    }
+
     // Geo bounding box
     if (
       query.swLat !== undefined &&

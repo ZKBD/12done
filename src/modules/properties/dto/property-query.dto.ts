@@ -207,6 +207,15 @@ export class PropertyQueryDto extends PaginationQueryDto {
   @Transform(({ value }) => value === 'true' || value === true)
   noAgents?: boolean;
 
+  @ApiPropertyOptional({
+    description: 'Filter properties with upcoming open house events (PROD-048)',
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  hasUpcomingOpenHouse?: boolean;
+
   // Energy efficiency
   @ApiPropertyOptional({
     description: 'Minimum energy efficiency rating',

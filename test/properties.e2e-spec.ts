@@ -824,4 +824,161 @@ describe('PropertiesController (e2e)', () => {
       expect(response.body.noAgents).toBe(true);
     });
   });
+
+  // PROD-048: Open House Events
+  describe('Open House Events (PROD-048)', () => {
+    let openHousePropertyId: string;
+    let openHouseEventId: string;
+
+    beforeAll(async () => {
+      // Create a property for open house tests
+      const propertyResponse = await request(app.getHttpServer())
+        .post('/api/properties')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          title: 'Open House Test Property',
+          address: '123 Open House Lane',
+          postalCode: '1100',
+          city: 'Budapest',
+          country: 'HU',
+          listingTypes: ['FOR_SALE'],
+          basePrice: '600000.00',
+        });
+
+      openHousePropertyId = propertyResponse.body.id;
+
+      // Publish the property
+      await request(app.getHttpServer())
+        .patch(`/api/properties/${openHousePropertyId}/status`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ status: 'ACTIVE' });
+    });
+
+    it('should create an open house event', async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 7);
+      const dateStr = futureDate.toISOString().split('T')[0];
+
+      const response = await request(app.getHttpServer())
+        .post(`/api/properties/${openHousePropertyId}/open-houses`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          date: dateStr,
+          startTime: '10:00',
+          endTime: '14:00',
+          description: 'Welcome to our open house!',
+          isPublic: true,
+          maxAttendees: 20,
+        })
+        .expect(201);
+
+      expect(response.body.id).toBeDefined();
+      expect(response.body.startTime).toBe('10:00');
+      expect(response.body.endTime).toBe('14:00');
+      expect(response.body.isPublic).toBe(true);
+      expect(response.body.maxAttendees).toBe(20);
+      openHouseEventId = response.body.id;
+    });
+
+    it('should get open house events for a property', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/properties/${openHousePropertyId}/open-houses`)
+        .expect(200);
+
+      expect(response.body.length).toBeGreaterThanOrEqual(1);
+      expect(response.body[0].propertyId).toBe(openHousePropertyId);
+    });
+
+    it('should get a specific open house event', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/properties/${openHousePropertyId}/open-houses/${openHouseEventId}`)
+        .expect(200);
+
+      expect(response.body.id).toBe(openHouseEventId);
+    });
+
+    it('should update an open house event', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/properties/${openHousePropertyId}/open-houses/${openHouseEventId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          description: 'Updated open house description',
+          maxAttendees: 30,
+        })
+        .expect(200);
+
+      expect(response.body.description).toBe('Updated open house description');
+      expect(response.body.maxAttendees).toBe(30);
+    });
+
+    it('should filter properties with upcoming open house events', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/properties')
+        .query({ hasUpcomingOpenHouse: true, city: 'Budapest' })
+        .expect(200);
+
+      const propertyIds = response.body.data.map((p: { id: string }) => p.id);
+      expect(propertyIds).toContain(openHousePropertyId);
+    });
+
+    it('should reject overlapping open house events', async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 7);
+      const dateStr = futureDate.toISOString().split('T')[0];
+
+      await request(app.getHttpServer())
+        .post(`/api/properties/${openHousePropertyId}/open-houses`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          date: dateStr,
+          startTime: '12:00',
+          endTime: '16:00', // Overlaps with 10:00-14:00
+        })
+        .expect(400);
+    });
+
+    it('should reject open house with end time before start time', async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 14);
+      const dateStr = futureDate.toISOString().split('T')[0];
+
+      await request(app.getHttpServer())
+        .post(`/api/properties/${openHousePropertyId}/open-houses`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          date: dateStr,
+          startTime: '14:00',
+          endTime: '10:00',
+        })
+        .expect(400);
+    });
+
+    it('should not allow non-owner to create open house event', async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 21);
+      const dateStr = futureDate.toISOString().split('T')[0];
+
+      await request(app.getHttpServer())
+        .post(`/api/properties/${openHousePropertyId}/open-houses`)
+        .set('Authorization', `Bearer ${otherAccessToken}`)
+        .send({
+          date: dateStr,
+          startTime: '10:00',
+          endTime: '14:00',
+        })
+        .expect(403);
+    });
+
+    it('should delete an open house event', async () => {
+      await request(app.getHttpServer())
+        .delete(`/api/properties/${openHousePropertyId}/open-houses/${openHouseEventId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      // Verify it's deleted
+      await request(app.getHttpServer())
+        .get(`/api/properties/${openHousePropertyId}/open-houses/${openHouseEventId}`)
+        .expect(404);
+    });
+  });
 });

@@ -6,6 +6,7 @@ import {
   InspectionService,
   PricingService,
   MediaService,
+  OpenHouseService,
 } from './services';
 import { PropertyStatus, UserRole, ListingType } from '@prisma/client';
 
@@ -16,6 +17,7 @@ describe('PropertiesController', () => {
   let inspectionService: jest.Mocked<InspectionService>;
   let pricingService: jest.Mocked<PricingService>;
   let mediaService: jest.Mocked<MediaService>;
+  let openHouseService: jest.Mocked<OpenHouseService>;
 
   const mockUser = {
     id: 'user-123',
@@ -134,6 +136,17 @@ describe('PropertiesController', () => {
             deleteFloorPlan: jest.fn(),
           },
         },
+        {
+          provide: OpenHouseService,
+          useValue: {
+            create: jest.fn(),
+            findAll: jest.fn(),
+            findOne: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+            getUpcomingOpenHouses: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -143,6 +156,7 @@ describe('PropertiesController', () => {
     inspectionService = module.get(InspectionService);
     pricingService = module.get(PricingService);
     mediaService = module.get(MediaService);
+    openHouseService = module.get(OpenHouseService);
   });
 
   it('should be defined', () => {

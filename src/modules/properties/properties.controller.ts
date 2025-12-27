@@ -25,6 +25,7 @@ import {
   InspectionService,
   PricingService,
   MediaService,
+  OpenHouseService,
 } from './services';
 import { JwtAuthGuard, OptionalJwtAuthGuard } from '@/modules/auth/guards';
 import { RolesGuard } from '@/common/guards';
@@ -55,6 +56,10 @@ import {
   ReorderMediaDto,
   CreateFloorPlanDto,
   UpdateFloorPlanDto,
+  CreateOpenHouseDto,
+  UpdateOpenHouseDto,
+  OpenHouseResponseDto,
+  OpenHouseQueryDto,
 } from './dto';
 import { PropertyMediaResponseDto, FloorPlanResponseDto } from './dto/property-response.dto';
 
@@ -67,6 +72,7 @@ export class PropertiesController {
     private readonly inspectionService: InspectionService,
     private readonly pricingService: PricingService,
     private readonly mediaService: MediaService,
+    private readonly openHouseService: OpenHouseService,
   ) {}
 
   // ============ PROPERTY CRUD ============
@@ -648,6 +654,123 @@ export class PropertiesController {
     return this.mediaService.deleteFloorPlan(
       propertyId,
       floorPlanId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  // ============ OPEN HOUSE EVENTS (PROD-048) ============
+
+  @Post(':id/open-houses')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create open house event (PROD-048)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 201,
+    description: 'Open house event created',
+    type: OpenHouseResponseDto,
+  })
+  async createOpenHouse(
+    @Param('id') propertyId: string,
+    @Body() dto: CreateOpenHouseDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<OpenHouseResponseDto> {
+    return this.openHouseService.create(
+      propertyId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Get(':id/open-houses')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Get open house events for property (PROD-048)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of open house events',
+    type: [OpenHouseResponseDto],
+  })
+  async getOpenHouses(
+    @Param('id') propertyId: string,
+    @Query() query: OpenHouseQueryDto,
+    @CurrentUser() user?: CurrentUserData,
+  ): Promise<OpenHouseResponseDto[]> {
+    return this.openHouseService.findAll(
+      propertyId,
+      query,
+      user?.id,
+      user?.role as UserRole,
+    );
+  }
+
+  @Get(':id/open-houses/:eventId')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Get open house event by ID' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'eventId', description: 'Open house event ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Open house event details',
+    type: OpenHouseResponseDto,
+  })
+  async getOpenHouse(
+    @Param('id') propertyId: string,
+    @Param('eventId') eventId: string,
+    @CurrentUser() user?: CurrentUserData,
+  ): Promise<OpenHouseResponseDto> {
+    return this.openHouseService.findOne(
+      propertyId,
+      eventId,
+      user?.id,
+      user?.role as UserRole,
+    );
+  }
+
+  @Patch(':id/open-houses/:eventId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update open house event' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'eventId', description: 'Open house event ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Open house event updated',
+    type: OpenHouseResponseDto,
+  })
+  async updateOpenHouse(
+    @Param('id') propertyId: string,
+    @Param('eventId') eventId: string,
+    @Body() dto: UpdateOpenHouseDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<OpenHouseResponseDto> {
+    return this.openHouseService.update(
+      propertyId,
+      eventId,
+      dto,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Delete(':id/open-houses/:eventId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete open house event' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'eventId', description: 'Open house event ID' })
+  @ApiResponse({ status: 200, description: 'Open house event deleted' })
+  async deleteOpenHouse(
+    @Param('id') propertyId: string,
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ message: string }> {
+    return this.openHouseService.delete(
+      propertyId,
+      eventId,
       user.id,
       user.role as UserRole,
     );

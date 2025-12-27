@@ -422,6 +422,41 @@ describe('PropertiesService', () => {
       const call = (prismaService.property.findMany as jest.Mock).mock.calls[0][0];
       expect(call.where.AND).toBeUndefined();
     });
+
+    // PROD-048: hasUpcomingOpenHouse filter
+    it('should filter properties with upcoming open house events when hasUpcomingOpenHouse is true', async () => {
+      (prismaService.property.findMany as jest.Mock).mockResolvedValue([]);
+      (prismaService.property.count as jest.Mock).mockResolvedValue(0);
+
+      await service.findAll(createQueryDto({ hasUpcomingOpenHouse: true }), 'user-123', UserRole.USER);
+
+      expect(prismaService.property.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            AND: expect.arrayContaining([
+              expect.objectContaining({
+                openHouseEvents: expect.objectContaining({
+                  some: expect.objectContaining({
+                    date: expect.objectContaining({ gte: expect.any(Date) }),
+                    isPublic: true,
+                  }),
+                }),
+              }),
+            ]),
+          }),
+        }),
+      );
+    });
+
+    it('should not filter by open house when hasUpcomingOpenHouse is not set', async () => {
+      (prismaService.property.findMany as jest.Mock).mockResolvedValue([]);
+      (prismaService.property.count as jest.Mock).mockResolvedValue(0);
+
+      await service.findAll(createQueryDto(), 'user-123', UserRole.USER);
+
+      const call = (prismaService.property.findMany as jest.Mock).mock.calls[0][0];
+      expect(call.where.AND).toBeUndefined();
+    });
   });
 
   describe('findById', () => {

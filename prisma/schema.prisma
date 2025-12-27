@@ -304,6 +304,7 @@ model Property {
   floorPlans             FloorPlan[]
   availabilitySlots      AvailabilitySlot[]
   inspectionSlots        InspectionSlot[]
+  openHouseEvents        OpenHouseEvent[]     // (PROD-048)
   dynamicPricingRules    DynamicPricingRule[]
   favoritedBy            FavoriteProperty[]
   browsingHistory        BrowsingHistory[]
@@ -384,6 +385,24 @@ model InspectionSlot {
   @@index([propertyId])
   @@index([date])
   @@index([isBooked])
+}
+
+// Open House Events (PROD-048)
+model OpenHouseEvent {
+  id          String   @id @default(uuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  date        DateTime // The date of the open house
+  startTime   String   // "10:00"
+  endTime     String   // "14:00"
+  description String?  // Optional details like "Refreshments provided"
+  isPublic    Boolean  @default(true) // Whether visible to all users
+  maxAttendees Int?    // Optional capacity limit
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([propertyId])
+  @@index([date])
 }
 
 // Dynamic Pricing Rules (PROD-023)

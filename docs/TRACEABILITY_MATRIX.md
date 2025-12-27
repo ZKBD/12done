@@ -15,9 +15,9 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 758 | 0 | 758 | 100% |
-| E2E Tests | 165 | 0 | 165 | 100% |
-| **Total** | **923** | **0** | **923** | **100%** |
+| Unit Tests | 810 | 0 | 810 | 100% |
+| E2E Tests | 174 | 0 | 174 | 100% |
+| **Total** | **984** | **0** | **984** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -245,7 +245,7 @@ All tests passing locally and in CI.
 | PROD-042.4 | `findAll > returns paginated results` | properties.controller.spec.ts | Verifies pagination works | ✅ |
 | PROD-042 | `GET /properties with filters` | properties.e2e-spec.ts | End-to-end test of property search | ✅ |
 
-### PROD-043 to PROD-048: Advanced Search Features
+### PROD-043 to PROD-047: Advanced Search Features
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
@@ -254,7 +254,31 @@ All tests passing locally and in CI.
 | PROD-045 | N/A | N/A | Visual search - not yet implemented | 🚧 |
 | PROD-046 | N/A | N/A | AR property discovery - not yet implemented | 🚧 |
 | PROD-047 | N/A | N/A | Lifestyle matching - not yet implemented | 🚧 |
-| PROD-048 | N/A | N/A | Open house filtering - not yet implemented | 🚧 |
+
+### PROD-048: Open House Filtering
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-048.1 | `create > should create open house event` | open-house.service.spec.ts | Verifies open house event creation with date, time, description | ✅ |
+| PROD-048.2 | `create > should throw BadRequestException for overlapping events` | open-house.service.spec.ts | Verifies overlap detection for events on same day | ✅ |
+| PROD-048.3 | `create > should throw BadRequestException if end time is before start time` | open-house.service.spec.ts | Verifies time validation | ✅ |
+| PROD-048.4 | `create > should throw ForbiddenException for non-owner non-admin` | open-house.service.spec.ts | Verifies only owner/admin can create open house | ✅ |
+| PROD-048.5 | `findAll > should return only public events for non-owner` | open-house.service.spec.ts | Verifies visibility control for open house events | ✅ |
+| PROD-048.6 | `findAll > should filter upcoming events only when upcomingOnly is true` | open-house.service.spec.ts | Verifies upcoming filter works | ✅ |
+| PROD-048.7 | `update > should update open house event` | open-house.service.spec.ts | Verifies event update functionality | ✅ |
+| PROD-048.8 | `delete > should delete open house event` | open-house.service.spec.ts | Verifies event deletion | ✅ |
+| PROD-048.9 | `getUpcomingOpenHouses > returns upcoming public events` | open-house.service.spec.ts | Verifies calendar view of upcoming events | ✅ |
+| PROD-048.10 | `findAll > should filter by hasUpcomingOpenHouse` | properties.service.spec.ts | Verifies property search filter for open house | ✅ |
+| PROD-048.11 | `findAll > should not filter by open house when hasUpcomingOpenHouse is not set` | properties.service.spec.ts | Verifies filter is optional | ✅ |
+| PROD-048 | `Open House Events > should create an open house event` | properties.e2e-spec.ts | E2E test of open house event creation | ✅ |
+| PROD-048 | `Open House Events > should get open house events for a property` | properties.e2e-spec.ts | E2E test of event listing | ✅ |
+| PROD-048 | `Open House Events > should get a specific open house event` | properties.e2e-spec.ts | E2E test of single event retrieval | ✅ |
+| PROD-048 | `Open House Events > should update an open house event` | properties.e2e-spec.ts | E2E test of event update | ✅ |
+| PROD-048 | `Open House Events > should filter properties with upcoming open house events` | properties.e2e-spec.ts | E2E test of search filter | ✅ |
+| PROD-048 | `Open House Events > should reject overlapping open house events` | properties.e2e-spec.ts | E2E test of overlap validation | ✅ |
+| PROD-048 | `Open House Events > should reject open house with end time before start time` | properties.e2e-spec.ts | E2E test of time validation | ✅ |
+| PROD-048 | `Open House Events > should not allow non-owner to create open house event` | properties.e2e-spec.ts | E2E test of authorization | ✅ |
+| PROD-048 | `Open House Events > should delete an open house event` | properties.e2e-spec.ts | E2E test of event deletion | ✅ |
 
 ### PROD-049: Saved Searches (Favorites)
 
@@ -403,7 +427,7 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | CI Status | Notes |
 |------|------------|-----------|-----------|-------|
-| 2025-12-27 | ✅ 758 passed | ✅ 165 passed | ✅ Passing | All tests pass locally and in CI |
+| 2025-12-27 | ✅ 810 passed | ✅ 174 passed | ✅ Passing | All tests pass locally and in CI |
 
 ### Environment Requirements
 
@@ -454,7 +478,7 @@ The following requirements do not yet have test coverage:
 | PROD-029 | AI Description Generation | Not yet implemented |
 | PROD-030 | Virtual Staging | Not yet implemented |
 | PROD-031 | Time-of-Day Photos | Not yet implemented |
-| PROD-043-048 | Advanced Search Features | Not yet implemented |
+| PROD-043-047 | Advanced Search Features | Not yet implemented |
 | PROD-050 | AI Recommendations | Not yet implemented |
 | PROD-060-068 | Service Providers | Partial implementation |
 | PROD-080-097 | Transactions & Payments | Partial implementation |
@@ -474,6 +498,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-27 | Claude | Added branch protection section; main branch now requires all 4 CI checks to pass |
 | 2025-12-27 | Claude | Implemented PROD-041 (Search Agent Notifications); added 6 test cases covering notification trigger |
 | 2025-12-27 | Claude | Implemented PROD-026 (No Agents Tag); added AGENT role, 12 test cases covering search exclusion and access control |
+| 2025-12-27 | Claude | Implemented PROD-048 (Open House Filtering); added OpenHouseEvent model, 20 test cases covering CRUD and search filter |
 
 ---
 
