@@ -710,7 +710,7 @@ describe('PropertiesService', () => {
       );
 
       // Allow async operation to complete
-      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(searchAgentsService.checkAgainstNewProperty).toHaveBeenCalledWith('property-123');
     });
