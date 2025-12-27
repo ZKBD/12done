@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PropertiesController } from './properties.controller';
 import { PropertiesService } from './properties.service';
 import {
@@ -7,8 +7,10 @@ import {
   PricingService,
   MediaService,
 } from './services';
+import { SearchModule } from '../search/search.module';
 
 @Module({
+  imports: [forwardRef(() => SearchModule)],
   controllers: [PropertiesController],
   providers: [
     PropertiesService,

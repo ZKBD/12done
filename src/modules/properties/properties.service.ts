@@ -3,6 +3,9 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { PropertyStatus, UserRole, ListingType, EnergyEfficiencyRating, Prisma } from '@prisma/client';
 import { PrismaService } from '@/database';
@@ -14,10 +17,17 @@ import {
   PropertyListResponseDto,
   PropertyQueryDto,
 } from './dto';
+import { SearchAgentsService } from '../search/search-agents.service';
 
 @Injectable()
 export class PropertiesService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(PropertiesService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => SearchAgentsService))
+    private searchAgentsService: SearchAgentsService,
+  ) {}
 
   async create(dto: CreatePropertyDto, ownerId: string): Promise<PropertyResponseDto> {
     const property = await this.prisma.property.create({
@@ -342,6 +352,13 @@ export class PropertiesService {
         },
       },
     });
+
+    // Trigger search agent notifications when property is published
+    if (status === PropertyStatus.ACTIVE) {
+      this.searchAgentsService.checkAgainstNewProperty(id).catch((err) => {
+        this.logger.error(`Failed to check search agents for property ${id}:`, err);
+      });
+    }
 
     return this.mapToResponseDto(updatedProperty);
   }

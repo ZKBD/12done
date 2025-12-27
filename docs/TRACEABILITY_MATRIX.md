@@ -212,7 +212,12 @@ All tests passing locally and in CI.
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-041 | N/A | N/A | Search agent notifications - partial implementation | 🚧 |
+| PROD-041.1 | `updateStatus > should trigger search agent check when status changes to ACTIVE` | properties.service.spec.ts | Verifies notification trigger when property is published | ✅ |
+| PROD-041.2 | `updateStatus > should not trigger search agent check for non-ACTIVE status changes` | properties.service.spec.ts | Verifies no notification for non-publish status changes | ✅ |
+| PROD-041.3 | `updateStatus > should not fail if search agent check throws error` | properties.service.spec.ts | Verifies graceful error handling | ✅ |
+| PROD-041.4 | `Search Agent Notifications > should create notification when property is published` | search.e2e-spec.ts | E2E test of notification creation on property publish | ✅ |
+| PROD-041.5 | `Search Agent Notifications > should update lastTriggeredAt on search agent` | search.e2e-spec.ts | Verifies search agent timestamp update | ✅ |
+| PROD-041.6 | `Search Agent Notifications > should NOT create notification for non-matching property` | search.e2e-spec.ts | Verifies criteria matching works correctly | ✅ |
 
 ### PROD-042: Advanced Filters
 
@@ -434,7 +439,6 @@ The following requirements do not yet have test coverage:
 | PROD-029 | AI Description Generation | Not yet implemented |
 | PROD-030 | Virtual Staging | Not yet implemented |
 | PROD-031 | Time-of-Day Photos | Not yet implemented |
-| PROD-041 | Search Agent Notifications | Partial implementation |
 | PROD-043-048 | Advanced Search Features | Not yet implemented |
 | PROD-050 | AI Recommendations | Not yet implemented |
 | PROD-060-068 | Service Providers | Partial implementation |
@@ -453,6 +457,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-27 | Claude | Added environment requirements section; tests blocked due to Docker unavailability |
 | 2025-12-27 | Claude | Added CI/CD status section; GitHub Actions now fully operational with all tests passing |
 | 2025-12-27 | Claude | Added branch protection section; main branch now requires all 4 CI checks to pass |
+| 2025-12-27 | Claude | Implemented PROD-041 (Search Agent Notifications); added 6 test cases covering notification trigger |
 
 ---
 

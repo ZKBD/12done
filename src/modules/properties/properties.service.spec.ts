@@ -7,10 +7,12 @@ import {
 import { PropertyStatus, UserRole, ListingType, EnergyEfficiencyRating, Prisma } from '@prisma/client';
 import { PropertiesService } from './properties.service';
 import { PrismaService } from '@/database';
+import { SearchAgentsService } from '../search/search-agents.service';
 
 describe('PropertiesService', () => {
   let service: PropertiesService;
   let prismaService: jest.Mocked<PrismaService>;
+  let searchAgentsService: jest.Mocked<SearchAgentsService>;
 
   const mockOwner = {
     id: 'owner-123',
@@ -95,11 +97,18 @@ describe('PropertiesService', () => {
             },
           },
         },
+        {
+          provide: SearchAgentsService,
+          useValue: {
+            checkAgainstNewProperty: jest.fn().mockResolvedValue(undefined),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<PropertiesService>(PropertiesService);
     prismaService = module.get(PrismaService);
+    searchAgentsService = module.get(SearchAgentsService);
   });
 
   it('should be defined', () => {
@@ -680,6 +689,75 @@ describe('PropertiesService', () => {
           data: { status: PropertyStatus.ACTIVE },
         }),
       );
+    });
+
+    it('should trigger search agent check when status changes to ACTIVE', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue({
+        ...mockProperty,
+        status: PropertyStatus.DRAFT,
+        publishedAt: null,
+      });
+      (prismaService.property.update as jest.Mock).mockResolvedValue({
+        ...mockProperty,
+        status: PropertyStatus.ACTIVE,
+      });
+
+      await service.updateStatus(
+        'property-123',
+        PropertyStatus.ACTIVE,
+        'owner-123',
+        UserRole.USER,
+      );
+
+      // Allow async operation to complete
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(searchAgentsService.checkAgainstNewProperty).toHaveBeenCalledWith('property-123');
+    });
+
+    it('should not trigger search agent check for non-ACTIVE status changes', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue({
+        ...mockProperty,
+        status: PropertyStatus.ACTIVE,
+      });
+      (prismaService.property.update as jest.Mock).mockResolvedValue({
+        ...mockProperty,
+        status: PropertyStatus.PAUSED,
+      });
+
+      await service.updateStatus(
+        'property-123',
+        PropertyStatus.PAUSED,
+        'owner-123',
+        UserRole.USER,
+      );
+
+      expect(searchAgentsService.checkAgainstNewProperty).not.toHaveBeenCalled();
+    });
+
+    it('should not fail if search agent check throws error', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue({
+        ...mockProperty,
+        status: PropertyStatus.DRAFT,
+        publishedAt: null,
+      });
+      (prismaService.property.update as jest.Mock).mockResolvedValue({
+        ...mockProperty,
+        status: PropertyStatus.ACTIVE,
+      });
+      (searchAgentsService.checkAgainstNewProperty as jest.Mock).mockRejectedValue(
+        new Error('Search agent check failed'),
+      );
+
+      // Should not throw - error is caught and logged
+      const result = await service.updateStatus(
+        'property-123',
+        PropertyStatus.ACTIVE,
+        'owner-123',
+        UserRole.USER,
+      );
+
+      expect(result.status).toBe(PropertyStatus.ACTIVE);
     });
   });
 

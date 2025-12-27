@@ -290,6 +290,155 @@ describe('SearchController (e2e)', () => {
     });
   });
 
+  // ============ SEARCH AGENT NOTIFICATIONS ============
+
+  describe('Search Agent Notifications (PROD-041)', () => {
+    let notificationAgentId: string;
+    let notificationTestPropertyId: string;
+
+    it('should create a search agent for notification testing', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/search-agents')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Vienna Notification Test',
+          criteria: {
+            city: 'Vienna',
+            country: 'AT',
+            listingTypes: ['FOR_SALE'],
+            minPrice: 50000,
+            maxPrice: 500000,
+          },
+          emailNotifications: true,
+          inAppNotifications: true,
+        })
+        .expect(201);
+
+      notificationAgentId = response.body.id;
+      expect(response.body.isActive).toBe(true);
+    });
+
+    it('should create a matching property as DRAFT', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/properties')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          title: 'Vienna Apartment for Notification Test',
+          address: '123 Ringstrasse',
+          postalCode: '1010',
+          city: 'Vienna',
+          country: 'AT',
+          listingTypes: ['FOR_SALE'],
+          basePrice: '250000.00',
+          currency: 'EUR',
+          squareMeters: 80,
+          bedrooms: 2,
+          bathrooms: 1,
+        })
+        .expect(201);
+
+      notificationTestPropertyId = response.body.id;
+      expect(response.body.status).toBe('DRAFT');
+    });
+
+    it('should create notification when property is published', async () => {
+      // Get notification count before publishing
+      const beforeNotifications = await request(app.getHttpServer())
+        .get('/api/notifications')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const beforeCount = beforeNotifications.body.length;
+
+      // Publish the property (should trigger search agent check)
+      await request(app.getHttpServer())
+        .patch(`/api/properties/${notificationTestPropertyId}/status`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ status: 'ACTIVE' })
+        .expect(200);
+
+      // Wait for async notification to be created
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Get all notifications after publishing
+      const afterNotifications = await request(app.getHttpServer())
+        .get('/api/notifications')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(afterNotifications.body.length).toBeGreaterThan(beforeCount);
+
+      // Verify the notification content
+      const matchNotification = afterNotifications.body.find(
+        (n: { type: string; data?: { searchAgentId?: string } }) =>
+          n.type === 'SEARCH_AGENT_MATCH' &&
+          n.data?.searchAgentId === notificationAgentId,
+      );
+
+      expect(matchNotification).toBeDefined();
+      expect(matchNotification.title).toContain('Vienna Notification Test');
+      expect(matchNotification.data.propertyId).toBe(notificationTestPropertyId);
+    });
+
+    it('should update lastTriggeredAt on search agent', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/search-agents/${notificationAgentId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body.lastTriggeredAt).toBeDefined();
+    });
+
+    it('should NOT create notification for non-matching property', async () => {
+      // Create a property that doesn't match the search agent criteria
+      const nonMatchingProperty = await request(app.getHttpServer())
+        .post('/api/properties')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          title: 'Prague Property (no match)',
+          address: '123 Wenceslas Square',
+          postalCode: '11000',
+          city: 'Prague',
+          country: 'CZ', // Different country - won't match Vienna search
+          listingTypes: ['FOR_SALE'],
+          basePrice: '150000.00',
+        })
+        .expect(201);
+
+      const beforeStats = await request(app.getHttpServer())
+        .get('/api/notifications/stats')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      // Publish the non-matching property
+      await request(app.getHttpServer())
+        .patch(`/api/properties/${nonMatchingProperty.body.id}/status`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ status: 'ACTIVE' })
+        .expect(200);
+
+      // Wait for async processing
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      const afterStats = await request(app.getHttpServer())
+        .get('/api/notifications/stats')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      // Count should not increase (no new match notification)
+      expect(afterStats.body.total).toBe(beforeStats.body.total);
+    });
+
+    // Cleanup
+    afterAll(async () => {
+      if (notificationAgentId) {
+        await request(app.getHttpServer())
+          .delete(`/api/search-agents/${notificationAgentId}`)
+          .set('Authorization', `Bearer ${accessToken}`);
+      }
+    });
+  });
+
   // ============ FAVORITES ============
 
   describe('POST /api/favorites/:propertyId', () => {

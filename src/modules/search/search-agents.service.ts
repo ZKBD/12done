@@ -204,32 +204,41 @@ export class SearchAgentsService {
           data: { lastTriggeredAt: new Date() },
         });
 
-        // Send notifications
+        // Send email notification (don't let email failures block in-app notifications)
         if (agent.emailNotifications) {
-          const searchUrl = `/search?agentId=${agent.id}`;
-          await this.mailService.sendSearchAgentMatchEmail(
-            agent.user.email,
-            agent.user.firstName,
-            agent.name,
-            1,
-            searchUrl,
-          );
+          try {
+            const searchUrl = `/search?agentId=${agent.id}`;
+            await this.mailService.sendSearchAgentMatchEmail(
+              agent.user.email,
+              agent.user.firstName,
+              agent.name,
+              1,
+              searchUrl,
+            );
+          } catch (error) {
+            // Log but don't fail - email is not critical
+            console.error(`Failed to send search agent match email to ${agent.user.email}:`, error);
+          }
         }
 
+        // Create in-app notification
         if (agent.inAppNotifications) {
-          // Create in-app notification
-          await this.prisma.notification.create({
-            data: {
-              userId: agent.userId,
-              type: 'SEARCH_AGENT_MATCH',
-              title: `New match for "${agent.name}"`,
-              message: `A new property matching your saved search has been listed.`,
+          try {
+            await this.prisma.notification.create({
               data: {
-                searchAgentId: agent.id,
-                propertyId: property.id,
+                userId: agent.userId,
+                type: 'SEARCH_AGENT_MATCH',
+                title: `New match for "${agent.name}"`,
+                message: `A new property matching your saved search has been listed.`,
+                data: {
+                  searchAgentId: agent.id,
+                  propertyId: property.id,
+                },
               },
-            },
-          });
+            });
+          } catch (error) {
+            console.error(`Failed to create in-app notification for user ${agent.userId}:`, error);
+          }
         }
       }
     }
