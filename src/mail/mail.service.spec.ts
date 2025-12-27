@@ -213,7 +213,8 @@ describe('MailService', () => {
     });
 
     it('should include verification URL with token', async () => {
-      (fs.readFileSync as jest.Mock).mockReturnValue('{{verificationUrl}}');
+      // Use triple braces to prevent HTML encoding in test template
+      (fs.readFileSync as jest.Mock).mockReturnValue('{{{verificationUrl}}}');
 
       await service.sendVerificationEmail(
         'user@example.com',
@@ -287,7 +288,8 @@ describe('MailService', () => {
     });
 
     it('should include reset URL with token', async () => {
-      (fs.readFileSync as jest.Mock).mockReturnValue('{{resetUrl}}');
+      // Use triple braces to prevent HTML encoding in test template
+      (fs.readFileSync as jest.Mock).mockReturnValue('{{{resetUrl}}}');
 
       await service.sendPasswordResetEmail(
         'user@example.com',
@@ -320,7 +322,8 @@ describe('MailService', () => {
     });
 
     it('should include invitation URL with token', async () => {
-      (fs.readFileSync as jest.Mock).mockReturnValue('{{invitationUrl}}');
+      // Use triple braces to prevent HTML encoding in test template
+      (fs.readFileSync as jest.Mock).mockReturnValue('{{{invitationUrl}}}');
 
       await service.sendInvitationEmail(
         'newuser@example.com',
@@ -372,8 +375,9 @@ describe('MailService', () => {
     });
 
     it('should include all context variables', async () => {
+      // Use triple braces for searchUrl to prevent HTML encoding of query params
       (fs.readFileSync as jest.Mock).mockReturnValue(
-        '{{firstName}} - {{searchAgentName}} - {{matchCount}} - {{searchUrl}}',
+        '{{firstName}} - {{searchAgentName}} - {{matchCount}} - {{{searchUrl}}}',
       );
 
       await service.sendSearchAgentMatchEmail(
