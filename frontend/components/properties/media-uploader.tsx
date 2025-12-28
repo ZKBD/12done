@@ -48,6 +48,8 @@ export function MediaUploader({
   const [previewMedia, setPreviewMedia] = useState<PropertyMedia | null>(null);
   const [editMedia, setEditMedia] = useState<PropertyMedia | null>(null);
   const [caption, setCaption] = useState('');
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadMedia = useUploadMedia(propertyId);
@@ -59,12 +61,12 @@ export function MediaUploader({
   const photos = media.filter((m) => m.type === 'photo').sort((a, b) => a.sortOrder - b.sortOrder);
   const videos = media.filter((m) => m.type === 'video');
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleFileDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingOver(true);
   }, []);
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleFileDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingOver(false);
   }, []);
@@ -139,12 +141,45 @@ export function MediaUploader({
     [photos, reorderMedia]
   );
 
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+    setDraggedIndex(index);
+  }, []);
+
+  const handleCardDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  }, [draggedIndex]);
+
+  const handleCardDrop = useCallback((e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    const sourceIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+    if (!isNaN(sourceIndex) && sourceIndex !== targetIndex) {
+      handleReorder(sourceIndex, targetIndex);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  }, [handleReorder]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  }, []);
+
+  const handleCardDragLeave = useCallback(() => {
+    setDragOverIndex(null);
+  }, []);
+
   return (
     <div className={className}>
       {/* Upload Area */}
       <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
+        onDragOver={handleFileDragOver}
+        onDragLeave={handleFileDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
         className={cn(
@@ -200,10 +235,17 @@ export function MediaUploader({
                 media={photo}
                 index={index}
                 isPrimary={photo.isPrimary}
+                isDragging={draggedIndex === index}
+                isDragOver={dragOverIndex === index}
                 onSetPrimary={() => handleSetPrimary(photo.id)}
                 onDelete={() => handleDelete(photo.id)}
                 onPreview={() => setPreviewMedia(photo)}
                 onEdit={() => handleEditCaption(photo)}
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleCardDragOver(e, index)}
+                onDrop={(e) => handleCardDrop(e, index)}
+                onDragLeave={handleCardDragLeave}
+                onDragEnd={handleDragEnd}
               />
             ))}
           </div>
@@ -300,26 +342,48 @@ interface MediaCardProps {
   media: PropertyMedia;
   index: number;
   isPrimary: boolean;
+  isDragging: boolean;
+  isDragOver: boolean;
   onSetPrimary: () => void;
   onDelete: () => void;
   onPreview: () => void;
   onEdit: () => void;
+  onDragStart: (e: React.DragEvent) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent) => void;
+  onDragLeave: () => void;
+  onDragEnd: () => void;
 }
 
 function MediaCard({
   media,
   index,
   isPrimary,
+  isDragging,
+  isDragOver,
   onSetPrimary,
   onDelete,
   onPreview,
   onEdit,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragLeave,
+  onDragEnd,
 }: MediaCardProps) {
   return (
     <div
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragLeave={onDragLeave}
+      onDragEnd={onDragEnd}
       className={cn(
-        'group relative aspect-[4/3] rounded-lg overflow-hidden border-2',
-        isPrimary ? 'border-primary' : 'border-transparent'
+        'group relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all cursor-grab active:cursor-grabbing',
+        isPrimary ? 'border-primary' : 'border-transparent',
+        isDragging && 'opacity-50 scale-95',
+        isDragOver && 'border-primary border-dashed scale-105'
       )}
     >
       <Image
