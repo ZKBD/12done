@@ -10,7 +10,15 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname, join } from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import { existsSync, mkdirSync } from 'fs';
 import {
   ApiTags,
   ApiOperation,
@@ -492,6 +500,75 @@ export class PropertiesController {
   }
 
   // ============ MEDIA (PROD-028) ============
+
+  @Post(':id/media/upload')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Upload property media files' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @UseInterceptors(
+    FilesInterceptor('files', 10, {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const uploadPath = join(process.cwd(), 'uploads', 'properties');
+          if (!existsSync(uploadPath)) {
+            mkdirSync(uploadPath, { recursive: true });
+          }
+          cb(null, uploadPath);
+        },
+        filename: (req, file, cb) => {
+          const uniqueSuffix = uuidv4();
+          const ext = extname(file.originalname);
+          cb(null, `${uniqueSuffix}${ext}`);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (allowedMimes.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(new BadRequestException('Only JPG, PNG, and WebP images are allowed'), false);
+        }
+      },
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB
+      },
+    }),
+  )
+  async uploadMedia(
+    @Param('id') propertyId: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @CurrentUser() user: CurrentUserData,
+    @Body('type') type: string = 'photo',
+  ): Promise<PropertyMediaResponseDto[]> {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
+    }
+
+    const results: PropertyMediaResponseDto[] = [];
+
+    for (const file of files) {
+      const baseUrl = process.env.API_URL || 'http://localhost:3002';
+      const url = `${baseUrl}/uploads/properties/${file.filename}`;
+
+      const mediaDto: CreatePropertyMediaDto = {
+        type: (type as 'photo' | 'video' | 'tour_360' | 'tour_3d') || 'photo',
+        url,
+        isPrimary: results.length === 0, // First uploaded image is primary
+      };
+
+      const media = await this.mediaService.addMedia(
+        propertyId,
+        mediaDto,
+        user.id,
+        user.role as UserRole,
+      );
+
+      results.push(media);
+    }
+
+    return results;
+  }
 
   @Post(':id/media')
   @UseGuards(JwtAuthGuard, RolesGuard)

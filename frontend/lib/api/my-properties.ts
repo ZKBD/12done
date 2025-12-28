@@ -109,7 +109,7 @@ export const myPropertiesApi = {
 
   // Get single property for editing
   getPropertyForEdit: async (id: string): Promise<Property> => {
-    return apiClient.get<Property>(`/properties/${id}/edit`);
+    return apiClient.get<Property>(`/properties/${id}`);
   },
 
   // Create new property
@@ -170,7 +170,7 @@ export const myPropertiesApi = {
     formData.append('type', type);
 
     return apiClient.upload<MediaUploadResponse[]>(
-      `/properties/${propertyId}/media`,
+      `/properties/${propertyId}/media/upload`,
       formData
     );
   },
