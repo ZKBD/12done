@@ -19,7 +19,10 @@ const profileSchema = z.object({
   postalCode: z.string().min(1, 'Postal code is required'),
   city: z.string().min(1, 'City is required'),
   country: z.string().min(2, 'Country is required'),
-  phone: z.string().min(1, 'Phone number is required'),
+  phone: z
+    .string()
+    .min(1, 'Phone number is required')
+    .regex(/^\+[1-9]\d{6,14}$/, 'Phone must be in international format without spaces (e.g., +36201234567)'),
 });
 
 type ProfileForm = z.infer<typeof profileSchema>;
@@ -32,9 +35,10 @@ export default function CompleteProfilePage() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
+    mode: 'onBlur', // Validate on blur for better UX
   });
 
   useEffect(() => {
@@ -144,18 +148,27 @@ export default function CompleteProfilePage() {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="+36 20 123 4567"
+                placeholder="+36201234567"
                 {...register('phone')}
-                disabled={isLoading}
+                disabled={isLoading || isSubmitting}
               />
               {errors.phone && (
                 <p className="text-sm text-destructive">{errors.phone.message}</p>
               )}
+              <p className="text-xs text-muted-foreground">
+                International format without spaces (e.g., +36201234567)
+              </p>
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={isLoading || isSubmitting}
+              onClick={handleSubmit(onSubmit)}
+            >
+              {(isLoading || isSubmitting) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Complete Profile
             </Button>
           </CardFooter>
