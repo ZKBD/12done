@@ -15,10 +15,11 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { diskStorage, Multer } from 'multer';
 import { extname, join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { existsSync, mkdirSync } from 'fs';
+import type { Request } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -68,6 +69,7 @@ import {
   UpdateOpenHouseDto,
   OpenHouseResponseDto,
   OpenHouseQueryDto,
+  MediaType,
 } from './dto';
 import { PropertyMediaResponseDto, FloorPlanResponseDto } from './dto/property-response.dto';
 
@@ -509,20 +511,32 @@ export class PropertiesController {
   @UseInterceptors(
     FilesInterceptor('files', 10, {
       storage: diskStorage({
-        destination: (req, file, cb) => {
+        destination: (
+          req: Request,
+          file: Multer.File,
+          cb: (error: Error | null, destination: string) => void,
+        ) => {
           const uploadPath = join(process.cwd(), 'uploads', 'properties');
           if (!existsSync(uploadPath)) {
             mkdirSync(uploadPath, { recursive: true });
           }
           cb(null, uploadPath);
         },
-        filename: (req, file, cb) => {
+        filename: (
+          req: Request,
+          file: Multer.File,
+          cb: (error: Error | null, filename: string) => void,
+        ) => {
           const uniqueSuffix = uuidv4();
           const ext = extname(file.originalname);
           cb(null, `${uniqueSuffix}${ext}`);
         },
       }),
-      fileFilter: (req, file, cb) => {
+      fileFilter: (
+        req: Request,
+        file: Multer.File,
+        cb: (error: Error | null, acceptFile: boolean) => void,
+      ) => {
         const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
         if (allowedMimes.includes(file.mimetype)) {
           cb(null, true);
@@ -537,7 +551,7 @@ export class PropertiesController {
   )
   async uploadMedia(
     @Param('id') propertyId: string,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Multer.File[],
     @CurrentUser() user: CurrentUserData,
     @Body('type') type: string = 'photo',
   ): Promise<PropertyMediaResponseDto[]> {
@@ -551,8 +565,17 @@ export class PropertiesController {
       const baseUrl = process.env.API_URL || 'http://localhost:3002';
       const url = `${baseUrl}/uploads/properties/${file.filename}`;
 
+      const mediaType =
+        type === 'video'
+          ? MediaType.VIDEO
+          : type === 'tour_360'
+            ? MediaType.TOUR_360
+            : type === 'tour_3d'
+              ? MediaType.TOUR_3D
+              : MediaType.PHOTO;
+
       const mediaDto: CreatePropertyMediaDto = {
-        type: (type as 'photo' | 'video' | 'tour_360' | 'tour_3d') || 'photo',
+        type: mediaType,
         url,
         isPrimary: results.length === 0, // First uploaded image is primary
       };
