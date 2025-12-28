@@ -118,6 +118,11 @@ export const paymentsApi = {
     return apiClient.post<Transaction>('/payments/refund', data);
   },
 
+  // Complete mock payment (for development/testing without Stripe)
+  completeMockPayment: async (sessionId: string): Promise<TransactionWithDetails> => {
+    return apiClient.post<TransactionWithDetails>(`/payments/complete-mock/${sessionId}`);
+  },
+
   // Get Stripe connect onboarding URL (for sellers)
   getConnectOnboardingUrl: async (): Promise<{ url: string }> => {
     return apiClient.get<{ url: string }>('/payments/connect/onboarding');

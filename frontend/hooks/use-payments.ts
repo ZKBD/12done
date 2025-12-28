@@ -98,10 +98,8 @@ export function useCreateCheckout() {
 
   return useMutation({
     mutationFn: (data: CreateCheckoutDto) => paymentsApi.createCheckout(data),
-    onSuccess: (data) => {
-      // Redirect to Stripe checkout
-      window.location.href = data.url;
-    },
+    // Note: No auto-redirect - the calling component handles the redirect
+    // to support both mock payments (show modal) and real Stripe (redirect)
     onError: (error: Error) => {
       toast({
         title: 'Error',
@@ -167,6 +165,31 @@ export function useGetConnectOnboardingUrl() {
       toast({
         title: 'Error',
         description: error.message || 'Failed to start onboarding.',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+export function useCompleteMockPayment() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (sessionId: string) => paymentsApi.completeMockPayment(sessionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['negotiations'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['negotiation'] });
+      toast({
+        title: 'Payment Complete',
+        description: 'Your payment has been processed successfully.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Payment Failed',
+        description: error.message || 'Failed to process payment.',
         variant: 'destructive',
       });
     },

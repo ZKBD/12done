@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useMemo, useEffect, useState, useCallback } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -35,11 +35,17 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OfferActions } from '@/components/negotiations';
 import {
+  PaymentConfirmationModal,
+  PaymentStatusCard,
+  PaymentCancelledNotice,
+} from '@/components/payments';
+import {
   useNegotiation,
   useNegotiationOffers,
   useMarkNegotiationAsRead,
 } from '@/hooks/use-negotiations';
-import { useCreateCheckout } from '@/hooks/use-payments';
+import { useCreateCheckout, useTransaction } from '@/hooks/use-payments';
+import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/providers';
 import { cn, getImageUrl } from '@/lib/utils';
 import type { NegotiationStatus, OfferStatus, Offer } from '@/lib/types';
@@ -81,13 +87,42 @@ const offerStatusColors: Record<OfferStatus, string> = {
 export default function NegotiationDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
+  const { toast } = useToast();
   const negotiationId = params.id as string;
 
-  const { data: negotiation, isLoading, error } = useNegotiation(negotiationId);
+  // Payment modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [checkoutSessionId, setCheckoutSessionId] = useState<string | null>(null);
+  const [showCancelledNotice, setShowCancelledNotice] = useState(false);
+
+  const { data: negotiation, isLoading, error, refetch } = useNegotiation(negotiationId);
   const { data: offers } = useNegotiationOffers(negotiationId);
   const markAsRead = useMarkNegotiationAsRead(negotiationId);
   const createCheckout = useCreateCheckout();
+
+  // Handle payment callbacks from URL params
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    const sessionId = searchParams.get('session_id');
+
+    if (paymentStatus === 'success' && sessionId) {
+      setCheckoutSessionId(sessionId);
+      setShowPaymentModal(true);
+      // Clear query params
+      router.replace(`/dashboard/negotiations/${negotiationId}`, { scroll: false });
+    } else if (paymentStatus === 'cancelled') {
+      setShowCancelledNotice(true);
+      toast({
+        title: 'Payment Cancelled',
+        description: 'Your payment was cancelled. You can try again when ready.',
+        variant: 'default',
+      });
+      // Clear query params
+      router.replace(`/dashboard/negotiations/${negotiationId}`, { scroll: false });
+    }
+  }, [searchParams, negotiationId, router, toast]);
 
   // Mark as read when viewing
   useEffect(() => {
@@ -145,13 +180,33 @@ export default function NegotiationDetailPage() {
     }).format(parseFloat(price));
   };
 
-  const handlePay = () => {
-    createCheckout.mutate({
-      negotiationId,
-      successUrl: `${window.location.origin}/dashboard/negotiations/${negotiationId}?payment=success`,
-      cancelUrl: `${window.location.origin}/dashboard/negotiations/${negotiationId}?payment=cancelled`,
-    });
+  const handlePay = async () => {
+    try {
+      const result = await createCheckout.mutateAsync({
+        negotiationId,
+        successUrl: `${window.location.origin}/dashboard/negotiations/${negotiationId}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/dashboard/negotiations/${negotiationId}?payment=cancelled`,
+      });
+
+      // Check if this is a mock session (for development/testing)
+      if (result.url.includes('mock=true') || result.sessionId.startsWith('mock_')) {
+        // For mock sessions, show the modal instead of redirecting
+        setCheckoutSessionId(result.sessionId);
+        setShowPaymentModal(true);
+      } else {
+        // For real Stripe sessions, redirect to Stripe checkout
+        window.location.href = result.url;
+      }
+    } catch {
+      // Error is handled by the hook's onError
+    }
   };
+
+  const handlePaymentSuccess = useCallback(() => {
+    refetch();
+    setShowPaymentModal(false);
+    setCheckoutSessionId(null);
+  }, [refetch]);
 
   if (isLoading) {
     return <NegotiationDetailSkeleton />;
@@ -523,6 +578,23 @@ export default function NegotiationDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Payment Confirmation Modal */}
+      {negotiation && checkoutSessionId && (
+        <PaymentConfirmationModal
+          open={showPaymentModal}
+          onOpenChange={setShowPaymentModal}
+          negotiation={negotiation}
+          sessionId={checkoutSessionId}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
+
+      {/* Payment Cancelled Notice */}
+      <PaymentCancelledNotice
+        show={showCancelledNotice}
+        onClose={() => setShowCancelledNotice(false)}
+      />
     </div>
   );
 }
