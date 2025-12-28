@@ -28,6 +28,7 @@ import { MakeOfferModal } from '@/components/negotiations/make-offer-modal';
 import { useProperty, useSimilarProperties } from '@/hooks/use-properties';
 import { useFavoriteIds, useToggleFavorite } from '@/hooks/use-favorites';
 import { propertiesApi } from '@/lib/api/properties';
+import { useAuth } from '@/providers';
 import { cn } from '@/lib/utils';
 import type { ListingType } from '@/lib/types';
 
@@ -47,9 +48,11 @@ export default function PropertyDetailPage() {
   const { data: similarProperties = [] } = useSimilarProperties(id);
   const { data: favoriteIds = [] } = useFavoriteIds();
   const toggleFavorite = useToggleFavorite();
+  const { user } = useAuth();
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
 
   const isFavorite = favoriteIds.includes(id);
+  const isOwner = user?.id === property?.owner?.id;
 
   // Track view on mount
   useEffect(() => {
@@ -228,14 +231,16 @@ export default function PropertyDetailPage() {
               </div>
 
               <div className="space-y-3 mt-6">
-                <Button
-                  className="w-full gap-2"
-                  size="lg"
-                  onClick={() => setIsOfferModalOpen(true)}
-                >
-                  <MessageSquare className="h-5 w-5" />
-                  Contact Owner
-                </Button>
+                {!isOwner && (
+                  <Button
+                    className="w-full gap-2"
+                    size="lg"
+                    onClick={() => setIsOfferModalOpen(true)}
+                  >
+                    <MessageSquare className="h-5 w-5" />
+                    Contact Owner
+                  </Button>
+                )}
 
                 <div className="flex gap-3">
                   <Button
