@@ -34,7 +34,7 @@ export class PaymentsService {
     const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
     if (stripeKey && stripeKey !== 'sk_test_your_stripe_secret_key') {
       this.stripe = new Stripe(stripeKey, {
-        apiVersion: '2025-01-27.acacia',
+        apiVersion: '2025-12-15.clover',
       });
     } else {
       this.logger.warn('Stripe is not configured - using mock mode');
@@ -101,6 +101,7 @@ export class PaymentsService {
       transaction = await this.prisma.transaction.create({
         data: {
           negotiationId: dto.negotiationId,
+          payerId: userId,
           amount: amount,
           currency: acceptedOffer.currency,
           platformFee: amount * (this.platformFeePercent / 100),
@@ -719,7 +720,7 @@ export class PaymentsService {
       sellerAmount: transaction.sellerAmount.toString(),
       status: transaction.status,
       stripePaymentIntentId: transaction.stripePaymentIntentId,
-      stripeSessionId: transaction.stripeSessionId,
+      stripeCheckoutSessionId: transaction.stripeSessionId,
       paidAt: transaction.paidAt,
       createdAt: transaction.createdAt,
       negotiation: transaction.negotiation

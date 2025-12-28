@@ -7,7 +7,7 @@ describe('PaymentsController', () => {
   let controller: PaymentsController;
   let paymentsService: PaymentsService;
 
-  const mockUser = { id: 'user-123', email: 'user@test.com' };
+  const mockUser = { id: 'user-123', email: 'user@test.com', role: 'USER', status: 'ACTIVE' };
 
   const mockCheckoutResponse = {
     sessionId: 'mock_session_123',

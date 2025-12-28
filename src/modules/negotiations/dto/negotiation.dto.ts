@@ -170,6 +170,13 @@ export class RespondToOfferDto {
   @IsOptional()
   @IsString()
   message?: string;
+
+  @ApiPropertyOptional({
+    description: 'Reason for rejection (when action is reject)',
+  })
+  @IsOptional()
+  @IsString()
+  reason?: string;
 }
 
 // ============================================

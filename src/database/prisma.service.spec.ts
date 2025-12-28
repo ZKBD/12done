@@ -3,9 +3,19 @@ import { PrismaService } from './prisma.service';
 
 describe('PrismaService', () => {
   let service: PrismaService;
-  const originalEnv = process.env.NODE_ENV;
+  let originalNodeEnv: string | undefined;
+
+  // Helper to safely set NODE_ENV (works around read-only property in some Jest configurations)
+  const setNodeEnv = (value: string) => {
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value,
+      writable: true,
+      configurable: true,
+    });
+  };
 
   beforeEach(async () => {
+    originalNodeEnv = process.env.NODE_ENV;
     const module: TestingModule = await Test.createTestingModule({
       providers: [PrismaService],
     }).compile();
@@ -14,7 +24,9 @@ describe('PrismaService', () => {
   });
 
   afterEach(() => {
-    process.env.NODE_ENV = originalEnv;
+    if (originalNodeEnv !== undefined) {
+      setNodeEnv(originalNodeEnv);
+    }
   });
 
   it('should be defined', () => {
@@ -64,7 +76,7 @@ describe('PrismaService', () => {
 
   describe('cleanDatabase', () => {
     it('should throw error in production environment', async () => {
-      process.env.NODE_ENV = 'production';
+      setNodeEnv('production');
 
       await expect(service.cleanDatabase()).rejects.toThrow(
         'cleanDatabase is not allowed in production',
@@ -72,7 +84,7 @@ describe('PrismaService', () => {
     });
 
     it('should not throw error in development environment', async () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
 
       // Mock the models to prevent actual database operations
       const mockModel = {
@@ -90,7 +102,7 @@ describe('PrismaService', () => {
     });
 
     it('should not throw error in test environment', async () => {
-      process.env.NODE_ENV = 'test';
+      setNodeEnv('test');
 
       // Mock Reflect.ownKeys to return empty array (no models to clean)
       const originalOwnKeys = Reflect.ownKeys;
@@ -103,7 +115,7 @@ describe('PrismaService', () => {
     });
 
     it('should call deleteMany on models with deleteMany method', async () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
 
       const mockDeleteMany = jest.fn().mockResolvedValue({ count: 5 });
       const mockModel = { deleteMany: mockDeleteMany };
@@ -121,7 +133,7 @@ describe('PrismaService', () => {
     });
 
     it('should skip properties without deleteMany method', async () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
 
       const mockModelWithoutDeleteMany = { findMany: jest.fn() };
 
@@ -137,7 +149,7 @@ describe('PrismaService', () => {
     });
 
     it('should skip private properties (starting with _)', async () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
 
       const mockDeleteMany = jest.fn().mockResolvedValue({ count: 0 });
       const mockPrivateModel = { deleteMany: mockDeleteMany };
@@ -156,7 +168,7 @@ describe('PrismaService', () => {
     });
 
     it('should skip $ prefixed properties', async () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
 
       const mockDeleteMany = jest.fn().mockResolvedValue({ count: 0 });
       const mockDollarModel = { deleteMany: mockDeleteMany };
@@ -182,7 +194,7 @@ describe('PrismaService', () => {
     });
 
     it('should handle null model values', async () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
 
       Object.defineProperty(service, 'nullModel', {
         value: null,
@@ -202,7 +214,7 @@ describe('PrismaService', () => {
     });
 
     it('should handle undefined model values', async () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
 
       Object.defineProperty(service, 'undefinedModel', {
         value: undefined,
@@ -222,7 +234,7 @@ describe('PrismaService', () => {
     });
 
     it('should clean multiple models', async () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
 
       const mockDeleteMany1 = jest.fn().mockResolvedValue({ count: 3 });
       const mockDeleteMany2 = jest.fn().mockResolvedValue({ count: 5 });
