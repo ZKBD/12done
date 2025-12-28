@@ -137,17 +137,17 @@ export const myPropertiesApi = {
 
   // Publish property (change from DRAFT to ACTIVE)
   publish: async (id: string): Promise<Property> => {
-    return apiClient.post<Property>(`/properties/${id}/publish`);
+    return apiClient.patch<Property>(`/properties/${id}/status`, { status: 'ACTIVE' });
   },
 
   // Pause property
   pause: async (id: string): Promise<Property> => {
-    return apiClient.post<Property>(`/properties/${id}/pause`);
+    return apiClient.patch<Property>(`/properties/${id}/status`, { status: 'PAUSED' });
   },
 
-  // Unpause property
+  // Unpause property (change from PAUSED back to ACTIVE)
   unpause: async (id: string): Promise<Property> => {
-    return apiClient.post<Property>(`/properties/${id}/unpause`);
+    return apiClient.patch<Property>(`/properties/${id}/status`, { status: 'ACTIVE' });
   },
 
   // Get property stats
