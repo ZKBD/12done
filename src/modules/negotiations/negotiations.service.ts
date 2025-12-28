@@ -300,6 +300,34 @@ export class NegotiationsService {
   // ============================================
 
   /**
+   * Get all offers for a negotiation
+   */
+  async getOffers(
+    negotiationId: string,
+    userId: string,
+  ): Promise<OfferResponseDto[]> {
+    const negotiation = await this.prisma.negotiation.findUnique({
+      where: { id: negotiationId },
+    });
+
+    if (!negotiation) {
+      throw new NotFoundException('Negotiation not found');
+    }
+
+    // Verify access
+    if (negotiation.buyerId !== userId && negotiation.sellerId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    const offers = await this.prisma.offer.findMany({
+      where: { negotiationId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return offers.map((offer) => this.mapOfferToDto(offer));
+  }
+
+  /**
    * Submit an offer on a negotiation (PROD-090.5)
    */
   async submitOffer(

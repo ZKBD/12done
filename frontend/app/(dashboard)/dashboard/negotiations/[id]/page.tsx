@@ -137,10 +137,10 @@ export default function NegotiationDetailPage() {
     return negotiation?.status === 'ACCEPTED' && isBuyer;
   }, [negotiation, isBuyer]);
 
-  const formatPrice = (price: string, currency: string) => {
+  const formatPrice = (price: string, currency?: string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency: currency || 'USD',
       maximumFractionDigits: 0,
     }).format(parseFloat(price));
   };
@@ -175,7 +175,7 @@ export default function NegotiationDetailPage() {
   const property = negotiation.property;
   const otherParty = isBuyer ? negotiation.seller : negotiation.buyer;
   const primaryImage =
-    property.media.find((m) => m.isPrimary) || property.media[0];
+    property.media?.find((m) => m.isPrimary) || property.media?.[0];
 
   return (
     <div className="space-y-6">

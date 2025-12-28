@@ -139,6 +139,28 @@ export class NegotiationsController {
   // OFFER ENDPOINTS (PROD-090.5 - PROD-090.7)
   // ============================================
 
+  @Get(':id/offers')
+  @ApiOperation({
+    summary: 'Get offers for a negotiation',
+    description: 'Retrieve all offers made in a negotiation',
+  })
+  @ApiParam({ name: 'id', description: 'Negotiation ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Offers retrieved successfully',
+    type: [OfferResponseDto],
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Negotiation not found',
+  })
+  async getOffers(
+    @Param('id') negotiationId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<OfferResponseDto[]> {
+    return this.negotiationsService.getOffers(negotiationId, user.id);
+  }
+
   @Post(':id/offers')
   @ApiOperation({
     summary: 'Submit an offer (PROD-090.5)',

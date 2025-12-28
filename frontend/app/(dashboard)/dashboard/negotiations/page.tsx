@@ -85,11 +85,11 @@ export default function NegotiationsPage() {
     return data?.pages.flatMap((page) => page.data) || [];
   }, [data]);
 
-  const formatPrice = (price: string, currency: string) => {
+  const formatPrice = (price: string, currency?: string) => {
     const num = parseFloat(price);
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency: currency || 'USD',
       maximumFractionDigits: 0,
     }).format(num);
   };
@@ -201,8 +201,8 @@ export default function NegotiationsPage() {
                   ? negotiation.seller
                   : negotiation.buyer;
                 const primaryImage =
-                  negotiation.property.media.find((m) => m.isPrimary) ||
-                  negotiation.property.media[0];
+                  negotiation.property.media?.find((m) => m.isPrimary) ||
+                  negotiation.property.media?.[0];
                 const StatusIcon = statusIcons[negotiation.status];
 
                 return (
