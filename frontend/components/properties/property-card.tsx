@@ -37,24 +37,29 @@ export function PropertyCard({
   onToggleFavorite,
   className,
 }: PropertyCardProps) {
+  // Handle both media array and primaryImageUrl
   const images = property.media
-    .filter((m) => m.type === 'photo')
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .map((m) => ({
-      url: m.url,
-      alt: m.caption || property.title,
-    }));
+    ? property.media
+        .filter((m) => m.type === 'photo')
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((m) => ({
+          url: m.url,
+          alt: m.caption || property.title,
+        }))
+    : [];
 
-  // Use placeholder if no images
+  // Use primaryImageUrl if available, otherwise placeholder
   const displayImages =
     images.length > 0
       ? images
-      : [
-          {
-            url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
-            alt: property.title,
-          },
-        ];
+      : property.primaryImageUrl
+        ? [{ url: property.primaryImageUrl, alt: property.title }]
+        : [
+            {
+              url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
+              alt: property.title,
+            },
+          ];
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();

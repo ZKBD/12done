@@ -74,12 +74,13 @@ export interface Property {
   bathrooms?: number;
   floors?: number;
   yearBuilt?: number;
-  petFriendly: boolean;
+  petFriendly?: boolean;
   noAgents: boolean;
-  owner: PropertyOwner;
-  media: PropertyMedia[];
+  owner?: PropertyOwner;
+  media?: PropertyMedia[];
+  primaryImageUrl?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface PropertyOwner {
