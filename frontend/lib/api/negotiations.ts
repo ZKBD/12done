@@ -12,11 +12,9 @@ import type {
 export interface CreateNegotiationDto {
   propertyId: string;
   type: 'BUY' | 'RENT';
-  initialOffer: {
-    amount: number;
-    currency: string;
-    message?: string;
-  };
+  initialOfferAmount?: number;
+  currency?: string;
+  message?: string;
   // For rentals
   startDate?: string;
   endDate?: string;

@@ -52,11 +52,9 @@ export function MakeOfferModal({
     await createNegotiation.mutateAsync({
       propertyId: property.id,
       type: negotiationType,
-      initialOffer: {
-        amount: parseFloat(amount),
-        currency,
-        message: message || undefined,
-      },
+      initialOfferAmount: parseFloat(amount),
+      currency,
+      message: message || undefined,
     });
 
     onOpenChange(false);

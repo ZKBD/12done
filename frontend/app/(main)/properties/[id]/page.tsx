@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ImageGallery } from '@/components/properties/image-gallery';
 import { PropertyCard } from '@/components/properties/property-card';
+import { MakeOfferModal } from '@/components/negotiations/make-offer-modal';
 import { useProperty, useSimilarProperties } from '@/hooks/use-properties';
 import { useFavoriteIds, useToggleFavorite } from '@/hooks/use-favorites';
 import { propertiesApi } from '@/lib/api/properties';
@@ -46,6 +47,7 @@ export default function PropertyDetailPage() {
   const { data: similarProperties = [] } = useSimilarProperties(id);
   const { data: favoriteIds = [] } = useFavoriteIds();
   const toggleFavorite = useToggleFavorite();
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
 
   const isFavorite = favoriteIds.includes(id);
 
@@ -226,7 +228,11 @@ export default function PropertyDetailPage() {
               </div>
 
               <div className="space-y-3 mt-6">
-                <Button className="w-full gap-2" size="lg">
+                <Button
+                  className="w-full gap-2"
+                  size="lg"
+                  onClick={() => setIsOfferModalOpen(true)}
+                >
                   <MessageSquare className="h-5 w-5" />
                   Contact Owner
                 </Button>
@@ -278,6 +284,13 @@ export default function PropertyDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Make Offer Modal */}
+      <MakeOfferModal
+        open={isOfferModalOpen}
+        onOpenChange={setIsOfferModalOpen}
+        property={property}
+      />
     </div>
   );
 }
