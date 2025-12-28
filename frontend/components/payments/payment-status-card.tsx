@@ -31,12 +31,11 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useRequestRefund } from '@/hooks/use-payments';
-import type { TransactionWithDetails } from '@/lib/api/payments';
-import type { TransactionStatus } from '@/lib/types';
+import type { Transaction, TransactionStatus } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface PaymentStatusCardProps {
-  transaction: TransactionWithDetails;
+  transaction: Transaction;
   isBuyer: boolean;
 }
 
@@ -103,7 +102,7 @@ export function PaymentStatusCard({
   };
 
   const canRequestRefund =
-    isBuyer && transaction.status === 'COMPLETED' && !transaction.paidAt;
+    isBuyer && transaction.status === 'COMPLETED';
 
   const handleRefundRequest = async () => {
     if (!refundReason.trim()) return;

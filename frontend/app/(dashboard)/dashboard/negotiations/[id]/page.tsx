@@ -43,6 +43,7 @@ import {
   useNegotiation,
   useNegotiationOffers,
   useMarkNegotiationAsRead,
+  useNegotiationTransaction,
 } from '@/hooks/use-negotiations';
 import { useCreateCheckout, useTransaction } from '@/hooks/use-payments';
 import { useToast } from '@/components/ui/use-toast';
@@ -99,6 +100,7 @@ export default function NegotiationDetailPage() {
 
   const { data: negotiation, isLoading, error, refetch } = useNegotiation(negotiationId);
   const { data: offers } = useNegotiationOffers(negotiationId);
+  const { data: transaction } = useNegotiationTransaction(negotiationId);
   const markAsRead = useMarkNegotiationAsRead(negotiationId);
   const createCheckout = useCreateCheckout();
 
@@ -574,6 +576,14 @@ export default function NegotiationDetailPage() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Payment Status Card - show when transaction exists */}
+          {transaction && (
+            <PaymentStatusCard
+              transaction={transaction}
+              isBuyer={isBuyer}
+            />
           )}
         </div>
       </div>
