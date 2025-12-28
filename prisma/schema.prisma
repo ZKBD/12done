@@ -90,7 +90,10 @@ enum NotificationType {
   OFFER_REJECTED
   OFFER_COUNTERED
   PAYMENT_RECEIVED
+  PAYMENT_CONFIRMED
   PAYMENT_FAILED
+  REFUND_PROCESSED
+  REFUND_CONFIRMED
 }
 
 // ============================================

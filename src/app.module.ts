@@ -15,7 +15,7 @@ import { NotificationsModule } from './modules/notifications';
 import { NegotiationsModule } from './modules/negotiations';
 import { CountriesModule } from './modules/countries';
 import { HealthModule } from './modules/health';
-import { PaymentsModule } from './payments';
+import { PaymentsModule } from './modules/payments';
 
 @Module({
   imports: [
