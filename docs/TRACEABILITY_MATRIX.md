@@ -2,7 +2,7 @@
 
 **Project:** 12done.com
 **Last Updated:** 2025-12-28
-**Version:** 1.3
+**Version:** 1.4
 
 This document traces requirements from the SRS to their implementing test cases and results. It must be updated whenever:
 - New requirements are added to the SRS
@@ -631,7 +631,7 @@ All tests passing locally and in CI.
 
 | Workflow | Status | Last Run |
 |----------|--------|----------|
-| **CI** | ✅ Passing | 2025-12-27 |
+| **CI** | ✅ Passing | 2025-12-28 |
 
 CI Pipeline includes:
 - **Lint** - ESLint with TypeScript rules
@@ -661,6 +661,7 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | CI Status | Notes |
 |------|------------|-----------|-----------|-------|
+| 2025-12-28 | ✅ 901 passed | ✅ 207 passed | ✅ Passing | Frontend payment checkout flow, backend schema fixes |
 | 2025-12-27 | ✅ 901 passed | ✅ 207 passed | ✅ Passing | Added Stripe payment integration (37 unit + 14 E2E) |
 
 ### Environment Requirements
@@ -738,6 +739,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-27 | Claude | Implemented Stripe payment integration (PROD-093, PROD-094, NFR-013); added PaymentsModule with checkout, refund, webhooks; 51 test cases (37 unit + 14 E2E) |
 | 2025-12-28 | Claude | Refactored PaymentsModule to src/modules/payments/; added mock payment mode, transaction listing, stats; updated 30 test cases (17 service + 13 controller) |
 | 2025-12-28 | Claude | Added comprehensive E2E tests for payments module; 38 test cases covering checkout, status, transactions, stats, refunds, webhooks |
+| 2025-12-28 | Claude | Implemented frontend payment checkout flow; added PaymentConfirmationModal, PaymentStatusCard components; fixed backend schema mismatches (platformFeeRate, stripeSessionId); fixed frontend pagination format in useTransactions/usePayouts hooks |
 
 ---
 
