@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuthStore } from '@/stores/auth-store';
+import { useAuthStore, useHasHydrated } from '@/stores/auth-store';
 import { authApi } from '@/lib/api/auth';
 import type { User, LoginDto, RegisterDto, CompleteProfileDto } from '@/lib/types';
 
@@ -31,6 +31,7 @@ const PROTECTED_PATHS = ['/dashboard', '/favorites', '/search-agents'];
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const hasHydrated = useHasHydrated();
   const {
     user,
     accessToken,
@@ -43,9 +44,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading,
   } = useAuthStore();
 
-  // Check auth status on mount
+  // Check auth status after hydration (only if we have a token but no user)
   useEffect(() => {
+    if (!hasHydrated) return;
+
     const checkAuth = async () => {
+      // Skip if we already have a user (e.g., just logged in or restored from localStorage)
+      if (user) {
+        setLoading(false);
+        return;
+      }
+
       if (accessToken) {
         try {
           const currentUser = await authApi.getMe();
@@ -57,24 +66,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     };
     checkAuth();
-  }, [accessToken, setUser, clearAuth, setLoading]);
+  }, [hasHydrated, accessToken, user, setUser, clearAuth, setLoading]);
 
-  // Protect routes
+  // Protect routes - only after hydration and loading is complete
   useEffect(() => {
-    if (isLoading) return;
+    if (!hasHydrated || isLoading) return;
 
     const isProtectedPath = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
     const isPublicAuthPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
     // Redirect to login if accessing protected route without auth
     if (isProtectedPath && !isAuthenticated) {
-      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      window.location.href = `/login?redirect=${encodeURIComponent(pathname)}`;
       return;
     }
 
     // Redirect to dashboard if accessing auth routes while logged in
+    // Use window.location for full page navigation to avoid RSC issues
     if (isPublicAuthPath && isAuthenticated && user?.status === 'ACTIVE') {
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
       return;
     }
 
@@ -84,23 +94,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user?.status === 'PENDING_PROFILE' &&
       pathname !== '/complete-profile'
     ) {
-      router.push('/complete-profile');
+      window.location.href = '/complete-profile';
     }
-  }, [isLoading, isAuthenticated, pathname, user, router]);
+  }, [hasHydrated, isLoading, isAuthenticated, pathname, user]);
 
   const login = useCallback(
     async (data: LoginDto) => {
       const response = await authApi.login(data);
       setAuth(response.user, response.tokens.accessToken, response.tokens.refreshToken);
 
+      // Use window.location for reliable navigation after login
       if (response.user.status === 'PENDING_PROFILE') {
-        router.push('/complete-profile');
+        window.location.href = '/complete-profile';
       } else {
         const redirect = new URLSearchParams(window.location.search).get('redirect');
-        router.push(redirect || '/dashboard');
+        window.location.href = redirect || '/dashboard';
       }
     },
-    [setAuth, router]
+    [setAuth]
   );
 
   const register = useCallback(
@@ -120,17 +131,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     clearAuth();
-    router.push('/');
-  }, [refreshToken, clearAuth, router]);
+    window.location.href = '/';
+  }, [refreshToken, clearAuth]);
 
   const completeProfile = useCallback(
     async (data: CompleteProfileDto) => {
       const response = await authApi.completeProfile(data);
       setUser(response.user);
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     },
-    [setUser, router]
+    [setUser]
   );
+
+  // Show loading spinner until hydrated
+  if (!hasHydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider

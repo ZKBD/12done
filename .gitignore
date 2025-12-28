@@ -50,3 +50,4 @@ uploads/
 
 # Misc
 .cache/
+.playwright-mcp/

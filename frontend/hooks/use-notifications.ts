@@ -9,6 +9,7 @@ export function useNotifications(params: NotificationsParams = {}) {
     queryFn: ({ pageParam = 1 }) =>
       notificationsApi.getAll({ ...params, page: pageParam }),
     getNextPageParam: (lastPage) => {
+      if (!lastPage?.meta) return undefined;
       if (lastPage.meta.page < lastPage.meta.totalPages) {
         return lastPage.meta.page + 1;
       }

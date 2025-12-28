@@ -40,7 +40,7 @@ export default function DashboardPage() {
     useNotifications({ limit: 5 });
 
   const notifications =
-    notificationsData?.pages.flatMap((page) => page.data) || [];
+    notificationsData?.pages.flatMap((page) => page?.data || []).filter(Boolean) || [];
   const activities = activityData || [];
 
   const formatPrice = (price: string, currency: string) => {

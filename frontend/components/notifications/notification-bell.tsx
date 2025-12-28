@@ -67,7 +67,7 @@ export function NotificationBell() {
   const markAllAsRead = useMarkAllAsRead();
   const deleteNotification = useDeleteNotification();
 
-  const notifications = data?.pages.flatMap((page) => page.data) || [];
+  const notifications = data?.pages.flatMap((page) => page?.data || []).filter(Boolean) || [];
   const unreadCount = unreadData?.count || 0;
 
   const handleMarkAsRead = (id: string) => {

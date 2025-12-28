@@ -1,46 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Routes that require authentication
-const PROTECTED_PATHS = ['/dashboard', '/favorites', '/search-agents'];
+// Middleware is disabled for now - route protection is handled client-side by auth-provider
+// The original middleware used cookies for auth detection, but Zustand persist uses localStorage
+// which is not accessible in middleware. Client-side route protection in auth-provider.tsx
+// provides proper protection after Zustand hydration.
 
-// Routes that should redirect to dashboard if authenticated
-const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
-
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Check for auth token in cookies
-  // Note: The actual token validation happens on the client side with Zustand
-  // This middleware provides basic route protection based on cookie presence
-  const authStorage = request.cookies.get('auth-storage')?.value;
-  let isAuthenticated = false;
-
-  if (authStorage) {
-    try {
-      const parsed = JSON.parse(authStorage);
-      isAuthenticated = parsed.state?.isAuthenticated === true;
-    } catch {
-      // Invalid cookie
-    }
-  }
-
-  const isProtectedPath = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
-  const isAuthPath = AUTH_PATHS.some((p) => pathname.startsWith(p));
-
-  // Redirect to login if accessing protected route without auth
-  if (isProtectedPath && !isAuthenticated) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Redirect to dashboard if accessing auth routes while logged in
-  // Exception: verify-email and complete-profile should always be accessible
-  if (isAuthPath && isAuthenticated) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
+export function middleware(_request: NextRequest) {
+  // Just pass through all requests
   return NextResponse.next();
 }
 

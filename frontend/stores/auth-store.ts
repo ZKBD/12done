@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '@/lib/types';
@@ -65,3 +66,27 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// Helper hook to check if store has hydrated
+export const useHasHydrated = () => {
+  const [hasHydrated, setHasHydrated] = React.useState(false);
+
+  React.useEffect(() => {
+    // Zustand persist rehydrates synchronously on first render
+    // but we need to wait for React to commit the hydrated state
+    const unsubFinishHydration = useAuthStore.persist.onFinishHydration(() => {
+      setHasHydrated(true);
+    });
+
+    // Check if already hydrated (in case onFinishHydration already fired)
+    if (useAuthStore.persist.hasHydrated()) {
+      setHasHydrated(true);
+    }
+
+    return () => {
+      unsubFinishHydration();
+    };
+  }, []);
+
+  return hasHydrated;
+};
