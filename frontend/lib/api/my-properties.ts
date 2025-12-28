@@ -209,7 +209,7 @@ export const myPropertiesApi = {
     mediaId: string
   ): Promise<PropertyMedia> => {
     return apiClient.post<PropertyMedia>(
-      `/properties/${propertyId}/media/${mediaId}/primary`
+      `/properties/${propertyId}/media/${mediaId}/set-primary`
     );
   },
 
