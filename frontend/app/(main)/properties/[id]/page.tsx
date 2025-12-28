@@ -30,6 +30,7 @@ import { useFavoriteIds, useToggleFavorite } from '@/hooks/use-favorites';
 import { propertiesApi } from '@/lib/api/properties';
 import { useAuth } from '@/providers';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 import type { ListingType } from '@/lib/types';
 
 const listingTypeLabels: Record<ListingType, string> = {
@@ -86,14 +87,40 @@ export default function PropertyDetailPage() {
     primaryListingType === 'LONG_TERM_RENT';
 
   const handleShare = async () => {
-    if (navigator.share) {
-      await navigator.share({
-        title: property.title,
-        text: property.description || `Check out this property: ${property.title}`,
-        url: window.location.href,
+    const url = window.location.href;
+
+    // Try native share on mobile/touch devices
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile && navigator.share) {
+      try {
+        await navigator.share({
+          title: property.title,
+          text: property.description || `Check out this property: ${property.title}`,
+          url,
+        });
+        return; // Success - native share handled it
+      } catch (error) {
+        // User cancelled - don't show anything
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        // Other errors - fall through to clipboard
+      }
+    }
+
+    // Use clipboard for desktop or as fallback
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: 'Link copied',
+        description: 'Property link copied to clipboard',
       });
-    } else {
-      await navigator.clipboard.writeText(window.location.href);
+    } catch {
+      toast({
+        title: 'Share failed',
+        description: 'Could not copy the link to clipboard',
+        variant: 'destructive',
+      });
     }
   };
 
