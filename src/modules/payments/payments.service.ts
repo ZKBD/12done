@@ -104,6 +104,7 @@ export class PaymentsService {
           amount: amount,
           currency: acceptedOffer.currency,
           platformFee: amount * (this.platformFeePercent / 100),
+          platformFeeRate: this.platformFeePercent / 100, // e.g., 0.05 = 5%
           sellerAmount: amount * (1 - this.platformFeePercent / 100),
           status: TransactionStatus.PENDING,
         },
@@ -115,7 +116,7 @@ export class PaymentsService {
       const mockSessionId = `mock_session_${transaction.id}`;
       await this.prisma.transaction.update({
         where: { id: transaction.id },
-        data: { stripeCheckoutSessionId: mockSessionId },
+        data: { stripeSessionId: mockSessionId },
       });
 
       return {
@@ -156,7 +157,7 @@ export class PaymentsService {
     await this.prisma.transaction.update({
       where: { id: transaction.id },
       data: {
-        stripeCheckoutSessionId: session.id,
+        stripeSessionId: session.id,
         status: TransactionStatus.PROCESSING,
       },
     });
@@ -204,7 +205,7 @@ export class PaymentsService {
 
     // Find transaction by session ID
     const transaction = await this.prisma.transaction.findFirst({
-      where: { stripeCheckoutSessionId: sessionId },
+      where: { stripeSessionId: sessionId },
       include: { negotiation: true },
     });
 
@@ -718,7 +719,7 @@ export class PaymentsService {
       sellerAmount: transaction.sellerAmount.toString(),
       status: transaction.status,
       stripePaymentIntentId: transaction.stripePaymentIntentId,
-      stripeCheckoutSessionId: transaction.stripeCheckoutSessionId,
+      stripeSessionId: transaction.stripeSessionId,
       paidAt: transaction.paidAt,
       createdAt: transaction.createdAt,
       negotiation: transaction.negotiation

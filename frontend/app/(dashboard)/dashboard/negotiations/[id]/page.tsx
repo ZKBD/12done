@@ -182,10 +182,9 @@ export default function NegotiationDetailPage() {
 
   const handlePay = async () => {
     try {
+      // Don't pass URLs - let backend use its defaults which include Stripe's {CHECKOUT_SESSION_ID} placeholder
       const result = await createCheckout.mutateAsync({
         negotiationId,
-        successUrl: `${window.location.origin}/dashboard/negotiations/${negotiationId}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/dashboard/negotiations/${negotiationId}?payment=cancelled`,
       });
 
       // Check if this is a mock session (for development/testing)
