@@ -26,28 +26,23 @@ export interface NotificationStats {
 
 export const notificationsApi = {
   getAll: async (params: NotificationsParams = {}): Promise<NotificationsResponse> => {
-    const response = await apiClient.get('/notifications', { params });
-    return response.data;
+    return apiClient.get<NotificationsResponse>('/notifications', { params });
   },
 
   getUnreadCount: async (): Promise<{ count: number }> => {
-    const response = await apiClient.get('/notifications/unread-count');
-    return response.data;
+    return apiClient.get<{ count: number }>('/notifications/unread-count');
   },
 
   getStats: async (): Promise<NotificationStats> => {
-    const response = await apiClient.get('/notifications/stats');
-    return response.data;
+    return apiClient.get<NotificationStats>('/notifications/stats');
   },
 
   markAsRead: async (id: string): Promise<Notification> => {
-    const response = await apiClient.patch(`/notifications/${id}/read`);
-    return response.data;
+    return apiClient.patch<Notification>(`/notifications/${id}/read`);
   },
 
   markAllAsRead: async (): Promise<{ count: number }> => {
-    const response = await apiClient.patch('/notifications/read-all');
-    return response.data;
+    return apiClient.patch<{ count: number }>('/notifications/read-all');
   },
 
   delete: async (id: string): Promise<void> => {
@@ -55,7 +50,6 @@ export const notificationsApi = {
   },
 
   deleteAll: async (): Promise<{ count: number }> => {
-    const response = await apiClient.delete('/notifications');
-    return response.data;
+    return apiClient.delete<{ count: number }>('/notifications');
   },
 };

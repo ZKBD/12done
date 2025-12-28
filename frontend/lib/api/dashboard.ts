@@ -47,14 +47,12 @@ export interface RecentActivity {
 
 export const dashboardApi = {
   getStats: async (): Promise<DashboardStats> => {
-    const response = await apiClient.get('/users/dashboard/stats');
-    return response.data;
+    return apiClient.get<DashboardStats>('/users/dashboard/stats');
   },
 
   getRecentActivity: async (limit: number = 5): Promise<RecentActivity[]> => {
-    const response = await apiClient.get('/users/dashboard/activity', {
+    return apiClient.get<RecentActivity[]>('/users/dashboard/activity', {
       params: { limit },
     });
-    return response.data;
   },
 };

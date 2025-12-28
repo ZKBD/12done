@@ -83,7 +83,7 @@ export const paymentsApi = {
   getPaymentStatus: async (
     sessionId: string
   ): Promise<{ status: string; transaction?: Transaction }> => {
-    return apiClient.get(`/payments/status/${sessionId}`);
+    return apiClient.get<{ status: string; transaction?: Transaction }>(`/payments/status/${sessionId}`);
   },
 
   // Get all transactions for current user
@@ -129,7 +129,11 @@ export const paymentsApi = {
     accountId?: string;
     payoutsEnabled: boolean;
   }> => {
-    return apiClient.get('/payments/connect/status');
+    return apiClient.get<{
+      connected: boolean;
+      accountId?: string;
+      payoutsEnabled: boolean;
+    }>('/payments/connect/status');
   },
 
   // Get payout history
@@ -149,6 +153,13 @@ export const paymentsApi = {
     if (params.page) queryParams.append('page', String(params.page));
     if (params.limit) queryParams.append('limit', String(params.limit));
 
-    return apiClient.get(`/payments/payouts?${queryParams.toString()}`);
+    return apiClient.get<PaginatedResponse<{
+      id: string;
+      amount: string;
+      currency: string;
+      status: string;
+      arrivalDate: string;
+      createdAt: string;
+    }>>(`/payments/payouts?${queryParams.toString()}`);
   },
 };

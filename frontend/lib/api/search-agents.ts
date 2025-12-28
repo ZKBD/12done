@@ -18,25 +18,21 @@ export interface UpdateSearchAgentDto {
 
 export const searchAgentsApi = {
   getAll: async (page = 1, limit = 20): Promise<PaginatedResponse<SearchAgent>> => {
-    const response = await apiClient.get('/search/agents', {
+    return apiClient.get<PaginatedResponse<SearchAgent>>('/search/agents', {
       params: { page, limit },
     });
-    return response.data;
   },
 
   getById: async (id: string): Promise<SearchAgent> => {
-    const response = await apiClient.get(`/search/agents/${id}`);
-    return response.data;
+    return apiClient.get<SearchAgent>(`/search/agents/${id}`);
   },
 
   create: async (data: CreateSearchAgentDto): Promise<SearchAgent> => {
-    const response = await apiClient.post('/search/agents', data);
-    return response.data;
+    return apiClient.post<SearchAgent>('/search/agents', data);
   },
 
   update: async (id: string, data: UpdateSearchAgentDto): Promise<SearchAgent> => {
-    const response = await apiClient.patch(`/search/agents/${id}`, data);
-    return response.data;
+    return apiClient.patch<SearchAgent>(`/search/agents/${id}`, data);
   },
 
   delete: async (id: string): Promise<void> => {
@@ -44,12 +40,10 @@ export const searchAgentsApi = {
   },
 
   toggle: async (id: string): Promise<SearchAgent> => {
-    const response = await apiClient.patch(`/search/agents/${id}/toggle`);
-    return response.data;
+    return apiClient.patch<SearchAgent>(`/search/agents/${id}/toggle`);
   },
 
   runNow: async (id: string): Promise<{ matchCount: number }> => {
-    const response = await apiClient.post(`/search/agents/${id}/run`);
-    return response.data;
+    return apiClient.post<{ matchCount: number }>(`/search/agents/${id}/run`);
   },
 };

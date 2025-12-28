@@ -9,6 +9,7 @@ export interface User {
   postalCode?: string;
   city?: string;
   country?: string;
+  avatarUrl?: string;
   role: UserRole;
   status: UserStatus;
   emailVerified: boolean;
