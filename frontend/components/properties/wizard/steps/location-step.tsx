@@ -79,7 +79,7 @@ export function LocationStep({ data, errors, onChange }: LocationStepProps) {
           </SelectTrigger>
           <SelectContent>
             {countries.map((country) => (
-              <SelectItem key={country.code} value={country.name}>
+              <SelectItem key={country.code} value={country.code}>
                 {country.name}
               </SelectItem>
             ))}

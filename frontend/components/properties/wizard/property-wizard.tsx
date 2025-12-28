@@ -192,7 +192,7 @@ export function PropertyWizard() {
       country: formData.country,
       latitude: formData.latitude,
       longitude: formData.longitude,
-      basePrice: formData.basePrice,
+      basePrice: String(formData.basePrice),
       currency: formData.currency,
       bedrooms: formData.bedrooms,
       bathrooms: formData.bathrooms,

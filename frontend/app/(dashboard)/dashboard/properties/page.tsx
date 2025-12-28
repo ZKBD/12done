@@ -286,7 +286,7 @@ function PropertyRow({
   const router = useRouter();
   const updateStatus = useUpdatePropertyStatus(property.id);
 
-  const primaryImage = property.media.find((m) => m.isPrimary) || property.media[0];
+  const primaryImage = property.media?.find((m) => m.isPrimary) || property.media?.[0];
 
   const handlePause = () => {
     updateStatus.mutate('PAUSED');
