@@ -561,6 +561,49 @@ All tests passing locally and in CI.
 | CTRL-PAY-012 | `requestRefund > should handle partial refund` | payments.controller.spec.ts | Verifies partial refund support | ✅ |
 | CTRL-PAY-013 | `handleWebhook > should handle webhook and return received confirmation` | payments.controller.spec.ts | Verifies webhook processing | ✅ |
 
+### Payment E2E Tests
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| E2E-PAY-001 | `POST /api/payments/checkout > should require authentication` | payments.e2e-spec.ts | E2E auth check for checkout | ✅ |
+| E2E-PAY-002 | `POST /api/payments/checkout > should return 404 for non-existent negotiation` | payments.e2e-spec.ts | E2E negotiation validation | ✅ |
+| E2E-PAY-003 | `POST /api/payments/checkout > should return 403 if user is not the buyer` | payments.e2e-spec.ts | E2E buyer authorization | ✅ |
+| E2E-PAY-004 | `POST /api/payments/checkout > should return 403 for unauthorized user` | payments.e2e-spec.ts | E2E stranger access denied | ✅ |
+| E2E-PAY-005 | `POST /api/payments/checkout > should create a mock checkout session for buyer` | payments.e2e-spec.ts | E2E mock checkout creation | ✅ |
+| E2E-PAY-006 | `POST /api/payments/checkout > should reuse existing pending transaction` | payments.e2e-spec.ts | E2E transaction reuse | ✅ |
+| E2E-PAY-007 | `GET /api/payments/status/:sessionId > should require authentication` | payments.e2e-spec.ts | E2E auth check for status | ✅ |
+| E2E-PAY-008 | `GET /api/payments/status/:sessionId > should return payment status for buyer` | payments.e2e-spec.ts | E2E buyer status retrieval | ✅ |
+| E2E-PAY-009 | `GET /api/payments/status/:sessionId > should return payment status for seller` | payments.e2e-spec.ts | E2E seller status retrieval | ✅ |
+| E2E-PAY-010 | `GET /api/payments/status/:sessionId > should return 403 for stranger` | payments.e2e-spec.ts | E2E access control | ✅ |
+| E2E-PAY-011 | `GET /api/payments/status/:sessionId > should return 404 for non-existent session` | payments.e2e-spec.ts | E2E not found handling | ✅ |
+| E2E-PAY-012 | `POST /api/payments/complete-mock/:sessionId > should require authentication` | payments.e2e-spec.ts | E2E auth check for mock complete | ✅ |
+| E2E-PAY-013 | `POST /api/payments/complete-mock/:sessionId > should return 400 for non-mock session` | payments.e2e-spec.ts | E2E mock session validation | ✅ |
+| E2E-PAY-014 | `POST /api/payments/complete-mock/:sessionId > should return 403 if not buyer` | payments.e2e-spec.ts | E2E buyer authorization | ✅ |
+| E2E-PAY-015 | `POST /api/payments/complete-mock/:sessionId > should complete mock payment` | payments.e2e-spec.ts | E2E mock payment completion | ✅ |
+| E2E-PAY-016 | `POST /api/payments/complete-mock/:sessionId > should be idempotent` | payments.e2e-spec.ts | E2E idempotent completion | ✅ |
+| E2E-PAY-017 | `GET /api/payments/transactions > should require authentication` | payments.e2e-spec.ts | E2E auth check for transactions | ✅ |
+| E2E-PAY-018 | `GET /api/payments/transactions > should return transactions for buyer` | payments.e2e-spec.ts | E2E buyer transaction listing | ✅ |
+| E2E-PAY-019 | `GET /api/payments/transactions > should return transactions for seller` | payments.e2e-spec.ts | E2E seller transaction listing | ✅ |
+| E2E-PAY-020 | `GET /api/payments/transactions > should support pagination` | payments.e2e-spec.ts | E2E pagination support | ✅ |
+| E2E-PAY-021 | `GET /api/payments/transactions > should filter by status` | payments.e2e-spec.ts | E2E status filtering | ✅ |
+| E2E-PAY-022 | `GET /api/payments/transactions > should return empty for stranger` | payments.e2e-spec.ts | E2E empty result for non-party | ✅ |
+| E2E-PAY-023 | `GET /api/payments/transactions/:id > should require authentication` | payments.e2e-spec.ts | E2E auth check for single transaction | ✅ |
+| E2E-PAY-024 | `GET /api/payments/transactions/:id > should return details for buyer` | payments.e2e-spec.ts | E2E buyer transaction details | ✅ |
+| E2E-PAY-025 | `GET /api/payments/transactions/:id > should return details for seller` | payments.e2e-spec.ts | E2E seller transaction details | ✅ |
+| E2E-PAY-026 | `GET /api/payments/transactions/:id > should return 403 for stranger` | payments.e2e-spec.ts | E2E access control | ✅ |
+| E2E-PAY-027 | `GET /api/payments/transactions/:id > should return 404 for non-existent` | payments.e2e-spec.ts | E2E not found handling | ✅ |
+| E2E-PAY-028 | `GET /api/payments/stats > should require authentication` | payments.e2e-spec.ts | E2E auth check for stats | ✅ |
+| E2E-PAY-029 | `GET /api/payments/stats > should return stats for buyer` | payments.e2e-spec.ts | E2E buyer stats (spent) | ✅ |
+| E2E-PAY-030 | `GET /api/payments/stats > should return stats for seller` | payments.e2e-spec.ts | E2E seller stats (earnings) | ✅ |
+| E2E-PAY-031 | `GET /api/payments/stats > should return zero stats for stranger` | payments.e2e-spec.ts | E2E empty stats for non-party | ✅ |
+| E2E-PAY-032 | `POST /api/payments/refund > should require authentication` | payments.e2e-spec.ts | E2E auth check for refund | ✅ |
+| E2E-PAY-033 | `POST /api/payments/refund > should return 404 for non-existent transaction` | payments.e2e-spec.ts | E2E refund not found | ✅ |
+| E2E-PAY-034 | `POST /api/payments/refund > should return 403 if not buyer` | payments.e2e-spec.ts | E2E buyer-only refund | ✅ |
+| E2E-PAY-035 | `POST /api/payments/refund > should return 403 for stranger` | payments.e2e-spec.ts | E2E access control | ✅ |
+| E2E-PAY-036 | `POST /api/payments/refund > should process refund for buyer` | payments.e2e-spec.ts | E2E refund processing | ✅ |
+| E2E-PAY-037 | `POST /api/payments/refund > should return 400 for already refunded` | payments.e2e-spec.ts | E2E duplicate refund prevention | ✅ |
+| E2E-PAY-038 | `POST /api/payments/webhook > should not require JWT auth` | payments.e2e-spec.ts | E2E webhook accessibility | ✅ |
+
 ---
 
 ## 8. E2E Test Coverage
@@ -576,7 +619,7 @@ All tests passing locally and in CI.
 | Search | search.e2e-spec.ts | 6+ | Search and favorites | ✅ |
 | Invitations | invitations.e2e-spec.ts | 8+ | Invitation system | ✅ |
 | Negotiations | negotiations.e2e-spec.ts | 19 | Negotiation and transaction flow | ✅ |
-| Payments | payments.e2e-spec.ts | - | Payment processing (E2E tests pending) | ⏳ |
+| Payments | payments.e2e-spec.ts | 38 | Payment checkout, transactions, stats, refunds | ✅ |
 
 ---
 
@@ -694,6 +737,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-27 | Claude | Implemented PROD-090-095 (Negotiations & Transactions); added Negotiation, Offer, Transaction models; 62 test cases (43 unit + 19 E2E) |
 | 2025-12-27 | Claude | Implemented Stripe payment integration (PROD-093, PROD-094, NFR-013); added PaymentsModule with checkout, refund, webhooks; 51 test cases (37 unit + 14 E2E) |
 | 2025-12-28 | Claude | Refactored PaymentsModule to src/modules/payments/; added mock payment mode, transaction listing, stats; updated 30 test cases (17 service + 13 controller) |
+| 2025-12-28 | Claude | Added comprehensive E2E tests for payments module; 38 test cases covering checkout, status, transactions, stats, refunds, webhooks |
 
 ---
 

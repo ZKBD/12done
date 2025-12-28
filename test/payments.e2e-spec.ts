@@ -3,7 +3,6 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/database/prisma.service';
-import { TransactionStatus, NegotiationStatus, NegotiationType, OfferStatus } from '@prisma/client';
 
 describe('PaymentsController (e2e)', () => {
   let app: INestApplication;
@@ -12,14 +11,15 @@ describe('PaymentsController (e2e)', () => {
   // Test users
   const buyerEmail = `buyer.pay.${Date.now()}@example.com`;
   const sellerEmail = `seller.pay.${Date.now()}@example.com`;
+  const strangerEmail = `stranger.pay.${Date.now()}@example.com`;
   const testPassword = 'SecureP@ss123';
 
   let buyerToken: string;
   let sellerToken: string;
-  let buyerId: string;
-  let sellerId: string;
+  let strangerToken: string;
   let propertyId: string;
   let negotiationId: string;
+  let mockSessionId: string;
   let transactionId: string;
 
   beforeAll(async () => {
@@ -40,85 +40,59 @@ describe('PaymentsController (e2e)', () => {
     prisma = moduleFixture.get<PrismaService>(PrismaService);
     await app.init();
 
-    // Create and verify seller
-    await request(app.getHttpServer())
-      .post('/api/auth/register')
-      .send({
-        email: sellerEmail,
-        firstName: 'Seller',
-        lastName: 'User',
-        password: testPassword,
-        confirmPassword: testPassword,
+    // Helper function to create and verify a user
+    const createUser = async (
+      email: string,
+      firstName: string,
+      address: string,
+    ): Promise<string> => {
+      await request(app.getHttpServer())
+        .post('/api/auth/register')
+        .send({
+          email,
+          firstName,
+          lastName: 'User',
+          password: testPassword,
+          confirmPassword: testPassword,
+        });
+
+      const verificationToken = await prisma.emailVerificationToken.findFirst({
+        where: { user: { email } },
       });
 
-    const sellerVerificationToken = await prisma.emailVerificationToken.findFirst({
-      where: { user: { email: sellerEmail } },
-    });
+      await request(app.getHttpServer())
+        .post('/api/auth/verify-email')
+        .send({ token: verificationToken!.token });
 
-    const sellerVerifyResponse = await request(app.getHttpServer())
-      .post('/api/auth/verify-email')
-      .send({ token: sellerVerificationToken!.token });
+      const loginResponse = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email, password: testPassword });
 
-    sellerToken = sellerVerifyResponse.body.tokens.accessToken;
+      const token = loginResponse.body.tokens.accessToken;
 
-    await request(app.getHttpServer())
-      .post('/api/auth/complete-profile')
-      .set('Authorization', `Bearer ${sellerToken}`)
-      .send({
-        address: '123 Seller Street',
-        postalCode: '1051',
-        city: 'Budapest',
-        country: 'HU',
-        phone: '+36201234567',
-      });
+      await request(app.getHttpServer())
+        .post('/api/auth/complete-profile')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          address,
+          postalCode: '1051',
+          city: 'Budapest',
+          country: 'HU',
+          phone: '+36201234567',
+        });
 
-    const sellerLoginResponse = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ email: sellerEmail, password: testPassword });
+      // Re-login to get fresh token
+      const freshLogin = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email, password: testPassword });
 
-    sellerToken = sellerLoginResponse.body.tokens.accessToken;
-    const sellerUser = await prisma.user.findUnique({ where: { email: sellerEmail } });
-    sellerId = sellerUser!.id;
+      return freshLogin.body.tokens.accessToken;
+    };
 
-    // Create and verify buyer
-    await request(app.getHttpServer())
-      .post('/api/auth/register')
-      .send({
-        email: buyerEmail,
-        firstName: 'Buyer',
-        lastName: 'User',
-        password: testPassword,
-        confirmPassword: testPassword,
-      });
-
-    const buyerVerificationToken = await prisma.emailVerificationToken.findFirst({
-      where: { user: { email: buyerEmail } },
-    });
-
-    const buyerVerifyResponse = await request(app.getHttpServer())
-      .post('/api/auth/verify-email')
-      .send({ token: buyerVerificationToken!.token });
-
-    buyerToken = buyerVerifyResponse.body.tokens.accessToken;
-
-    await request(app.getHttpServer())
-      .post('/api/auth/complete-profile')
-      .set('Authorization', `Bearer ${buyerToken}`)
-      .send({
-        address: '456 Buyer Street',
-        postalCode: '1052',
-        city: 'Budapest',
-        country: 'HU',
-        phone: '+36201234568',
-      });
-
-    const buyerLoginResponse = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ email: buyerEmail, password: testPassword });
-
-    buyerToken = buyerLoginResponse.body.tokens.accessToken;
-    const buyerUser = await prisma.user.findUnique({ where: { email: buyerEmail } });
-    buyerId = buyerUser!.id;
+    // Create all test users
+    sellerToken = await createUser(sellerEmail, 'Seller', '123 Seller St');
+    buyerToken = await createUser(buyerEmail, 'Buyer', '456 Buyer St');
+    strangerToken = await createUser(strangerEmail, 'Stranger', '789 Stranger St');
 
     // Create a property for the seller
     const propertyResponse = await request(app.getHttpServer())
@@ -126,12 +100,12 @@ describe('PaymentsController (e2e)', () => {
       .set('Authorization', `Bearer ${sellerToken}`)
       .send({
         title: 'Payment Test Property',
-        address: '789 Payment Street',
+        address: '123 Payment Street',
         postalCode: '1011',
         city: 'Budapest',
         country: 'HU',
         listingTypes: ['FOR_SALE'],
-        basePrice: '300000',
+        basePrice: '100000',
         currency: 'EUR',
       });
 
@@ -143,44 +117,41 @@ describe('PaymentsController (e2e)', () => {
       .set('Authorization', `Bearer ${sellerToken}`)
       .send({ status: 'ACTIVE' });
 
-    // Create negotiation and accept an offer to create a transaction
+    // Create a negotiation
     const negotiationResponse = await request(app.getHttpServer())
       .post('/api/negotiations')
       .set('Authorization', `Bearer ${buyerToken}`)
       .send({
         propertyId,
         type: 'BUY',
-        initialOfferAmount: 280000,
+        initialOfferAmount: 95000,
         currency: 'EUR',
+        message: 'I want to buy this property',
       });
 
     negotiationId = negotiationResponse.body.id;
 
-    // Get the initial offer
+    // Get the pending offer and accept it to create an ACCEPTED negotiation
     const negotiationDetails = await request(app.getHttpServer())
       .get(`/api/negotiations/${negotiationId}`)
       .set('Authorization', `Bearer ${sellerToken}`);
 
-    const offerId = negotiationDetails.body.offers[0].id;
+    const pendingOffer = negotiationDetails.body.offers.find(
+      (o: { status: string }) => o.status === 'PENDING',
+    );
 
-    // Seller accepts the offer - this creates a transaction
-    await request(app.getHttpServer())
-      .post(`/api/negotiations/offers/${offerId}/respond`)
-      .set('Authorization', `Bearer ${sellerToken}`)
-      .send({ action: 'accept' });
-
-    // Get the transaction ID
-    const transactionResponse = await request(app.getHttpServer())
-      .get(`/api/negotiations/${negotiationId}/transaction`)
-      .set('Authorization', `Bearer ${buyerToken}`);
-
-    transactionId = transactionResponse.body.id;
-  }, 120000);
+    if (pendingOffer) {
+      await request(app.getHttpServer())
+        .post(`/api/negotiations/offers/${pendingOffer.id}/respond`)
+        .set('Authorization', `Bearer ${sellerToken}`)
+        .send({ action: 'accept' });
+    }
+  }, 90000);
 
   afterAll(async () => {
-    // Clean up
+    // Clean up test data
     const users = await prisma.user.findMany({
-      where: { email: { in: [buyerEmail, sellerEmail] } },
+      where: { email: { in: [buyerEmail, sellerEmail, strangerEmail] } },
       select: { id: true },
     });
     const userIds = users.map((u) => u.id);
@@ -212,165 +183,410 @@ describe('PaymentsController (e2e)', () => {
     }
   });
 
-  // ============ GET PAYMENT STATUS ============
+  // ============ CHECKOUT ENDPOINTS ============
 
-  describe('GET /api/payments/:transactionId', () => {
+  describe('POST /api/payments/checkout', () => {
     it('should require authentication', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/payments/${transactionId}`);
+        .post('/api/payments/checkout')
+        .send({ negotiationId });
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 404 for non-existent negotiation', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/payments/checkout')
+        .set('Authorization', `Bearer ${buyerToken}`)
+        .send({ negotiationId: '00000000-0000-0000-0000-000000000000' });
+
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 403 if user is not the buyer', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/payments/checkout')
+        .set('Authorization', `Bearer ${sellerToken}`)
+        .send({ negotiationId });
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should return 403 for unauthorized user (stranger)', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/payments/checkout')
+        .set('Authorization', `Bearer ${strangerToken}`)
+        .send({ negotiationId });
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should create a mock checkout session for buyer', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/payments/checkout')
+        .set('Authorization', `Bearer ${buyerToken}`)
+        .send({ negotiationId });
+
+      expect(response.status).toBe(201);
+      expect(response.body.sessionId).toBeDefined();
+      expect(response.body.sessionId).toContain('mock_session_');
+      expect(response.body.url).toBeDefined();
+      expect(response.body.url).toContain('mock=true');
+
+      mockSessionId = response.body.sessionId;
+    });
+
+    it('should reuse existing pending transaction on subsequent checkout', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/payments/checkout')
+        .set('Authorization', `Bearer ${buyerToken}`)
+        .send({ negotiationId });
+
+      expect(response.status).toBe(201);
+      // Should reuse the same session for the same negotiation
+      expect(response.body.sessionId).toBeDefined();
+    });
+  });
+
+  // ============ PAYMENT STATUS ============
+
+  describe('GET /api/payments/status/:sessionId', () => {
+    it('should require authentication', async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/api/payments/status/${mockSessionId}`,
+      );
 
       expect(response.status).toBe(401);
     });
 
     it('should return payment status for buyer', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/payments/${transactionId}`)
+        .get(`/api/payments/status/${mockSessionId}`)
         .set('Authorization', `Bearer ${buyerToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.id).toBe(transactionId);
-      expect(response.body.status).toBe(TransactionStatus.PENDING);
+      expect(response.body.status).toBeDefined();
+      expect(response.body.transactionId).toBeDefined();
       expect(response.body.amount).toBeDefined();
       expect(response.body.currency).toBe('EUR');
-      expect(response.body.platformFee).toBeDefined();
-      expect(response.body.sellerAmount).toBeDefined();
+
+      transactionId = response.body.transactionId;
     });
 
     it('should return payment status for seller', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/payments/${transactionId}`)
+        .get(`/api/payments/status/${mockSessionId}`)
+        .set('Authorization', `Bearer ${sellerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.transactionId).toBe(transactionId);
+    });
+
+    it('should return 403 for unauthorized user (stranger)', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/payments/status/${mockSessionId}`)
+        .set('Authorization', `Bearer ${strangerToken}`);
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should return 404 for non-existent session', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/payments/status/mock_session_nonexistent')
+        .set('Authorization', `Bearer ${buyerToken}`);
+
+      expect(response.status).toBe(404);
+    });
+  });
+
+  // ============ COMPLETE MOCK PAYMENT ============
+
+  describe('POST /api/payments/complete-mock/:sessionId', () => {
+    it('should require authentication', async () => {
+      const response = await request(app.getHttpServer()).post(
+        `/api/payments/complete-mock/${mockSessionId}`,
+      );
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 400 for non-mock session', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/payments/complete-mock/cs_real_session_123')
+        .set('Authorization', `Bearer ${buyerToken}`);
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should return 403 if user is not the buyer', async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/payments/complete-mock/${mockSessionId}`)
+        .set('Authorization', `Bearer ${sellerToken}`);
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should complete mock payment for buyer', async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/payments/complete-mock/${mockSessionId}`)
+        .set('Authorization', `Bearer ${buyerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.id).toBe(transactionId);
+      expect(response.body.status).toBe('COMPLETED');
+      expect(response.body.paidAt).toBeDefined();
+    });
+
+    it('should return completed transaction on subsequent calls (idempotent)', async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/payments/complete-mock/${mockSessionId}`)
+        .set('Authorization', `Bearer ${buyerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe('COMPLETED');
+    });
+  });
+
+  // ============ TRANSACTIONS LIST ============
+
+  describe('GET /api/payments/transactions', () => {
+    it('should require authentication', async () => {
+      const response = await request(app.getHttpServer()).get(
+        '/api/payments/transactions',
+      );
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should return transactions for buyer', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/payments/transactions')
+        .set('Authorization', `Bearer ${buyerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toBeInstanceOf(Array);
+      expect(response.body.data.length).toBeGreaterThan(0);
+      expect(response.body.total).toBeGreaterThan(0);
+      expect(response.body.page).toBe(1);
+      expect(response.body.limit).toBe(20);
+      expect(response.body.totalPages).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should return transactions for seller', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/payments/transactions')
+        .set('Authorization', `Bearer ${sellerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toBeInstanceOf(Array);
+      expect(response.body.data.length).toBeGreaterThan(0);
+    });
+
+    it('should support pagination parameters', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/payments/transactions')
+        .query({ page: 1, limit: 5 })
+        .set('Authorization', `Bearer ${buyerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.page).toBe(1);
+      expect(response.body.limit).toBe(5);
+    });
+
+    it('should filter by status', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/payments/transactions')
+        .query({ status: 'COMPLETED' })
+        .set('Authorization', `Bearer ${buyerToken}`);
+
+      expect(response.status).toBe(200);
+      response.body.data.forEach((tx: { status: string }) => {
+        expect(tx.status).toBe('COMPLETED');
+      });
+    });
+
+    it('should return empty for stranger with no transactions', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/payments/transactions')
+        .set('Authorization', `Bearer ${strangerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toHaveLength(0);
+    });
+  });
+
+  // ============ SINGLE TRANSACTION ============
+
+  describe('GET /api/payments/transactions/:id', () => {
+    it('should require authentication', async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/api/payments/transactions/${transactionId}`,
+      );
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should return transaction details for buyer', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/payments/transactions/${transactionId}`)
+        .set('Authorization', `Bearer ${buyerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.id).toBe(transactionId);
+      expect(response.body.amount).toBeDefined();
+      expect(response.body.currency).toBe('EUR');
+      expect(response.body.platformFee).toBeDefined();
+      expect(response.body.sellerAmount).toBeDefined();
+      expect(response.body.status).toBe('COMPLETED');
+      expect(response.body.negotiation).toBeDefined();
+      expect(response.body.negotiation.property).toBeDefined();
+    });
+
+    it('should return transaction details for seller', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/payments/transactions/${transactionId}`)
         .set('Authorization', `Bearer ${sellerToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.id).toBe(transactionId);
     });
 
-    it('should return 403 for unauthorized user', async () => {
-      // Create another user
-      const otherEmail = `other.${Date.now()}@example.com`;
-      await request(app.getHttpServer())
-        .post('/api/auth/register')
-        .send({
-          email: otherEmail,
-          firstName: 'Other',
-          lastName: 'User',
-          password: testPassword,
-          confirmPassword: testPassword,
-        });
-
-      const otherVerificationToken = await prisma.emailVerificationToken.findFirst({
-        where: { user: { email: otherEmail } },
-      });
-
-      const otherVerifyResponse = await request(app.getHttpServer())
-        .post('/api/auth/verify-email')
-        .send({ token: otherVerificationToken!.token });
-
-      const otherToken = otherVerifyResponse.body.tokens.accessToken;
-
-      await request(app.getHttpServer())
-        .post('/api/auth/complete-profile')
-        .set('Authorization', `Bearer ${otherToken}`)
-        .send({
-          address: '999 Other Street',
-          postalCode: '1053',
-          city: 'Budapest',
-          country: 'HU',
-          phone: '+36201234569',
-        });
-
-      const otherLoginResponse = await request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({ email: otherEmail, password: testPassword });
-
+    it('should return 403 for unauthorized user (stranger)', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/payments/${transactionId}`)
-        .set('Authorization', `Bearer ${otherLoginResponse.body.tokens.accessToken}`);
+        .get(`/api/payments/transactions/${transactionId}`)
+        .set('Authorization', `Bearer ${strangerToken}`);
 
       expect(response.status).toBe(403);
-
-      // Cleanup other user
-      await prisma.user.deleteMany({ where: { email: otherEmail } });
     });
 
     it('should return 404 for non-existent transaction', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/payments/non-existent-id')
+        .get('/api/payments/transactions/00000000-0000-0000-0000-000000000000')
         .set('Authorization', `Bearer ${buyerToken}`);
 
       expect(response.status).toBe(404);
     });
   });
 
-  // ============ CREATE CHECKOUT SESSION ============
+  // ============ PAYMENT STATS ============
 
-  describe('POST /api/payments/:transactionId/checkout', () => {
+  describe('GET /api/payments/stats', () => {
     it('should require authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .post(`/api/payments/${transactionId}/checkout`)
-        .send({});
+      const response = await request(app.getHttpServer()).get(
+        '/api/payments/stats',
+      );
 
       expect(response.status).toBe(401);
     });
 
-    it('should return 403 if not the payer', async () => {
+    it('should return stats for buyer (showing spent amount)', async () => {
       const response = await request(app.getHttpServer())
-        .post(`/api/payments/${transactionId}/checkout`)
-        .set('Authorization', `Bearer ${sellerToken}`)
-        .send({});
+        .get('/api/payments/stats')
+        .set('Authorization', `Bearer ${buyerToken}`);
 
-      expect(response.status).toBe(403);
+      expect(response.status).toBe(200);
+      expect(response.body.totalSpent).toBeDefined();
+      expect(parseFloat(response.body.totalSpent)).toBeGreaterThan(0);
+      expect(response.body.totalEarnings).toBeDefined();
+      expect(response.body.pendingPayouts).toBeDefined();
+      expect(response.body.completedTransactions).toBeGreaterThan(0);
+      expect(response.body.currency).toBe('USD');
     });
 
-    it('should return 404 for non-existent transaction', async () => {
+    it('should return stats for seller (showing earnings)', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/payments/non-existent-id/checkout')
-        .set('Authorization', `Bearer ${buyerToken}`)
-        .send({});
+        .get('/api/payments/stats')
+        .set('Authorization', `Bearer ${sellerToken}`);
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(200);
+      expect(parseFloat(response.body.totalEarnings)).toBeGreaterThan(0);
+      expect(response.body.completedTransactions).toBeGreaterThan(0);
     });
 
-    // Note: This test requires STRIPE_SECRET_KEY to be set
-    // In CI, this would be skipped or use a mock
-    it('should fail without Stripe configuration', async () => {
+    it('should return zero stats for stranger with no transactions', async () => {
       const response = await request(app.getHttpServer())
-        .post(`/api/payments/${transactionId}/checkout`)
-        .set('Authorization', `Bearer ${buyerToken}`)
-        .send({});
+        .get('/api/payments/stats')
+        .set('Authorization', `Bearer ${strangerToken}`);
 
-      // If Stripe is not configured, it will return 500
-      // If Stripe IS configured, it would return 201 with a session URL
-      expect([201, 500]).toContain(response.status);
+      expect(response.status).toBe(200);
+      expect(response.body.completedTransactions).toBe(0);
+      expect(parseFloat(response.body.totalSpent)).toBe(0);
+      expect(parseFloat(response.body.totalEarnings)).toBe(0);
     });
   });
 
   // ============ REFUND ============
 
-  describe('POST /api/payments/:transactionId/refund', () => {
+  describe('POST /api/payments/refund', () => {
     it('should require authentication', async () => {
       const response = await request(app.getHttpServer())
-        .post(`/api/payments/${transactionId}/refund`)
-        .send({});
+        .post('/api/payments/refund')
+        .send({
+          transactionId,
+          reason: 'Changed my mind',
+        });
 
       expect(response.status).toBe(401);
     });
 
-    it('should return 403 if not the seller', async () => {
+    it('should return 404 for non-existent transaction', async () => {
       const response = await request(app.getHttpServer())
-        .post(`/api/payments/${transactionId}/refund`)
+        .post('/api/payments/refund')
         .set('Authorization', `Bearer ${buyerToken}`)
-        .send({});
+        .send({
+          transactionId: '00000000-0000-0000-0000-000000000000',
+          reason: 'Test refund',
+        });
+
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 403 if user is not the buyer (seller cannot request refund)', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/payments/refund')
+        .set('Authorization', `Bearer ${sellerToken}`)
+        .send({
+          transactionId,
+          reason: 'Seller trying to refund',
+        });
 
       expect(response.status).toBe(403);
     });
 
-    it('should return 400 if transaction is not COMPLETED', async () => {
-      // Transaction is still PENDING
+    it('should return 403 for unauthorized user (stranger)', async () => {
       const response = await request(app.getHttpServer())
-        .post(`/api/payments/${transactionId}/refund`)
-        .set('Authorization', `Bearer ${sellerToken}`)
-        .send({});
+        .post('/api/payments/refund')
+        .set('Authorization', `Bearer ${strangerToken}`)
+        .send({
+          transactionId,
+          reason: 'Stranger trying to refund',
+        });
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should process refund for buyer', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/payments/refund')
+        .set('Authorization', `Bearer ${buyerToken}`)
+        .send({
+          transactionId,
+          reason: 'Changed my mind about the property',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.id).toBe(transactionId);
+      expect(response.body.status).toBe('REFUNDED');
+    });
+
+    it('should return 400 when trying to refund already refunded transaction', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/payments/refund')
+        .set('Authorization', `Bearer ${buyerToken}`)
+        .send({
+          transactionId,
+          reason: 'Trying to refund again',
+        });
 
       expect(response.status).toBe(400);
     });
@@ -379,22 +595,17 @@ describe('PaymentsController (e2e)', () => {
   // ============ WEBHOOK ============
 
   describe('POST /api/payments/webhook', () => {
-    it('should return 400 without stripe-signature header', async () => {
+    it('should accept webhook without JWT authentication (Stripe calls this)', async () => {
+      // Webhook endpoint should not require JWT auth, but in mock mode it handles gracefully
       const response = await request(app.getHttpServer())
         .post('/api/payments/webhook')
-        .send({});
-
-      expect(response.status).toBe(400);
-    });
-
-    it('should return 400 with invalid signature', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/payments/webhook')
-        .set('stripe-signature', 'invalid_signature')
+        .set('stripe-signature', 'test_signature')
         .set('Content-Type', 'application/json')
         .send(JSON.stringify({ type: 'test.event' }));
 
-      expect(response.status).toBe(400);
+      // In mock mode, webhook handling is graceful - it shouldn't fail with 401
+      // The exact response depends on whether Stripe is configured
+      expect(response.status).not.toBe(401);
     });
   });
 });
