@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Property, PaginatedResponse } from '@/lib/types';
+import type { Property } from '@/lib/types';
 
 export interface Favorite {
   id: string;
@@ -9,20 +9,28 @@ export interface Favorite {
   createdAt: string;
 }
 
+export interface FavoritesResponse {
+  data: Favorite[];
+  total: number;
+}
+
 export const favoritesApi = {
   // Get user's favorites
   getAll: async (
     page = 1,
     limit = 20
-  ): Promise<PaginatedResponse<Favorite>> => {
-    return apiClient.get<PaginatedResponse<Favorite>>(
-      `/favorites?page=${page}&limit=${limit}`
-    );
+  ): Promise<FavoritesResponse> => {
+    // Backend returns array directly, wrap it for consistency
+    const favorites = await apiClient.get<Favorite[]>('/favorites');
+    return {
+      data: favorites,
+      total: favorites.length,
+    };
   },
 
   // Get favorite property IDs (for quick lookup)
   getPropertyIds: async (): Promise<string[]> => {
-    return apiClient.get<string[]>('/favorites/property-ids');
+    return apiClient.get<string[]>('/favorites/ids');
   },
 
   // Add property to favorites
