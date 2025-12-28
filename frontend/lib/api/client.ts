@@ -89,6 +89,16 @@ export const apiClient = {
 
   delete: <T>(url: string) =>
     axiosInstance.delete<T>(url).then((res) => res.data),
+
+  // File upload with multipart/form-data
+  upload: <T>(url: string, formData: FormData) =>
+    axiosInstance
+      .post<T>(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then((res) => res.data),
 };
 
 export default apiClient;
