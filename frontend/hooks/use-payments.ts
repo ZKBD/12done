@@ -26,8 +26,9 @@ export function useTransactions(params: TransactionsParams = {}) {
       });
     },
     getNextPageParam: (lastPage) => {
-      if (lastPage.meta.page < lastPage.meta.totalPages) {
-        return lastPage.meta.page + 1;
+      // Backend returns page/totalPages directly, not in a meta object
+      if (lastPage.page < lastPage.totalPages) {
+        return lastPage.page + 1;
       }
       return undefined;
     },
@@ -82,8 +83,9 @@ export function usePayouts(params: { page?: number; limit?: number } = {}) {
       });
     },
     getNextPageParam: (lastPage) => {
-      if (lastPage.meta.page < lastPage.meta.totalPages) {
-        return lastPage.meta.page + 1;
+      // Backend returns page/totalPages directly, not in a meta object
+      if (lastPage.page < lastPage.totalPages) {
+        return lastPage.page + 1;
       }
       return undefined;
     },
