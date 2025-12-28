@@ -188,6 +188,54 @@ export class NegotiationsController {
     return this.negotiationsService.submitOffer(negotiationId, user.id, dto);
   }
 
+  @Post(':id/offers/:offerId/accept')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Accept an offer (PROD-090.6)',
+    description: 'Accept a pending offer',
+  })
+  @ApiParam({ name: 'id', description: 'Negotiation ID' })
+  @ApiParam({ name: 'offerId', description: 'Offer ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Offer accepted successfully',
+    type: NegotiationResponseDto,
+  })
+  async acceptOffer(
+    @Param('id') negotiationId: string,
+    @Param('offerId') offerId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<NegotiationResponseDto> {
+    return this.negotiationsService.respondToOffer(offerId, user.id, {
+      action: 'accept',
+    });
+  }
+
+  @Post(':id/offers/:offerId/reject')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reject an offer (PROD-090.7)',
+    description: 'Reject a pending offer',
+  })
+  @ApiParam({ name: 'id', description: 'Negotiation ID' })
+  @ApiParam({ name: 'offerId', description: 'Offer ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Offer rejected successfully',
+    type: NegotiationResponseDto,
+  })
+  async rejectOffer(
+    @Param('id') negotiationId: string,
+    @Param('offerId') offerId: string,
+    @CurrentUser() user: CurrentUserData,
+    @Body() body: { reason?: string },
+  ): Promise<NegotiationResponseDto> {
+    return this.negotiationsService.respondToOffer(offerId, user.id, {
+      action: 'reject',
+      reason: body?.reason,
+    });
+  }
+
   @Post('offers/:offerId/respond')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
