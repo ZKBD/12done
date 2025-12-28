@@ -14,6 +14,9 @@ import {
   Plus,
   Bell,
   MapPin,
+  MessageSquare,
+  CreditCard,
+  Clock,
 } from 'lucide-react';
 import { useAuth } from '@/providers';
 import { Button } from '@/components/ui/button';
@@ -139,6 +142,27 @@ export function MobileNav() {
                 >
                   <Plus className="h-5 w-5" />
                   <span>List Property</span>
+                </button>
+                <button
+                  onClick={() => handleNavigation('/dashboard/negotiations')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-accent"
+                >
+                  <MessageSquare className="h-5 w-5" />
+                  <span>Negotiations</span>
+                </button>
+                <button
+                  onClick={() => handleNavigation('/dashboard/transactions')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-accent"
+                >
+                  <CreditCard className="h-5 w-5" />
+                  <span>Transactions</span>
+                </button>
+                <button
+                  onClick={() => handleNavigation('/dashboard/search-agents')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-accent"
+                >
+                  <Clock className="h-5 w-5" />
+                  <span>Search Agents</span>
                 </button>
 
                 <div className="my-2 h-px bg-border" />

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from './user-menu';
 import { MobileNav } from './mobile-nav';
+import { NotificationBell } from '@/components/notifications';
 
 const navigation = [
   { name: 'Browse', href: '/properties', icon: Search },
@@ -70,11 +71,14 @@ export function Header() {
         {/* Right: User Menu */}
         <div className="flex items-center gap-2">
           {isAuthenticated && (
-            <Link href="/dashboard/properties/new" className="hidden sm:block">
-              <Button variant="outline" size="sm">
-                List your property
-              </Button>
-            </Link>
+            <>
+              <Link href="/dashboard/properties/new" className="hidden sm:block">
+                <Button variant="outline" size="sm">
+                  List your property
+                </Button>
+              </Link>
+              <NotificationBell />
+            </>
           )}
           <UserMenu />
         </div>

@@ -197,6 +197,34 @@ export interface Country {
   currency: string;
 }
 
+// Search Agent types
+export interface SearchAgent {
+  id: string;
+  name: string;
+  criteria: SearchAgentCriteria;
+  frequency: 'INSTANT' | 'DAILY' | 'WEEKLY';
+  isActive: boolean;
+  lastRunAt?: string;
+  matchCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SearchAgentCriteria {
+  query?: string;
+  listingType?: string;
+  propertyType?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minBedrooms?: number;
+  maxBedrooms?: number;
+  minBathrooms?: number;
+  maxBathrooms?: number;
+  city?: string;
+  country?: string;
+  amenities?: string[];
+}
+
 // API Error
 export interface ApiError {
   message: string;

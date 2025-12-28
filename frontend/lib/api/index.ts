@@ -5,3 +5,6 @@ export { favoritesApi } from './favorites';
 export { myPropertiesApi } from './my-properties';
 export { negotiationsApi } from './negotiations';
 export { paymentsApi } from './payments';
+export { notificationsApi } from './notifications';
+export { dashboardApi } from './dashboard';
+export { searchAgentsApi } from './search-agents';

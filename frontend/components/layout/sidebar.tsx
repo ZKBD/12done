@@ -33,7 +33,7 @@ const sidebarLinks = [
   },
   {
     title: 'Search Agents',
-    href: '/search-agents',
+    href: '/dashboard/search-agents',
     icon: Search,
   },
   {
