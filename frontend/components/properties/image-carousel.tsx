@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getImageUrl } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 interface ImageCarouselProps {
@@ -89,7 +89,7 @@ export function ImageCarousel({
             )}
           >
             <Image
-              src={image.url}
+              src={getImageUrl(image.url)}
               alt={image.alt || `Image ${index + 1}`}
               fill
               className="object-cover"

@@ -47,3 +47,21 @@ export function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
   return str.slice(0, maxLength - 3) + '...';
 }
+
+/**
+ * Transforms image URLs for use with Next.js Image component.
+ * Converts backend localhost URLs to use the Next.js rewrite proxy.
+ * This ensures images work both client-side and during server-side rendering.
+ */
+export function getImageUrl(url: string | undefined | null): string {
+  if (!url) return '';
+
+  // Convert localhost backend URLs to use the proxy path
+  // http://localhost:3002/uploads/... -> /uploads/...
+  const localhostPattern = /^https?:\/\/localhost:\d+/;
+  if (localhostPattern.test(url)) {
+    return url.replace(localhostPattern, '');
+  }
+
+  return url;
+}

@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
+import { cn, getImageUrl } from '@/lib/utils';
 import {
   useUploadMedia,
   useDeleteMedia,
@@ -272,7 +272,7 @@ export function MediaUploader({
           {previewMedia && (
             <div className="relative aspect-[16/9]">
               <Image
-                src={previewMedia.url}
+                src={getImageUrl(previewMedia.url)}
                 alt={previewMedia.caption || 'Property photo'}
                 fill
                 className="object-contain"
@@ -297,7 +297,7 @@ export function MediaUploader({
             {editMedia && (
               <div className="relative aspect-video rounded-lg overflow-hidden">
                 <Image
-                  src={editMedia.thumbnailUrl || editMedia.url}
+                  src={getImageUrl(editMedia.thumbnailUrl || editMedia.url)}
                   alt="Preview"
                   fill
                   className="object-cover"
@@ -387,7 +387,7 @@ function MediaCard({
       )}
     >
       <Image
-        src={media.thumbnailUrl || media.url}
+        src={getImageUrl(media.thumbnailUrl || media.url)}
         alt={media.caption || `Photo ${index + 1}`}
         fill
         className="object-cover"

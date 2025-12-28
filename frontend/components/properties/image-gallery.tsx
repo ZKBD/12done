@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { X, ChevronLeft, ChevronRight, Grid3X3 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getImageUrl } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import type { PropertyMedia } from '@/lib/types';
 
@@ -71,7 +71,7 @@ export function ImageGallery({ media, title }: ImageGalleryProps) {
             onClick={() => openLightbox(0)}
           >
             <Image
-              src={primaryPhoto.url}
+              src={getImageUrl(primaryPhoto.url)}
               alt={primaryPhoto.caption || title}
               fill
               className="object-cover hover:brightness-95 transition-all"
@@ -88,7 +88,7 @@ export function ImageGallery({ media, title }: ImageGalleryProps) {
               onClick={() => openLightbox(index + 1)}
             >
               <Image
-                src={photo.url}
+                src={getImageUrl(photo.url)}
                 alt={photo.caption || `${title} - ${index + 2}`}
                 fill
                 className="object-cover hover:brightness-95 transition-all"
@@ -147,7 +147,7 @@ export function ImageGallery({ media, title }: ImageGalleryProps) {
           {/* Current image */}
           <div className="relative w-full h-full max-w-5xl max-h-[80vh] mx-16">
             <Image
-              src={photos[currentIndex].url}
+              src={getImageUrl(photos[currentIndex].url)}
               alt={photos[currentIndex].caption || `${title} - ${currentIndex + 1}`}
               fill
               className="object-contain"
@@ -180,7 +180,7 @@ export function ImageGallery({ media, title }: ImageGalleryProps) {
                 onClick={() => setCurrentIndex(index)}
               >
                 <Image
-                  src={photo.thumbnailUrl || photo.url}
+                  src={getImageUrl(photo.thumbnailUrl || photo.url)}
                   alt={photo.caption || `Thumbnail ${index + 1}`}
                   fill
                   className="object-cover"

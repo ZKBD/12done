@@ -41,7 +41,7 @@ import {
 } from '@/hooks/use-negotiations';
 import { useCreateCheckout } from '@/hooks/use-payments';
 import { useAuth } from '@/providers';
-import { cn } from '@/lib/utils';
+import { cn, getImageUrl } from '@/lib/utils';
 import type { NegotiationStatus, OfferStatus, Offer } from '@/lib/types';
 
 const statusLabels: Record<NegotiationStatus, string> = {
@@ -245,7 +245,7 @@ export default function NegotiationDetailPage() {
                   <div className="relative h-24 w-32 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
                     {primaryImage ? (
                       <Image
-                        src={primaryImage.thumbnailUrl || primaryImage.url}
+                        src={getImageUrl(primaryImage.thumbnailUrl || primaryImage.url)}
                         alt={property.title}
                         fill
                         className="object-cover"

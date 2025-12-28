@@ -85,6 +85,7 @@ services:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:${APP_PORT:-3002}/api
       - NEXT_PUBLIC_APP_URL=http://localhost:${FRONTEND_PORT:-3000}
+      - BACKEND_INTERNAL_URL=http://app:3002
     depends_on:
       - app
     command: npm run dev

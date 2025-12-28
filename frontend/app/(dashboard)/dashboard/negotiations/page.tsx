@@ -36,7 +36,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNegotiations, useNegotiationStats } from '@/hooks/use-negotiations';
 import { useAuth } from '@/providers';
-import { cn } from '@/lib/utils';
+import { cn, getImageUrl } from '@/lib/utils';
 import type { NegotiationStatus, OfferStatus } from '@/lib/types';
 
 const statusLabels: Record<NegotiationStatus, string> = {
@@ -215,7 +215,7 @@ export default function NegotiationsPage() {
                       <div className="relative h-16 w-24 rounded-md overflow-hidden bg-slate-100 flex-shrink-0">
                         {primaryImage ? (
                           <Image
-                            src={primaryImage.thumbnailUrl || primaryImage.url}
+                            src={getImageUrl(primaryImage.thumbnailUrl || primaryImage.url)}
                             alt={negotiation.property.title}
                             fill
                             className="object-cover"

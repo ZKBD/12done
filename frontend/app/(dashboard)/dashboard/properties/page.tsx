@@ -63,7 +63,7 @@ import {
   useUpdatePropertyStatus,
 } from '@/hooks/use-my-properties';
 import type { Property, PropertyStatus, ListingType } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { cn, getImageUrl } from '@/lib/utils';
 
 const statusLabels: Record<PropertyStatus, string> = {
   DRAFT: 'Draft',
@@ -312,7 +312,7 @@ function PropertyRow({
           <div className="relative h-12 w-16 rounded-md overflow-hidden bg-slate-100 flex-shrink-0">
             {primaryImage ? (
               <Image
-                src={primaryImage.thumbnailUrl || primaryImage.url}
+                src={getImageUrl(primaryImage.thumbnailUrl || primaryImage.url)}
                 alt={property.title}
                 fill
                 className="object-cover"
