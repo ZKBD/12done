@@ -354,12 +354,13 @@ describe('LeasesController (e2e)', () => {
         .post(`/api/leases/${leaseId}/activate`)
         .set('Authorization', `Bearer ${landlordToken}`);
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body.status).toBe(LeaseStatus.ACTIVE);
 
       // Verify payments were generated
       const payments = await prisma.rentPayment.findMany({
         where: { leaseId },
+        orderBy: { dueDate: 'asc' },
       });
       expect(payments.length).toBeGreaterThan(0);
 
@@ -380,7 +381,7 @@ describe('LeasesController (e2e)', () => {
         .post(`/api/leases/${leaseId}/activate`)
         .set('Authorization', `Bearer ${tenantToken}`);
 
-      expect(response.status).toBe(400); // Already active
+      expect(response.status).toBe(403); // Forbidden
     });
   });
 
@@ -435,7 +436,7 @@ describe('LeasesController (e2e)', () => {
           transactionRef: 'TXN-123456',
         });
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body.status).toBe(RentPaymentStatus.PAID);
       expect(response.body.paidAmount).toBe(1600);
     });
@@ -485,7 +486,7 @@ describe('LeasesController (e2e)', () => {
             reason: 'First month free promotion',
           });
 
-        expect(response.status).toBe(200);
+        expect(response.status).toBe(201);
         expect(response.body.status).toBe(RentPaymentStatus.WAIVED);
       }
     });
@@ -500,7 +501,7 @@ describe('LeasesController (e2e)', () => {
           reason: 'Test termination',
         });
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body.status).toBe(LeaseStatus.TERMINATED);
     });
 
