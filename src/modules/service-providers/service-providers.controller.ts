@@ -98,6 +98,34 @@ export class ServiceProvidersController {
     return this.serviceProvidersService.getMyProfiles(user.id);
   }
 
+  @Get('match')
+  @ApiOperation({
+    summary: 'Find matching providers (PROD-063.2)',
+    description: 'Find providers matching specific criteria',
+  })
+  @ApiQuery({ name: 'serviceType', enum: ServiceType, required: true })
+  @ApiQuery({ name: 'city', required: false })
+  @ApiQuery({ name: 'country', required: false })
+  @ApiQuery({ name: 'preferredDate', required: false })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Matching providers retrieved',
+    type: [ServiceProviderResponseDto],
+  })
+  async findMatchingProviders(
+    @Query('serviceType') serviceType: ServiceType,
+    @Query('city') city?: string,
+    @Query('country') country?: string,
+    @Query('preferredDate') preferredDate?: string,
+  ): Promise<ServiceProviderResponseDto[]> {
+    return this.serviceProvidersService.findMatchingProviders(
+      serviceType,
+      city,
+      country,
+      preferredDate,
+    );
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Get provider profile (PROD-067)',
@@ -298,34 +326,6 @@ export class ServiceProvidersController {
     @Query() query: ServiceProviderQueryDto,
   ): Promise<ServiceProviderListResponseDto> {
     return this.serviceProvidersService.search(query);
-  }
-
-  @Get('match')
-  @ApiOperation({
-    summary: 'Find matching providers (PROD-063.2)',
-    description: 'Find providers matching specific criteria',
-  })
-  @ApiQuery({ name: 'serviceType', enum: ServiceType, required: true })
-  @ApiQuery({ name: 'city', required: false })
-  @ApiQuery({ name: 'country', required: false })
-  @ApiQuery({ name: 'preferredDate', required: false })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Matching providers retrieved',
-    type: [ServiceProviderResponseDto],
-  })
-  async findMatchingProviders(
-    @Query('serviceType') serviceType: ServiceType,
-    @Query('city') city?: string,
-    @Query('country') country?: string,
-    @Query('preferredDate') preferredDate?: string,
-  ): Promise<ServiceProviderResponseDto[]> {
-    return this.serviceProvidersService.findMatchingProviders(
-      serviceType,
-      city,
-      country,
-      preferredDate,
-    );
   }
 
   // ============================================

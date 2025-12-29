@@ -6,6 +6,7 @@ import {
   Min,
   MaxLength,
   IsBoolean,
+  IsNotEmpty,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -69,6 +70,7 @@ export class SendMessageDto {
     example: 'Hello, I am interested in this property.',
   })
   @IsString()
+  @IsNotEmpty({ message: 'Message content cannot be empty' })
   @MaxLength(5000)
   content: string;
 }
