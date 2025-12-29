@@ -931,6 +931,8 @@ The following requirements do not yet have test coverage:
 | 2025-12-29 | Claude | Implemented frontend messaging UI (Phase 4): messaging components (ConversationList, MessageThread, MessageBubble, MessageInput, TypingIndicator), messages pages (/dashboard/messages, /dashboard/messages/[conversationId]), NegotiationMessages component for in-negotiation chat, sidebar/mobile nav with unread badge, backend endpoint GET /messages/negotiations/:negotiationId/conversation |
 | 2025-12-29 | Claude | Added messaging E2E tests (Phase 5): 38 test cases covering conversation CRUD, messages, read/unread status, archive, negotiation conversations, authorization checks, full messaging flow |
 | 2025-12-29 | Claude | Added Playwright browser tests for messaging UI (Phase 5): 29 test cases in frontend/e2e/messaging.spec.ts covering messages page, conversation list, message thread, message input, typing indicators, real-time updates, mobile nav, negotiation messages tab, accessibility, error handling, loading states; added data-testid attributes to all messaging components for testability |
+| 2025-12-29 | Claude | Added offline support and reconnection handling (Phase 5): ConnectionStatus tracking (connected/connecting/disconnected/offline), browser online/offline event listeners, exponential backoff reconnection, message queue for offline messages, ConnectionStatusIndicator and ConnectionBanner UI components |
+| 2025-12-29 | Claude | Added virtualized lists for performance (Phase 5): @tanstack/react-virtual for efficient rendering, VirtualizedMessageList for messages > 50, VirtualizedConversationList for long conversation lists, auto-virtualization in MessageThread component |
 
 ---
 
