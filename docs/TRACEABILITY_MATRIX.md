@@ -720,6 +720,31 @@ All tests passing locally and in CI.
 | MSG-GUARD-007 | `canActivate > should prioritize auth token` | ws-jwt.guard.spec.ts | Verifies token priority order | ✅ |
 | MSG-GUARD-008 | `canActivate > should attach user to socket` | ws-jwt.guard.spec.ts | Verifies user attachment for handlers | ✅ |
 
+### Messaging E2E Tests
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| MSG-E2E-001 | `POST /conversations > should require authentication` | messaging.e2e-spec.ts | Verifies auth required | ⏳ |
+| MSG-E2E-002 | `POST /conversations > should create direct conversation` | messaging.e2e-spec.ts | Verifies conversation creation with recipient | ⏳ |
+| MSG-E2E-003 | `POST /conversations > should create with initial message` | messaging.e2e-spec.ts | Verifies initial message support | ⏳ |
+| MSG-E2E-004 | `POST /conversations > should create property-linked conversation` | messaging.e2e-spec.ts | Verifies property inquiry conversation | ⏳ |
+| MSG-E2E-005 | `POST /conversations > should create negotiation-linked conversation` | messaging.e2e-spec.ts | Verifies negotiation messaging | ⏳ |
+| MSG-E2E-006 | `GET /conversations > should list user conversations` | messaging.e2e-spec.ts | Verifies conversation listing | ⏳ |
+| MSG-E2E-007 | `GET /conversations > should support pagination` | messaging.e2e-spec.ts | Verifies pagination params | ⏳ |
+| MSG-E2E-008 | `GET /conversations/:id > should return with messages` | messaging.e2e-spec.ts | Verifies conversation detail | ⏳ |
+| MSG-E2E-009 | `GET /conversations/:id > should reject non-participants` | messaging.e2e-spec.ts | Verifies participant authorization | ⏳ |
+| MSG-E2E-010 | `GET /negotiations/:id/conversation > should return negotiation conversation` | messaging.e2e-spec.ts | Verifies negotiation messaging endpoint | ⏳ |
+| MSG-E2E-011 | `POST /conversations/:id/messages > should send message` | messaging.e2e-spec.ts | Verifies message sending | ⏳ |
+| MSG-E2E-012 | `POST /conversations/:id/messages > should reject empty messages` | messaging.e2e-spec.ts | Verifies message validation | ⏳ |
+| MSG-E2E-013 | `POST /conversations/:id/messages > should reject non-participants` | messaging.e2e-spec.ts | Verifies send authorization | ⏳ |
+| MSG-E2E-014 | `GET /conversations/:id/messages > should return paginated messages` | messaging.e2e-spec.ts | Verifies message listing | ⏳ |
+| MSG-E2E-015 | `PATCH /conversations/:id/read > should mark as read` | messaging.e2e-spec.ts | Verifies read status | ⏳ |
+| MSG-E2E-016 | `GET /unread-count > should return unread count` | messaging.e2e-spec.ts | Verifies unread aggregation | ⏳ |
+| MSG-E2E-017 | `PATCH /conversations/:id/archive > should archive conversation` | messaging.e2e-spec.ts | Verifies archive functionality | ⏳ |
+| MSG-E2E-018 | `PATCH /conversations/:id/unarchive > should unarchive` | messaging.e2e-spec.ts | Verifies unarchive functionality | ⏳ |
+| MSG-E2E-019 | `DELETE /messages/:id > should delete own message` | messaging.e2e-spec.ts | Verifies message deletion | ⏳ |
+| MSG-E2E-020 | `Full Messaging Flow > complete conversation flow` | messaging.e2e-spec.ts | Verifies end-to-end messaging | ⏳ |
+
 ---
 
 ## 8. E2E Test Coverage
@@ -737,7 +762,8 @@ All tests passing locally and in CI.
 | Negotiations | negotiations.e2e-spec.ts | 19 | Negotiation and transaction flow | ✅ |
 | Payments | payments.e2e-spec.ts | 38 | Payment checkout, transactions, stats, refunds | ✅ |
 | **Payments (Browser)** | Playwright MCP | 5 | Mock checkout, cancellation, transactions, refunds | ✅ |
-| **Messaging** | messaging.*.spec.ts | 79 | Conversations, messages, WebSocket gateway, real-time events | ✅ |
+| **Messaging (Unit)** | messaging.*.spec.ts | 79 | Conversations, messages, WebSocket gateway, real-time events | ✅ |
+| **Messaging (E2E)** | messaging.e2e-spec.ts | 38 | Full messaging flow, conversations CRUD, messages, archive | ⏳ |
 
 ---
 
@@ -868,6 +894,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-29 | Claude | Implemented WebSocket gateway (Phase 2): MessagingGateway with real-time events (join/leave conversation, send message, typing indicators, read receipts), WsJwtGuard for WebSocket authentication; 30 unit tests (22 gateway + 8 guard) |
 | 2025-12-29 | Claude | Implemented frontend messaging hooks (Phase 3): messaging API client, TypeScript types, React Query hooks (useConversations, useMessages, useSendMessage, etc.), WebSocket hook (useMessagingSocket) with real-time updates, installed socket.io-client |
 | 2025-12-29 | Claude | Implemented frontend messaging UI (Phase 4): messaging components (ConversationList, MessageThread, MessageBubble, MessageInput, TypingIndicator), messages pages (/dashboard/messages, /dashboard/messages/[conversationId]), NegotiationMessages component for in-negotiation chat, sidebar/mobile nav with unread badge, backend endpoint GET /messages/negotiations/:negotiationId/conversation |
+| 2025-12-29 | Claude | Added messaging E2E tests (Phase 5): 38 test cases covering conversation CRUD, messages, read/unread status, archive, negotiation conversations, authorization checks, full messaging flow |
 
 ---
 
