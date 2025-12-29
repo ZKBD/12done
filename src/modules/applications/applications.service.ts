@@ -4,10 +4,12 @@ import {
   ForbiddenException,
   BadRequestException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { ApplicationStatus, ListingType, Prisma } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '@/mail/mail.service';
 import {
   CreateApplicationDto,
   ReviewApplicationDto,
@@ -18,9 +20,12 @@ import {
 
 @Injectable()
 export class ApplicationsService {
+  private readonly logger = new Logger(ApplicationsService.name);
+
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private mailService: MailService,
   ) {}
 
   /**
@@ -129,6 +134,25 @@ export class ApplicationsService {
         applicantId: applicantId,
       },
     );
+
+    // Send confirmation email to applicant (PROD-104.3)
+    try {
+      await this.mailService.sendApplicationReceivedEmail(
+        application.applicant.email,
+        application.applicant.firstName,
+        property.title,
+        application.createdAt.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send application received email to ${application.applicant.email}`,
+        error,
+      );
+    }
 
     return this.mapToResponseDto(application);
   }
@@ -380,6 +404,41 @@ export class ApplicationsService {
         newStatus: dto.status,
       },
     );
+
+    // Send status-specific email to applicant (PROD-104.4, PROD-104.5)
+    try {
+      // Get owner info for the email
+      const owner = await this.prisma.user.findUnique({
+        where: { id: ownerId },
+        select: { firstName: true, lastName: true },
+      });
+      const ownerName = owner
+        ? `${owner.firstName} ${owner.lastName}`
+        : 'The property owner';
+
+      if (dto.status === 'APPROVED') {
+        // PROD-104.4: "Congratulations" approval email
+        await this.mailService.sendApplicationApprovedEmail(
+          updated.applicant.email,
+          updated.applicant.firstName,
+          updated.property.title,
+          ownerName,
+        );
+      } else if (dto.status === 'REJECTED') {
+        // PROD-104.5: "Unfortunately" rejection email
+        await this.mailService.sendApplicationRejectedEmail(
+          updated.applicant.email,
+          updated.applicant.firstName,
+          updated.property.title,
+          dto.ownerNotes, // Pass owner notes as rejection reason
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to send application status email to ${updated.applicant.email}`,
+        error,
+      );
+    }
 
     return this.mapToResponseDto(updated);
   }

@@ -208,6 +208,67 @@ export class MailService {
   }
 
   // ============================================
+  // APPLICATION STATUS EMAILS (PROD-104)
+  // ============================================
+
+  async sendApplicationReceivedEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    submittedAt: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Application Received - ${propertyTitle}`,
+      template: 'application-received',
+      context: {
+        firstName,
+        propertyTitle,
+        submittedAt,
+        dashboardUrl: `${this.frontendUrl}/dashboard/applications`,
+      },
+    });
+  }
+
+  async sendApplicationApprovedEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    ownerName: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Congratulations! Application Approved - ${propertyTitle}`,
+      template: 'application-approved',
+      context: {
+        firstName,
+        propertyTitle,
+        ownerName,
+        dashboardUrl: `${this.frontendUrl}/dashboard/applications`,
+      },
+    });
+  }
+
+  async sendApplicationRejectedEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    rejectionReason?: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Application Update - ${propertyTitle}`,
+      template: 'application-rejected',
+      context: {
+        firstName,
+        propertyTitle,
+        rejectionReason,
+        searchUrl: `${this.frontendUrl}/search`,
+      },
+    });
+  }
+
+  // ============================================
   // RENT REMINDER EMAILS (PROD-102)
   // ============================================
 

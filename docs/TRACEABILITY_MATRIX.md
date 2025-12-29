@@ -1082,7 +1082,55 @@ Note: E2E tests require Docker/database to run.
 
 ---
 
-## 7.10 Lease Renewal Automation (PROD-105)
+## 7.10 Application Status Notifications (PROD-104)
+
+### PROD-104.1: Email on Status Update
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-104.1.1 | `review > should send congratulations email when approved` | applications.service.spec.ts | Verifies approval email is sent | ✅ |
+| PROD-104.1.2 | `review > should send rejection email when rejected` | applications.service.spec.ts | Verifies rejection email is sent | ✅ |
+| PROD-104.1.3 | `review > should not fail if status email fails` | applications.service.spec.ts | Verifies email failure doesn't break flow | ✅ |
+
+### PROD-104.2: In-App Notification for Status Changes
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-104.2.1 | `review > should update application status` | applications.service.spec.ts | Verifies APPLICATION_STATUS_CHANGED notification sent | ✅ |
+
+### PROD-104.3: "Application Received" Notification
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-104.3.1 | `create > should send application received email to applicant` | applications.service.spec.ts | Verifies confirmation email to applicant | ✅ |
+| PROD-104.3.2 | `create > should not fail if application received email fails` | applications.service.spec.ts | Verifies email failure doesn't break flow | ✅ |
+| PROD-104.3.3 | `create > should create a rental application successfully` | applications.service.spec.ts | Verifies APPLICATION_RECEIVED notification to owner | ✅ |
+
+### PROD-104.4: "Congratulations" Approval Email
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-104.4.1 | `sendApplicationApprovedEmail` | mail.service.ts | Sends congratulations email with property and owner details | ✅ |
+| PROD-104.4.2 | Template: application-approved.hbs | src/mail/templates/ | Professional approval email with next steps | ✅ |
+
+### PROD-104.5: "Unfortunately" Rejection Email
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-104.5.1 | `sendApplicationRejectedEmail` | mail.service.ts | Sends rejection email with optional reason | ✅ |
+| PROD-104.5.2 | Template: application-rejected.hbs | src/mail/templates/ | Empathetic rejection email with encouragement | ✅ |
+
+### Test Summary for PROD-104
+
+| Test Type | Count | Status |
+|-----------|-------|--------|
+| Service Unit Tests (ApplicationsService) | 7 | ✅ |
+| Email Templates | 3 | ✅ |
+| **Total** | **10** | ✅ |
+
+---
+
+## 7.11 Lease Renewal Automation (PROD-105)
 
 ### PROD-105.1: Schema and Model
 
@@ -1318,10 +1366,11 @@ The following requirements do not yet have test coverage:
 | PROD-050 | AI Recommendations | Not yet implemented |
 | ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller); 47 E2E tests covering full API flow |
 | PROD-096-097 | Advanced Transaction Features | Not yet implemented |
-| PROD-100-108 | Property Management | Partial implementation; PROD-101, PROD-102, PROD-103, PROD-105 complete |
+| PROD-100-108 | Property Management | Partial implementation; PROD-101, PROD-102, PROD-103, PROD-104, PROD-105 complete |
 | ~~PROD-101~~ | ~~Rental Applications~~ | ✅ **COMPLETE** - RentalApplication model, ApplicationStatus enum, ApplicationsModule (controller, service, DTOs), notifications integration; 24 unit tests (18 service + 6 controller); 15 E2E tests covering application flow |
 | ~~PROD-102~~ | ~~Rent Reminders~~ | ✅ **COMPLETE** - Lease model, RentPayment model, LeaseStatus/RentPaymentStatus enums, LeasesModule with RentReminderService, cron jobs for 5-day reminders and overdue checks, email templates; 44 unit tests (25 service + 10 reminder + 9 controller); 15 E2E tests |
 | ~~PROD-103~~ | ~~Maintenance Workflows~~ | ✅ **COMPLETE** - MaintenanceRequest model, MaintenanceRequestType/Status/Priority enums, MaintenanceModule (controller, service, DTOs), full workflow (submit→approve→assign→schedule→complete→confirm), email templates; 49 unit tests (37 service + 12 controller); 18 E2E tests |
+| ~~PROD-104~~ | ~~Application Status Notifications~~ | ✅ **COMPLETE** - Email notifications on application status changes (received, approved, rejected), 3 email templates, MailService integration in ApplicationsService; 7 new unit tests |
 | ~~PROD-105~~ | ~~Lease Renewal Automation~~ | ✅ **COMPLETE** - LeaseRenewal model, LeaseRenewalStatus enum, LeaseRenewalService with cron jobs (60-day check, expiration), 6 endpoints (pending list, get/create/accept/decline/cancel), 5 email templates, auto-generates new lease on accept; 20 unit tests; 15 E2E tests |
 | PROD-120-133 | AI Tour Guide | Not yet implemented |
 | ~~PROD-200-205~~ | ~~Communication~~ | ✅ **COMPLETE** - Backend, WebSocket, Frontend UI, E2E tests, Playwright tests, offline support, virtualization |
@@ -1361,6 +1410,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-29 | Claude | Verified PROD-102 tests passing: Updated all 38 PROD-102 test case statuses from ⏳ to ✅; fixed E2E test status code expectations (POST endpoints return 201); CI confirmed all 59 lease tests passing (44 unit + 15 E2E); updated test counts (1079 unit, 269 E2E, 1353 total) |
 | 2025-12-29 | Claude | Implemented Maintenance Workflows (PROD-103.1-103.13): MaintenanceRequest model with Type/Status/Priority enums, MaintenanceModule (controller, service, DTOs), full multi-party workflow (tenant submit, landlord approve/reject/assign, provider start/complete, dual-party confirm), 6 email templates, 7 NotificationType values; 49 unit tests (37 service + 12 controller); 18 E2E tests covering full maintenance lifecycle |
 | 2025-12-29 | Claude | Implemented Lease Renewal Automation (PROD-105.1-105.9): LeaseRenewal model with LeaseRenewalStatus enum (PENDING, OFFERED, ACCEPTED, DECLINED, EXPIRED, CANCELLED), LeaseRenewalService with @Cron jobs (60-day check at 2 AM, offer expiration at 3 AM), 6 endpoints (GET pending renewals, GET/POST/DELETE renewal, POST accept/decline), 5 email templates, 5 NotificationType values, auto-generates new lease on accept; 20 unit tests; 15 E2E tests |
+| 2025-12-29 | Claude | Implemented Application Status Notifications (PROD-104.1-104.5): Email notifications for application lifecycle (received confirmation to applicant, congratulations on approval, empathetic rejection), 3 email templates (application-received.hbs, application-approved.hbs, application-rejected.hbs), MailService integration in ApplicationsService; 7 unit tests added |
 
 ---
 

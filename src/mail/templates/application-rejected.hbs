@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application Update - 12done.com</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #4F46E5; }
+    .logo { font-size: 24px; font-weight: bold; color: #4F46E5; }
+    .content { padding: 30px 0; }
+    .status-badge { background: #6B7280; color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; font-weight: 600; margin-bottom: 20px; }
+    .info-box { background: #F3F4F6; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #6B7280; }
+    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #E5E7EB; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: #4B5563; }
+    .info-value { color: #374151; font-weight: 500; }
+    .button { display: inline-block; background: #4F46E5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+    .encouragement { background: #EFF6FF; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #3B82F6; }
+    .encouragement h3 { margin-top: 0; color: #1E40AF; }
+    .footer { text-align: center; padding: 20px 0; color: #666; font-size: 12px; border-top: 1px solid #eee; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">12done.com</div>
+  </div>
+
+  <div class="content">
+    <div class="status-badge">Application Update</div>
+
+    <h1>Application Status Update</h1>
+
+    <p>Hi {{firstName}},</p>
+
+    <p>Thank you for your interest in "{{propertyTitle}}". Unfortunately, after careful consideration, the property owner has decided not to proceed with your application at this time.</p>
+
+    <div class="info-box">
+      <h3 style="margin-top: 0;">Application Details</h3>
+      <div class="info-row">
+        <span class="info-label">Property</span>
+        <span class="info-value">{{propertyTitle}}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Status</span>
+        <span class="info-value">Not Selected</span>
+      </div>
+      {{#if rejectionReason}}
+      <div class="info-row">
+        <span class="info-label">Reason</span>
+        <span class="info-value">{{rejectionReason}}</span>
+      </div>
+      {{/if}}
+    </div>
+
+    <div class="encouragement">
+      <h3>Don't Give Up!</h3>
+      <p>Finding the right home takes time, and we're here to help. There are many other great properties available on our platform that might be perfect for you.</p>
+      <ul>
+        <li>Browse similar properties in your preferred area</li>
+        <li>Set up search alerts to be notified of new listings</li>
+        <li>Consider adjusting your search criteria</li>
+      </ul>
+    </div>
+
+    <p style="text-align: center;">
+      <a href="{{searchUrl}}" class="button">Browse More Properties</a>
+    </p>
+
+    <p>We wish you the best in your housing search. If you have any questions, our support team is always here to help.</p>
+
+    <p>Best regards,<br>The 12done.com Team</p>
+  </div>
+
+  <div class="footer">
+    <p>&copy; {{year}} 12done.com. All rights reserved.</p>
+    <p>This is a transactional email regarding your rental application on 12done.com.</p>
+  </div>
+</body>
+</html>

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ApplicationsService } from './applications.service';
 import { PrismaService } from '@/database';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '@/mail/mail.service';
 import {
   NotFoundException,
   ForbiddenException,
@@ -24,10 +25,19 @@ describe('ApplicationsService', () => {
       update: jest.fn(),
       count: jest.fn(),
     },
+    user: {
+      findUnique: jest.fn(),
+    },
   };
 
   const mockNotificationsService = {
     create: jest.fn(),
+  };
+
+  const mockMailService = {
+    sendApplicationReceivedEmail: jest.fn(),
+    sendApplicationApprovedEmail: jest.fn(),
+    sendApplicationRejectedEmail: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -41,6 +51,10 @@ describe('ApplicationsService', () => {
         {
           provide: NotificationsService,
           useValue: mockNotificationsService,
+        },
+        {
+          provide: MailService,
+          useValue: mockMailService,
         },
       ],
     }).compile();
@@ -107,6 +121,7 @@ describe('ApplicationsService', () => {
         mockCreatedApplication,
       );
       mockNotificationsService.create.mockResolvedValue({});
+      mockMailService.sendApplicationReceivedEmail.mockResolvedValue(undefined);
 
       const result = await service.create(propertyId, applicantId, dto);
 
@@ -120,6 +135,41 @@ describe('ApplicationsService', () => {
         expect.stringContaining('John Doe'),
         expect.objectContaining({ applicationId: 'application-123' }),
       );
+    });
+
+    it('should send application received email to applicant (PROD-104.3)', async () => {
+      mockPrismaService.property.findUnique.mockResolvedValue(mockProperty);
+      mockPrismaService.rentalApplication.findUnique.mockResolvedValue(null);
+      mockPrismaService.rentalApplication.create.mockResolvedValue(
+        mockCreatedApplication,
+      );
+      mockNotificationsService.create.mockResolvedValue({});
+      mockMailService.sendApplicationReceivedEmail.mockResolvedValue(undefined);
+
+      await service.create(propertyId, applicantId, dto);
+
+      expect(mockMailService.sendApplicationReceivedEmail).toHaveBeenCalledWith(
+        'john@example.com',
+        'John',
+        'Nice Apartment',
+        expect.any(String), // formatted date
+      );
+    });
+
+    it('should not fail if application received email fails', async () => {
+      mockPrismaService.property.findUnique.mockResolvedValue(mockProperty);
+      mockPrismaService.rentalApplication.findUnique.mockResolvedValue(null);
+      mockPrismaService.rentalApplication.create.mockResolvedValue(
+        mockCreatedApplication,
+      );
+      mockNotificationsService.create.mockResolvedValue({});
+      mockMailService.sendApplicationReceivedEmail.mockRejectedValue(
+        new Error('Email failed'),
+      );
+
+      // Should not throw despite email failure
+      const result = await service.create(propertyId, applicantId, dto);
+      expect(result.id).toBe('application-123');
     });
 
     it('should throw NotFoundException if property not found', async () => {
@@ -377,6 +427,11 @@ describe('ApplicationsService', () => {
         },
       });
       mockNotificationsService.create.mockResolvedValue({});
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        firstName: 'Owner',
+        lastName: 'Name',
+      });
+      mockMailService.sendApplicationApprovedEmail.mockResolvedValue(undefined);
 
       const result = await service.review(applicationId, ownerId, {
         status: 'APPROVED',
@@ -391,6 +446,128 @@ describe('ApplicationsService', () => {
         expect.stringContaining('approved'),
         expect.any(Object),
       );
+    });
+
+    it('should send congratulations email when approved (PROD-104.4)', async () => {
+      mockPrismaService.rentalApplication.findUnique.mockResolvedValue(
+        mockApplication,
+      );
+      mockPrismaService.rentalApplication.update.mockResolvedValue({
+        ...mockApplication,
+        status: ApplicationStatus.APPROVED,
+        reviewedAt: new Date(),
+        property: {
+          id: 'prop-123',
+          title: 'Apartment',
+          address: '123 Main',
+          city: 'Budapest',
+          country: 'HU',
+        },
+        applicant: {
+          id: applicantId,
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+        },
+      });
+      mockNotificationsService.create.mockResolvedValue({});
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        firstName: 'Owner',
+        lastName: 'Name',
+      });
+      mockMailService.sendApplicationApprovedEmail.mockResolvedValue(undefined);
+
+      await service.review(applicationId, ownerId, {
+        status: 'APPROVED',
+      });
+
+      expect(mockMailService.sendApplicationApprovedEmail).toHaveBeenCalledWith(
+        'john@example.com',
+        'John',
+        'Apartment',
+        'Owner Name',
+      );
+    });
+
+    it('should send rejection email when rejected (PROD-104.5)', async () => {
+      mockPrismaService.rentalApplication.findUnique.mockResolvedValue(
+        mockApplication,
+      );
+      mockPrismaService.rentalApplication.update.mockResolvedValue({
+        ...mockApplication,
+        status: ApplicationStatus.REJECTED,
+        ownerNotes: 'Income too low',
+        reviewedAt: new Date(),
+        property: {
+          id: 'prop-123',
+          title: 'Apartment',
+          address: '123 Main',
+          city: 'Budapest',
+          country: 'HU',
+        },
+        applicant: {
+          id: applicantId,
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+        },
+      });
+      mockNotificationsService.create.mockResolvedValue({});
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        firstName: 'Owner',
+        lastName: 'Name',
+      });
+      mockMailService.sendApplicationRejectedEmail.mockResolvedValue(undefined);
+
+      await service.review(applicationId, ownerId, {
+        status: 'REJECTED',
+        ownerNotes: 'Income too low',
+      });
+
+      expect(mockMailService.sendApplicationRejectedEmail).toHaveBeenCalledWith(
+        'john@example.com',
+        'John',
+        'Apartment',
+        'Income too low',
+      );
+    });
+
+    it('should not fail if status email fails', async () => {
+      mockPrismaService.rentalApplication.findUnique.mockResolvedValue(
+        mockApplication,
+      );
+      mockPrismaService.rentalApplication.update.mockResolvedValue({
+        ...mockApplication,
+        status: ApplicationStatus.APPROVED,
+        reviewedAt: new Date(),
+        property: {
+          id: 'prop-123',
+          title: 'Apartment',
+          address: '123 Main',
+          city: 'Budapest',
+          country: 'HU',
+        },
+        applicant: {
+          id: applicantId,
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+        },
+      });
+      mockNotificationsService.create.mockResolvedValue({});
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        firstName: 'Owner',
+        lastName: 'Name',
+      });
+      mockMailService.sendApplicationApprovedEmail.mockRejectedValue(
+        new Error('Email failed'),
+      );
+
+      // Should not throw despite email failure
+      const result = await service.review(applicationId, ownerId, {
+        status: 'APPROVED',
+      });
+      expect(result.status).toBe(ApplicationStatus.APPROVED);
     });
 
     it('should throw NotFoundException if application not found', async () => {
