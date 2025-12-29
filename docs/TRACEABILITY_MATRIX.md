@@ -1,8 +1,8 @@
 # Requirements Traceability Matrix
 
 **Project:** 12done.com
-**Last Updated:** 2025-12-28
-**Version:** 1.4
+**Last Updated:** 2025-12-29
+**Version:** 1.5
 
 This document traces requirements from the SRS to their implementing test cases and results. It must be updated whenever:
 - New requirements are added to the SRS
@@ -11,13 +11,14 @@ This document traces requirements from the SRS to their implementing test cases 
 
 ---
 
-## Test Run Summary (2025-12-27)
+## Test Run Summary (2025-12-29)
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 901 | 0 | 901 | 100% |
+| Unit Tests | 905 | 0 | 905 | 100% |
 | E2E Tests | 207 | 0 | 207 | 100% |
-| **Total** | **1108** | **0** | **1108** | **100%** |
+| Browser Tests | 5 | 0 | 5 | 100% |
+| **Total** | **1117** | **0** | **1117** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -604,6 +605,26 @@ All tests passing locally and in CI.
 | E2E-PAY-037 | `POST /api/payments/refund > should return 400 for already refunded` | payments.e2e-spec.ts | E2E duplicate refund prevention | ✅ |
 | E2E-PAY-038 | `POST /api/payments/webhook > should not require JWT auth` | payments.e2e-spec.ts | E2E webhook accessibility | ✅ |
 
+### Browser Integration Tests (Payment UI)
+
+| Req ID | Test Case | Test Method | Purpose | Status |
+|--------|-----------|-------------|---------|--------|
+| BROWSER-PAY-001 | Mock Payment Checkout Flow | Playwright | Verifies buyer can complete mock payment via UI modal | ✅ |
+| BROWSER-PAY-002 | Payment Cancellation Flow | Playwright | Verifies cancellation closes modal, preserves ACCEPTED status | ✅ |
+| BROWSER-PAY-003 | Transactions List (Buyer View) | Playwright | Verifies buyer sees purchases, Total Spent, status filters | ✅ |
+| BROWSER-PAY-004 | Transactions List (Seller View) | Playwright | Verifies seller sees sales, Total Earnings, Pending Payouts | ✅ |
+| BROWSER-PAY-005 | Refund Flow | Playwright | Verifies buyer can request refund, status updates to REFUNDED | ✅ |
+
+**Browser Test Details:**
+
+| Test | Steps Verified | Key Assertions |
+|------|----------------|----------------|
+| Mock Payment Checkout | Navigate to negotiation → Click "Proceed to Payment" → Modal opens → Shows amount breakdown → Click "Complete Payment" → Transaction created | Modal shows €280,000, platform fee €14,000, seller receives €266,000; Transaction status COMPLETED; Negotiation status COMPLETED |
+| Payment Cancellation | Click "Proceed to Payment" → Modal opens → Click "Cancel" or "X" | Modal closes; Negotiation remains ACCEPTED; Can retry payment |
+| Transactions (Buyer) | Navigate to /dashboard/transactions | Summary cards show Total Spent; Table shows "Purchase" type; Status filter works; "View" links to negotiation |
+| Transactions (Seller) | Log in as seller → Navigate to transactions | Total Earnings shows revenue; "Sale" type displayed; Fee breakdown shown; Earnings/Payments tabs work |
+| Refund Flow | Click "View" on completed transaction → Click "Request Refund" → Enter reason → Submit | Refund modal opens; Reason required; Transaction status changes to "Refunded"; "Request Refund" button hidden after refund |
+
 ---
 
 ## 8. E2E Test Coverage
@@ -620,6 +641,7 @@ All tests passing locally and in CI.
 | Invitations | invitations.e2e-spec.ts | 8+ | Invitation system | ✅ |
 | Negotiations | negotiations.e2e-spec.ts | 19 | Negotiation and transaction flow | ✅ |
 | Payments | payments.e2e-spec.ts | 38 | Payment checkout, transactions, stats, refunds | ✅ |
+| **Payments (Browser)** | Playwright MCP | 5 | Mock checkout, cancellation, transactions, refunds | ✅ |
 
 ---
 
@@ -659,10 +681,11 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 ### Latest Test Run
 
-| Date | Unit Tests | E2E Tests | CI Status | Notes |
-|------|------------|-----------|-----------|-------|
-| 2025-12-28 | ✅ 901 passed | ✅ 207 passed | ✅ Passing | Frontend payment checkout flow, backend schema fixes |
-| 2025-12-27 | ✅ 901 passed | ✅ 207 passed | ✅ Passing | Added Stripe payment integration (37 unit + 14 E2E) |
+| Date | Unit Tests | E2E Tests | Browser Tests | CI Status | Notes |
+|------|------------|-----------|---------------|-----------|-------|
+| 2025-12-29 | ✅ 905 passed | ✅ 207 passed | ✅ 5 passed | ✅ Passing | Browser payment flow tests (checkout, cancel, transactions, refund) |
+| 2025-12-28 | ✅ 901 passed | ✅ 207 passed | - | ✅ Passing | Frontend payment checkout flow, backend schema fixes |
+| 2025-12-27 | ✅ 901 passed | ✅ 207 passed | - | ✅ Passing | Added Stripe payment integration (37 unit + 14 E2E) |
 
 ### Environment Requirements
 
@@ -695,8 +718,9 @@ docker-compose exec app npm run test:cov
 |----------|-------|---------------------|
 | Service Unit Tests | 17 | ~450 |
 | Controller Unit Tests | 5 | ~160 |
-| E2E Tests | 7 | ~70 |
-| **Total** | **29** | **~680** |
+| E2E Tests | 8 | ~207 |
+| Browser Tests (Playwright) | 1 | 5 |
+| **Total** | **31** | **~822** |
 
 ---
 
@@ -740,6 +764,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-28 | Claude | Refactored PaymentsModule to src/modules/payments/; added mock payment mode, transaction listing, stats; updated 30 test cases (17 service + 13 controller) |
 | 2025-12-28 | Claude | Added comprehensive E2E tests for payments module; 38 test cases covering checkout, status, transactions, stats, refunds, webhooks |
 | 2025-12-28 | Claude | Implemented frontend payment checkout flow; added PaymentConfirmationModal, PaymentStatusCard components; fixed backend schema mismatches (platformFeeRate, stripeSessionId); fixed frontend pagination format in useTransactions/usePayouts hooks |
+| 2025-12-29 | Claude | Browser integration tests for payment system: mock checkout flow, cancellation, transactions list (buyer/seller views), refund flow; 5 Playwright tests added; all 905 unit tests passing |
 
 ---
 
