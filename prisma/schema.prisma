@@ -132,6 +132,15 @@ enum TransactionStatus {
 }
 
 // ============================================
+// MESSAGING (In-App Communication)
+// ============================================
+
+enum MessageType {
+  TEXT    // Regular user message
+  SYSTEM  // System-generated message (e.g., "Offer accepted")
+}
+
+// ============================================
 // USER MANAGEMENT (PROD-001 to PROD-011)
 // ============================================
 
@@ -195,6 +204,10 @@ model User {
   sellerNegotiations    Negotiation[]       @relation("SellerNegotiations")
   madeOffers            Offer[]
   transactions          Transaction[]
+
+  // Messaging
+  conversationParticipants ConversationParticipant[]
+  messagesSent             Message[]
 
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
@@ -360,6 +373,7 @@ model Property {
   favoritedBy            FavoriteProperty[]
   browsingHistory        BrowsingHistory[]
   negotiations           Negotiation[]        // (PROD-090)
+  conversations          Conversation[]       // Direct property inquiries
 
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
@@ -599,6 +613,7 @@ model Negotiation {
   // Relations
   offers       Offer[]
   transaction  Transaction?
+  conversation Conversation?
 
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
@@ -682,4 +697,79 @@ model Transaction {
   @@index([payerId])
   @@index([status])
   @@index([stripePaymentIntentId])
+}
+
+// ============================================
+// MESSAGING (In-App Communication)
+// ============================================
+
+// Conversation - can be linked to a negotiation or property, or standalone
+model Conversation {
+  id              String    @id @default(uuid())
+
+  // Optional link to negotiation for contextual conversations
+  negotiationId   String?   @unique
+  negotiation     Negotiation? @relation(fields: [negotiationId], references: [id], onDelete: SetNull)
+
+  // Optional link to property for direct property inquiries
+  propertyId      String?
+  property        Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  // Conversation metadata
+  subject         String?
+  lastMessageAt   DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  messages        Message[]
+  participants    ConversationParticipant[]
+
+  @@index([negotiationId])
+  @@index([propertyId])
+  @@index([lastMessageAt])
+}
+
+// Tracks participants in a conversation with read status
+model ConversationParticipant {
+  id              String       @id @default(uuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lastReadAt      DateTime?
+  unreadCount     Int          @default(0)
+  isArchived      Boolean      @default(false)
+  isMuted         Boolean      @default(false)
+
+  createdAt       DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+}
+
+// Individual message in a conversation
+model Message {
+  id              String       @id @default(uuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId        String
+  sender          User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  type            MessageType  @default(TEXT)
+  content         String
+
+  isEdited        Boolean      @default(false)
+  editedAt        DateTime?
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
 }

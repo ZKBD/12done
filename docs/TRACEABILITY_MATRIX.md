@@ -15,10 +15,10 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 905 | 0 | 905 | 100% |
+| Unit Tests | 954 | 0 | 954 | 100% |
 | E2E Tests | 207 | 0 | 207 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **1117** | **0** | **1117** | **100%** |
+| **Total** | **1166** | **0** | **1166** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -627,6 +627,67 @@ All tests passing locally and in CI.
 
 ---
 
+## 7.6 In-App Messaging (PROD-200+)
+
+### Messaging Service Tests
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| MSG-001.1 | `createConversation > should throw BadRequestException if no context provided` | messaging.service.spec.ts | Verifies at least recipientId, propertyId, or negotiationId is required | ✅ |
+| MSG-001.2 | `createConversation > should throw NotFoundException if recipient not found` | messaging.service.spec.ts | Verifies recipient validation | ✅ |
+| MSG-001.3 | `createConversation > should throw NotFoundException if property not found` | messaging.service.spec.ts | Verifies property validation | ✅ |
+| MSG-001.4 | `createConversation > should throw NotFoundException if negotiation not found` | messaging.service.spec.ts | Verifies negotiation validation | ✅ |
+| MSG-001.5 | `createConversation > should throw ForbiddenException if user not part of negotiation` | messaging.service.spec.ts | Verifies negotiation authorization | ✅ |
+| MSG-001.6 | `createConversation > should return existing conversation for negotiation` | messaging.service.spec.ts | Verifies no duplicate conversations for same negotiation | ✅ |
+| MSG-001.7 | `createConversation > should create conversation with recipient` | messaging.service.spec.ts | Verifies direct message conversation creation | ✅ |
+| MSG-001.8 | `createConversation > should create conversation with property and add owner as participant` | messaging.service.spec.ts | Verifies property inquiry conversation adds owner | ✅ |
+| MSG-002.1 | `getConversations > should return paginated conversations` | messaging.service.spec.ts | Verifies conversation listing with pagination | ✅ |
+| MSG-002.2 | `getConversations > should filter archived conversations` | messaging.service.spec.ts | Verifies archived filter works | ✅ |
+| MSG-002.3 | `getConversations > should handle pagination parameters` | messaging.service.spec.ts | Verifies page/limit parameters | ✅ |
+| MSG-003.1 | `getConversation > should throw NotFoundException if conversation not found` | messaging.service.spec.ts | Verifies conversation validation | ✅ |
+| MSG-003.2 | `getConversation > should throw ForbiddenException if user not participant` | messaging.service.spec.ts | Verifies participant authorization | ✅ |
+| MSG-003.3 | `getConversation > should return conversation with messages` | messaging.service.spec.ts | Verifies messages included in response | ✅ |
+| MSG-004.1 | `getOrCreateNegotiationConversation > should return existing conversation` | messaging.service.spec.ts | Verifies existing conversation returned | ✅ |
+| MSG-004.2 | `getOrCreateNegotiationConversation > should throw ForbiddenException if user not in negotiation` | messaging.service.spec.ts | Verifies negotiation authorization | ✅ |
+| MSG-005.1 | `archiveConversation > should throw NotFoundException if participant not found` | messaging.service.spec.ts | Verifies participant validation | ✅ |
+| MSG-005.2 | `archiveConversation > should archive conversation for user` | messaging.service.spec.ts | Verifies archive updates participant record | ✅ |
+| MSG-005.3 | `unarchiveConversation > should throw NotFoundException if participant not found` | messaging.service.spec.ts | Verifies participant validation | ✅ |
+| MSG-005.4 | `unarchiveConversation > should unarchive conversation for user` | messaging.service.spec.ts | Verifies unarchive functionality | ✅ |
+| MSG-006.1 | `getMessages > should throw ForbiddenException if user not participant` | messaging.service.spec.ts | Verifies message access authorization | ✅ |
+| MSG-006.2 | `getMessages > should return paginated messages` | messaging.service.spec.ts | Verifies message listing with pagination | ✅ |
+| MSG-006.3 | `getMessages > should handle cursor-based pagination` | messaging.service.spec.ts | Verifies before cursor parameter | ✅ |
+| MSG-007.1 | `sendMessage > should throw ForbiddenException if user not participant` | messaging.service.spec.ts | Verifies send authorization | ✅ |
+| MSG-007.2 | `sendMessage > should create message and update conversation` | messaging.service.spec.ts | Verifies message creation and lastMessageAt update | ✅ |
+| MSG-008.1 | `deleteMessage > should throw NotFoundException if message not found` | messaging.service.spec.ts | Verifies message validation | ✅ |
+| MSG-008.2 | `deleteMessage > should throw ForbiddenException if not message sender` | messaging.service.spec.ts | Verifies only sender can delete | ✅ |
+| MSG-008.3 | `deleteMessage > should delete message successfully` | messaging.service.spec.ts | Verifies message deletion | ✅ |
+| MSG-009.1 | `markAsRead > should throw NotFoundException if participant not found` | messaging.service.spec.ts | Verifies participant validation | ✅ |
+| MSG-009.2 | `markAsRead > should update lastReadAt and reset unreadCount` | messaging.service.spec.ts | Verifies read status update | ✅ |
+| MSG-010.1 | `getUnreadCount > should return total unread count` | messaging.service.spec.ts | Verifies unread aggregation | ✅ |
+| MSG-010.2 | `getUnreadCount > should return 0 if no unread messages` | messaging.service.spec.ts | Verifies null handling | ✅ |
+| MSG-011.1 | `isParticipant > should return true if user is participant` | messaging.service.spec.ts | Verifies participant check | ✅ |
+| MSG-011.2 | `isParticipant > should return false if user is not participant` | messaging.service.spec.ts | Verifies non-participant check | ✅ |
+
+### Messaging Controller Tests
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| MSG-CTL-001 | `getConversations > should return paginated conversations` | messaging.controller.spec.ts | Verifies GET /messages/conversations endpoint | ✅ |
+| MSG-CTL-002 | `getConversations > should pass query parameters` | messaging.controller.spec.ts | Verifies query param passing | ✅ |
+| MSG-CTL-003 | `createConversation > should create a new conversation` | messaging.controller.spec.ts | Verifies POST /messages/conversations endpoint | ✅ |
+| MSG-CTL-004 | `createConversation > should create conversation with initial message` | messaging.controller.spec.ts | Verifies initial message support | ✅ |
+| MSG-CTL-005 | `getConversation > should return conversation details with messages` | messaging.controller.spec.ts | Verifies GET /messages/conversations/:id endpoint | ✅ |
+| MSG-CTL-006 | `getMessages > should return paginated messages` | messaging.controller.spec.ts | Verifies GET /messages/conversations/:id/messages endpoint | ✅ |
+| MSG-CTL-007 | `getMessages > should pass pagination parameters` | messaging.controller.spec.ts | Verifies pagination param passing | ✅ |
+| MSG-CTL-008 | `sendMessage > should send a message` | messaging.controller.spec.ts | Verifies POST /messages/conversations/:id/messages endpoint | ✅ |
+| MSG-CTL-009 | `markAsRead > should mark conversation as read` | messaging.controller.spec.ts | Verifies PATCH /messages/conversations/:id/read endpoint | ✅ |
+| MSG-CTL-010 | `archiveConversation > should archive a conversation` | messaging.controller.spec.ts | Verifies PATCH /messages/conversations/:id/archive endpoint | ✅ |
+| MSG-CTL-011 | `unarchiveConversation > should unarchive a conversation` | messaging.controller.spec.ts | Verifies PATCH /messages/conversations/:id/unarchive endpoint | ✅ |
+| MSG-CTL-012 | `deleteMessage > should delete a message` | messaging.controller.spec.ts | Verifies DELETE /messages/:messageId endpoint | ✅ |
+| MSG-CTL-013 | `getUnreadCount > should return unread message count` | messaging.controller.spec.ts | Verifies GET /messages/unread-count endpoint | ✅ |
+
+---
+
 ## 8. E2E Test Coverage
 
 ### End-to-End Test Summary
@@ -642,6 +703,7 @@ All tests passing locally and in CI.
 | Negotiations | negotiations.e2e-spec.ts | 19 | Negotiation and transaction flow | ✅ |
 | Payments | payments.e2e-spec.ts | 38 | Payment checkout, transactions, stats, refunds | ✅ |
 | **Payments (Browser)** | Playwright MCP | 5 | Mock checkout, cancellation, transactions, refunds | ✅ |
+| **Messaging** | messaging.*.spec.ts | 49 | Conversations, messages, read status, archive | ✅ |
 
 ---
 
@@ -683,6 +745,7 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | Browser Tests | CI Status | Notes |
 |------|------------|-----------|---------------|-----------|-------|
+| 2025-12-29 | ✅ 954 passed | ✅ 207 passed | ✅ 5 passed | ✅ Passing | Added in-app messaging backend (49 tests) |
 | 2025-12-29 | ✅ 905 passed | ✅ 207 passed | ✅ 5 passed | ✅ Passing | Browser payment flow tests (checkout, cancel, transactions, refund) |
 | 2025-12-28 | ✅ 901 passed | ✅ 207 passed | - | ✅ Passing | Frontend payment checkout flow, backend schema fixes |
 | 2025-12-27 | ✅ 901 passed | ✅ 207 passed | - | ✅ Passing | Added Stripe payment integration (37 unit + 14 E2E) |
@@ -716,11 +779,11 @@ docker-compose exec app npm run test:cov
 
 | Category | Files | Test Cases (Approx) |
 |----------|-------|---------------------|
-| Service Unit Tests | 17 | ~450 |
-| Controller Unit Tests | 5 | ~160 |
+| Service Unit Tests | 18 | ~485 |
+| Controller Unit Tests | 6 | ~175 |
 | E2E Tests | 8 | ~207 |
 | Browser Tests (Playwright) | 1 | 5 |
-| **Total** | **31** | **~822** |
+| **Total** | **33** | **~872** |
 
 ---
 
@@ -743,7 +806,7 @@ The following requirements do not yet have test coverage:
 | PROD-096-097 | Advanced Transaction Features | Not yet implemented |
 | PROD-100-108 | Property Management | Partial implementation |
 | PROD-120-133 | AI Tour Guide | Not yet implemented |
-| PROD-200-205 | Communication | Partial implementation |
+| PROD-200-205 | Communication | Backend complete; Frontend + WebSocket pending |
 
 ---
 
@@ -765,6 +828,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-28 | Claude | Added comprehensive E2E tests for payments module; 38 test cases covering checkout, status, transactions, stats, refunds, webhooks |
 | 2025-12-28 | Claude | Implemented frontend payment checkout flow; added PaymentConfirmationModal, PaymentStatusCard components; fixed backend schema mismatches (platformFeeRate, stripeSessionId); fixed frontend pagination format in useTransactions/usePayouts hooks |
 | 2025-12-29 | Claude | Browser integration tests for payment system: mock checkout flow, cancellation, transactions list (buyer/seller views), refund flow; 5 Playwright tests added; all 905 unit tests passing |
+| 2025-12-29 | Claude | Implemented in-app messaging backend (Phase 1): Prisma models (Conversation, ConversationParticipant, Message), MessagingModule with REST API for conversations and messages, WebSocket dependencies installed; 49 unit tests (35 service + 14 controller) |
 
 ---
 
