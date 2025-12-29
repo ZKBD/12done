@@ -13,8 +13,6 @@ import { Decimal } from '@prisma/client/runtime/library';
 
 describe('LeasesService', () => {
   let service: LeasesService;
-  let prisma: PrismaService;
-  let notifications: NotificationsService;
 
   const mockPrismaService = {
     property: {
@@ -129,8 +127,6 @@ describe('LeasesService', () => {
     }).compile();
 
     service = module.get<LeasesService>(LeasesService);
-    prisma = module.get<PrismaService>(PrismaService);
-    notifications = module.get<NotificationsService>(NotificationsService);
 
     jest.clearAllMocks();
   });
