@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LeasesController } from './leases.controller';
 import { LeasesService } from './leases.service';
+import { LeaseRenewalService } from './lease-renewal.service';
 import { LeaseStatus, RentPaymentStatus } from '@prisma/client';
 
 describe('LeasesController', () => {
@@ -16,6 +17,15 @@ describe('LeasesController', () => {
     getPayments: jest.fn(),
     recordPayment: jest.fn(),
     waivePayment: jest.fn(),
+  };
+
+  const mockLeaseRenewalService = {
+    findPendingRenewals: jest.fn(),
+    findRenewalForLease: jest.fn(),
+    createOffer: jest.fn(),
+    acceptOffer: jest.fn(),
+    declineOffer: jest.fn(),
+    cancelOffer: jest.fn(),
   };
 
   const mockUser = { id: 'user-123', email: 'test@example.com' };
@@ -49,6 +59,10 @@ describe('LeasesController', () => {
         {
           provide: LeasesService,
           useValue: mockLeasesService,
+        },
+        {
+          provide: LeaseRenewalService,
+          useValue: mockLeaseRenewalService,
         },
       ],
     }).compile();

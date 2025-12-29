@@ -111,6 +111,12 @@ enum NotificationType {
   MAINTENANCE_REQUEST_SCHEDULED
   MAINTENANCE_REQUEST_COMPLETED
   MAINTENANCE_REQUEST_CONFIRMED
+  // Lease Renewals (PROD-105)
+  LEASE_RENEWAL_REMINDER_LANDLORD
+  LEASE_RENEWAL_OFFER_TENANT
+  LEASE_RENEWAL_ACCEPTED
+  LEASE_RENEWAL_DECLINED
+  LEASE_RENEWAL_EXPIRED
 }
 
 // ============================================
@@ -214,6 +220,19 @@ enum RentPaymentStatus {
   PAID          // Payment received
   OVERDUE       // Payment is past due date
   WAIVED        // Payment was waived by landlord
+}
+
+// ============================================
+// LEASE RENEWALS (PROD-105)
+// ============================================
+
+enum LeaseRenewalStatus {
+  PENDING       // 60-day window opened, awaiting landlord action
+  OFFERED       // Landlord created offer, awaiting tenant response
+  ACCEPTED      // Tenant accepted, new lease generated
+  DECLINED      // Tenant declined the offer
+  EXPIRED       // Offer expired without response
+  CANCELLED     // Landlord cancelled the offer
 }
 
 // ============================================
@@ -335,6 +354,10 @@ model User {
   // Maintenance Requests (PROD-103)
   tenantMaintenanceRequests   MaintenanceRequest[] @relation("TenantMaintenanceRequests")
   landlordMaintenanceRequests MaintenanceRequest[] @relation("LandlordMaintenanceRequests")
+
+  // Lease Renewals (PROD-105)
+  landlordLeaseRenewals       LeaseRenewal[]       @relation("LandlordLeaseRenewals")
+  tenantLeaseRenewals         LeaseRenewal[]       @relation("TenantLeaseRenewals")
 
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
@@ -774,6 +797,8 @@ model Lease {
   // Relations
   rentPayments        RentPayment[]
   maintenanceRequests MaintenanceRequest[] // Maintenance requests (PROD-103)
+  renewals            LeaseRenewal[]       // Lease renewals (PROD-105)
+  renewedFromRenewal  LeaseRenewal?        @relation("RenewalNewLease") // Renewal that created this lease
 
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
@@ -1307,4 +1332,45 @@ model MaintenanceRequest {
   @@index([landlordId])
   @@index([status])
   @@index([assignedProviderId])
+}
+
+// ============================================
+// LEASE RENEWALS (PROD-105)
+// ============================================
+
+model LeaseRenewal {
+  id                  String              @id @default(uuid())
+
+  // Relationships
+  leaseId             String
+  lease               Lease               @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  landlordId          String
+  landlord            User                @relation("LandlordLeaseRenewals", fields: [landlordId], references: [id])
+  tenantId            String
+  tenant              User                @relation("TenantLeaseRenewals", fields: [tenantId], references: [id])
+  newLeaseId          String?             @unique
+  newLease            Lease?              @relation("RenewalNewLease", fields: [newLeaseId], references: [id])
+
+  // Renewal terms
+  status              LeaseRenewalStatus  @default(PENDING)
+  proposedStartDate   DateTime?           // New lease start date
+  proposedEndDate     DateTime?           // New lease end date
+  proposedRentAmount  Decimal?            @db.Decimal(12, 2)
+  proposedTerms       String?             // Additional terms/notes
+  offerExpiresAt      DateTime?           // Deadline for tenant response
+
+  // Tracking
+  reminderSentAt      DateTime?           // When 60-day reminder was sent
+  offerSentAt         DateTime?           // When offer was sent to tenant
+  respondedAt         DateTime?           // When tenant responded
+  declineReason       String?             // Optional reason if declined
+
+  // Timestamps
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([leaseId])
+  @@index([landlordId])
+  @@index([tenantId])
+  @@index([status])
 }

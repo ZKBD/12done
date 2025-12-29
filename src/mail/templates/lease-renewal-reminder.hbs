@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lease Ending Soon - 12done.com</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #4F46E5; }
+    .logo { font-size: 24px; font-weight: bold; color: #4F46E5; }
+    .content { padding: 30px 0; }
+    .reminder-badge { background: #F59E0B; color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; font-weight: 600; margin-bottom: 20px; }
+    .info-box { background: #FEF3C7; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #F59E0B; }
+    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #FDE68A; }
+    .info-row:last-child { border-bottom: none; font-weight: 600; }
+    .info-label { color: #92400E; }
+    .info-value { color: #78350F; }
+    .button { display: inline-block; background: #4F46E5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+    .footer { text-align: center; padding: 20px 0; color: #666; font-size: 12px; border-top: 1px solid #eee; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">12done.com</div>
+  </div>
+
+  <div class="content">
+    <div class="reminder-badge">Lease Renewal Reminder</div>
+
+    <h1>Lease Ending in {{daysUntilExpiry}} Days</h1>
+
+    <p>Hi {{firstName}},</p>
+
+    <p>This is a reminder that the following lease is approaching its end date. Consider reaching out to your tenant about renewal options.</p>
+
+    <div class="info-box">
+      <h3 style="margin-top: 0;">Lease Details</h3>
+      <div class="info-row">
+        <span class="info-label">Property</span>
+        <span class="info-value">{{propertyTitle}}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Tenant</span>
+        <span class="info-value">{{tenantName}}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Lease End Date</span>
+        <span class="info-value">{{endDate}}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Days Remaining</span>
+        <span class="info-value">{{daysUntilExpiry}} days</span>
+      </div>
+    </div>
+
+    <p>To retain your tenant and avoid vacancy, you can create a renewal offer with new terms directly from your dashboard.</p>
+
+    <p style="text-align: center;">
+      <a href="{{dashboardUrl}}" class="button">Create Renewal Offer</a>
+    </p>
+
+    <p>If you don't wish to renew, no action is needed. The lease will expire on the end date.</p>
+
+    <p>Best regards,<br>The 12done.com Team</p>
+  </div>
+
+  <div class="footer">
+    <p>&copy; {{year}} 12done.com. All rights reserved.</p>
+    <p>This is a transactional email regarding your property on 12done.com.</p>
+  </div>
+</body>
+</html>

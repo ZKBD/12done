@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -18,6 +19,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { LeasesService } from './leases.service';
+import { LeaseRenewalService } from './lease-renewal.service';
 import { JwtAuthGuard } from '@/modules/auth/guards';
 import { CurrentUser, CurrentUserData } from '@/common/decorators';
 import {
@@ -31,12 +33,18 @@ import {
   LeaseListResponseDto,
   RentPaymentResponseDto,
   PaymentListResponseDto,
+  CreateRenewalOfferDto,
+  DeclineRenewalDto,
+  RenewalQueryDto,
 } from './dto';
 
 @ApiTags('leases')
 @Controller('leases')
 export class LeasesController {
-  constructor(private readonly leasesService: LeasesService) {}
+  constructor(
+    private readonly leasesService: LeasesService,
+    private readonly renewalService: LeaseRenewalService,
+  ) {}
 
   // ============================================
   // LEASE MANAGEMENT ENDPOINTS
@@ -385,5 +393,213 @@ export class LeasesController {
     @Body() dto: WaivePaymentDto,
   ): Promise<RentPaymentResponseDto> {
     return this.leasesService.waivePayment(leaseId, paymentId, user.id, dto);
+  }
+
+  // ============================================
+  // RENEWAL ENDPOINTS (PROD-105)
+  // ============================================
+
+  /**
+   * Get pending renewals for landlord (PROD-105)
+   */
+  @Get('renewals/pending')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get pending renewals (PROD-105)',
+    description: 'Get list of pending and offered lease renewals (landlord)',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'List of renewals',
+  })
+  async getPendingRenewals(
+    @CurrentUser() user: CurrentUserData,
+    @Query() query: RenewalQueryDto,
+  ) {
+    return this.renewalService.findPendingRenewals(user.id, query);
+  }
+
+  /**
+   * Get renewal status for a lease (PROD-105)
+   */
+  @Get(':id/renewal')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get renewal status (PROD-105)',
+    description:
+      'Get current renewal status for a lease (tenant or landlord)',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Lease UUID',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Renewal details or null if no active renewal',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Lease not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Not authorized to view this lease',
+  })
+  async getRenewalStatus(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.renewalService.findRenewalForLease(id, user.id);
+  }
+
+  /**
+   * Create renewal offer (PROD-105.3)
+   */
+  @Post(':id/renewal/offer')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Create renewal offer (PROD-105.3)',
+    description: 'Create a renewal offer with proposed terms (landlord only)',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Lease UUID',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Renewal offer created',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid offer data or lease not active',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Lease not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Only landlord can create renewal offer',
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'An offer already exists for this lease',
+  })
+  async createRenewalOffer(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+    @Body() dto: CreateRenewalOfferDto,
+  ) {
+    return this.renewalService.createOffer(id, user.id, dto);
+  }
+
+  /**
+   * Accept renewal offer (PROD-105.5)
+   */
+  @Post(':id/renewal/accept')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Accept renewal offer (PROD-105.5)',
+    description:
+      'Accept a renewal offer and generate new lease (tenant only)',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Lease UUID',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Renewal accepted, new lease created',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Offer has expired',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'No active renewal offer found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Only tenant can accept renewal offer',
+  })
+  async acceptRenewalOffer(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.renewalService.acceptOffer(id, user.id);
+  }
+
+  /**
+   * Decline renewal offer (PROD-105.5)
+   */
+  @Post(':id/renewal/decline')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Decline renewal offer (PROD-105.5)',
+    description:
+      'Decline a renewal offer with optional reason (tenant only)',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Lease UUID',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Renewal declined',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'No active renewal offer found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Only tenant can decline renewal offer',
+  })
+  async declineRenewalOffer(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+    @Body() dto: DeclineRenewalDto,
+  ) {
+    return this.renewalService.declineOffer(id, user.id, dto);
+  }
+
+  /**
+   * Cancel renewal (landlord only)
+   */
+  @Delete(':id/renewal')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Cancel renewal',
+    description: 'Cancel an active renewal or offer (landlord only)',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Lease UUID',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Renewal cancelled',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'No active renewal found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Only landlord can cancel renewal',
+  })
+  async cancelRenewal(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    return this.renewalService.cancelOffer(id, user.id);
   }
 }

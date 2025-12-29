@@ -423,4 +423,113 @@ export class MailService {
       },
     });
   }
+
+  // ============================================
+  // LEASE RENEWAL EMAILS (PROD-105)
+  // ============================================
+
+  async sendLeaseRenewalReminderEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    tenantName: string,
+    endDate: string,
+    daysUntilExpiry: number,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Lease Ending Soon - ${propertyTitle}`,
+      template: 'lease-renewal-reminder',
+      context: {
+        firstName,
+        propertyTitle,
+        tenantName,
+        endDate,
+        daysUntilExpiry,
+        dashboardUrl: `${this.frontendUrl}/leases`,
+      },
+    });
+  }
+
+  async sendLeaseRenewalOfferEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    proposedStartDate: string,
+    proposedEndDate: string,
+    proposedRentAmount: number,
+    offerExpiresAt: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Lease Renewal Offer - ${propertyTitle}`,
+      template: 'lease-renewal-offer',
+      context: {
+        firstName,
+        propertyTitle,
+        proposedStartDate,
+        proposedEndDate,
+        proposedRentAmount,
+        offerExpiresAt,
+        dashboardUrl: `${this.frontendUrl}/leases`,
+      },
+    });
+  }
+
+  async sendLeaseRenewalAcceptedEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    otherPartyName: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Lease Renewal Accepted - ${propertyTitle}`,
+      template: 'lease-renewal-accepted',
+      context: {
+        firstName,
+        propertyTitle,
+        otherPartyName,
+        dashboardUrl: `${this.frontendUrl}/leases`,
+      },
+    });
+  }
+
+  async sendLeaseRenewalDeclinedEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    tenantName: string,
+    declineReason?: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Lease Renewal Declined - ${propertyTitle}`,
+      template: 'lease-renewal-declined',
+      context: {
+        firstName,
+        propertyTitle,
+        tenantName,
+        declineReason,
+        dashboardUrl: `${this.frontendUrl}/leases`,
+      },
+    });
+  }
+
+  async sendLeaseRenewalExpiredEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Lease Renewal Offer Expired - ${propertyTitle}`,
+      template: 'lease-renewal-expired',
+      context: {
+        firstName,
+        propertyTitle,
+        dashboardUrl: `${this.frontendUrl}/leases`,
+      },
+    });
+  }
 }

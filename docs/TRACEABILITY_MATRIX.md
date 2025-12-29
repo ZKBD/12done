@@ -1082,6 +1082,114 @@ Note: E2E tests require Docker/database to run.
 
 ---
 
+## 7.10 Lease Renewal Automation (PROD-105)
+
+### PROD-105.1: Schema and Model
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-105.1.1 | Schema includes LeaseRenewal model | prisma/schema.prisma | Verifies model with lease, landlord, tenant, newLease relations | ⏳ |
+| PROD-105.1.2 | Schema includes LeaseRenewalStatus enum | prisma/schema.prisma | Verifies PENDING, OFFERED, ACCEPTED, DECLINED, EXPIRED, CANCELLED statuses | ⏳ |
+| PROD-105.1.3 | NotificationType includes LEASE_RENEWAL_* values | prisma/schema.prisma | Verifies all lease renewal notification types | ⏳ |
+
+### PROD-105.2: Check Upcoming Renewals (Cron Job)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-105.2.1 | `checkUpcomingRenewals > should find leases ending in 60 days` | lease-renewal.service.spec.ts | Verifies cron job identifies expiring leases | ⏳ |
+| PROD-105.2.2 | `checkUpcomingRenewals > should create PENDING renewal records` | lease-renewal.service.spec.ts | Verifies renewal record is created for each lease | ⏳ |
+| PROD-105.2.3 | `checkUpcomingRenewals > should send notifications to landlords` | lease-renewal.service.spec.ts | Verifies landlord receives reminder notification | ⏳ |
+| PROD-105.2.4 | `checkUpcomingRenewals > should send emails to landlords` | lease-renewal.service.spec.ts | Verifies landlord receives reminder email | ⏳ |
+| PROD-105.2.5 | `checkUpcomingRenewals > should skip leases that already have renewal` | lease-renewal.service.spec.ts | Verifies no duplicate renewals created | ⏳ |
+
+### PROD-105.3: List Pending Renewals (GET /leases/renewals/pending)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-105.3.1 | `findPendingRenewals > should return paginated renewals for landlord` | lease-renewal.service.spec.ts | Verifies landlord sees their pending renewals | ⏳ |
+| PROD-105.3.2 | `findPendingRenewals > should filter by status` | lease-renewal.service.spec.ts | Verifies status filtering works | ⏳ |
+| PROD-105.3 | `GET /leases/renewals/pending > should return pending renewals` | lease-renewal.e2e-spec.ts | E2E test of pending renewals list | ⏳ |
+
+### PROD-105.4: Get Renewal for Lease (GET /leases/:id/renewal)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-105.4.1 | `findRenewalForLease > should return renewal for landlord` | lease-renewal.service.spec.ts | Verifies landlord can view renewal status | ⏳ |
+| PROD-105.4.2 | `findRenewalForLease > should return renewal for tenant` | lease-renewal.service.spec.ts | Verifies tenant can view renewal status | ⏳ |
+| PROD-105.4.3 | `findRenewalForLease > should throw NotFoundException if no renewal` | lease-renewal.service.spec.ts | Verifies error for missing renewal | ⏳ |
+| PROD-105.4.4 | `findRenewalForLease > should throw ForbiddenException for unauthorized` | lease-renewal.service.spec.ts | Verifies access control | ⏳ |
+| PROD-105.4 | `GET /leases/:id/renewal > should return renewal status` | lease-renewal.e2e-spec.ts | E2E test of renewal retrieval | ⏳ |
+| PROD-105.4 | `GET /leases/:id/renewal > should deny unauthorized access` | lease-renewal.e2e-spec.ts | E2E test of authorization | ⏳ |
+
+### PROD-105.5: Create Renewal Offer (POST /leases/:id/renewal/offer)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-105.5.1 | `createOffer > should create offer with proposed terms` | lease-renewal.service.spec.ts | Verifies landlord can set start/end dates and rent | ⏳ |
+| PROD-105.5.2 | `createOffer > should update status to OFFERED` | lease-renewal.service.spec.ts | Verifies status transition | ⏳ |
+| PROD-105.5.3 | `createOffer > should send notification to tenant` | lease-renewal.service.spec.ts | Verifies tenant receives offer notification | ⏳ |
+| PROD-105.5.4 | `createOffer > should send email to tenant` | lease-renewal.service.spec.ts | Verifies tenant receives offer email | ⏳ |
+| PROD-105.5.5 | `createOffer > should throw ForbiddenException if not landlord` | lease-renewal.service.spec.ts | Verifies only landlord can create offer | ⏳ |
+| PROD-105.5.6 | `createOffer > should throw BadRequestException if not PENDING` | lease-renewal.service.spec.ts | Verifies status must be PENDING | ⏳ |
+| PROD-105.5 | `POST /leases/:id/renewal/offer > should allow landlord` | lease-renewal.e2e-spec.ts | E2E test of offer creation | ⏳ |
+| PROD-105.5 | `POST /leases/:id/renewal/offer > should reject from tenant` | lease-renewal.e2e-spec.ts | E2E test of authorization | ⏳ |
+
+### PROD-105.6: Accept Renewal Offer (POST /leases/:id/renewal/accept)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-105.6.1 | `acceptOffer > should update status to ACCEPTED` | lease-renewal.service.spec.ts | Verifies status transition | ⏳ |
+| PROD-105.6.2 | `acceptOffer > should create new lease with proposed terms` | lease-renewal.service.spec.ts | Verifies new lease auto-generated | ⏳ |
+| PROD-105.6.3 | `acceptOffer > should link new lease to renewal record` | lease-renewal.service.spec.ts | Verifies newLeaseId is set | ⏳ |
+| PROD-105.6.4 | `acceptOffer > should send notifications to both parties` | lease-renewal.service.spec.ts | Verifies both landlord and tenant notified | ⏳ |
+| PROD-105.6.5 | `acceptOffer > should send emails to both parties` | lease-renewal.service.spec.ts | Verifies both receive acceptance email | ⏳ |
+| PROD-105.6.6 | `acceptOffer > should throw ForbiddenException if not tenant` | lease-renewal.service.spec.ts | Verifies only tenant can accept | ⏳ |
+| PROD-105.6.7 | `acceptOffer > should throw BadRequestException if not OFFERED` | lease-renewal.service.spec.ts | Verifies status must be OFFERED | ⏳ |
+| PROD-105.6 | `POST /leases/:id/renewal/accept > should allow tenant` | lease-renewal.e2e-spec.ts | E2E test of acceptance | ⏳ |
+| PROD-105.6 | `POST /leases/:id/renewal/accept > should create new lease` | lease-renewal.e2e-spec.ts | E2E test of lease generation | ⏳ |
+| PROD-105.6 | `POST /leases/:id/renewal/accept > should reject from landlord` | lease-renewal.e2e-spec.ts | E2E test of authorization | ⏳ |
+
+### PROD-105.7: Decline Renewal Offer (POST /leases/:id/renewal/decline)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-105.7.1 | `declineOffer > should update status to DECLINED` | lease-renewal.service.spec.ts | Verifies status transition | ⏳ |
+| PROD-105.7.2 | `declineOffer > should store decline reason` | lease-renewal.service.spec.ts | Verifies optional reason saved | ⏳ |
+| PROD-105.7.3 | `declineOffer > should send notification to landlord` | lease-renewal.service.spec.ts | Verifies landlord notified | ⏳ |
+| PROD-105.7.4 | `declineOffer > should send email to landlord` | lease-renewal.service.spec.ts | Verifies landlord receives decline email | ⏳ |
+| PROD-105.7.5 | `declineOffer > should throw ForbiddenException if not tenant` | lease-renewal.service.spec.ts | Verifies only tenant can decline | ⏳ |
+| PROD-105.7 | `POST /leases/:id/renewal/decline > should allow tenant` | lease-renewal.e2e-spec.ts | E2E test of decline | ⏳ |
+| PROD-105.7 | `POST /leases/:id/renewal/decline > should reject from landlord` | lease-renewal.e2e-spec.ts | E2E test of authorization | ⏳ |
+
+### PROD-105.8: Cancel Renewal Offer (DELETE /leases/:id/renewal)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-105.8.1 | `cancelOffer > should update status to CANCELLED` | lease-renewal.service.spec.ts | Verifies status transition | ⏳ |
+| PROD-105.8.2 | `cancelOffer > should throw ForbiddenException if not landlord` | lease-renewal.service.spec.ts | Verifies only landlord can cancel | ⏳ |
+| PROD-105.8.3 | `cancelOffer > should throw BadRequestException if already responded` | lease-renewal.service.spec.ts | Verifies cannot cancel after response | ⏳ |
+| PROD-105.8 | `DELETE /leases/:id/renewal > should allow landlord` | lease-renewal.e2e-spec.ts | E2E test of cancellation | ⏳ |
+| PROD-105.8 | `DELETE /leases/:id/renewal > should reject from tenant` | lease-renewal.e2e-spec.ts | E2E test of authorization | ⏳ |
+
+### PROD-105.9: Expire Offers (Cron Job)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-105.9.1 | `expireOffers > should find offers past expiration date` | lease-renewal.service.spec.ts | Verifies cron job identifies expired offers | ⏳ |
+| PROD-105.9.2 | `expireOffers > should update status to EXPIRED` | lease-renewal.service.spec.ts | Verifies status transition | ⏳ |
+| PROD-105.9.3 | `expireOffers > should send notifications to both parties` | lease-renewal.service.spec.ts | Verifies both parties notified | ⏳ |
+| PROD-105.9.4 | `expireOffers > should send emails to both parties` | lease-renewal.service.spec.ts | Verifies both receive expiration email | ⏳ |
+
+### Test Summary for PROD-105
+
+| Test Type | Count | Status |
+|-----------|-------|--------|
+| Service Unit Tests (LeaseRenewalService) | 20 | ⏳ |
+| E2E Tests | 15 | ⏳ |
+| **Total** | **35** | ⏳ |
+
+---
+
 ## 8. E2E Test Coverage
 
 ### End-to-End Test Summary
@@ -1106,6 +1214,8 @@ Note: E2E tests require Docker/database to run.
 | **Leases (E2E)** | leases.e2e-spec.ts | 15 | Full lease lifecycle, payments, activation, termination | ✅ |
 | **Maintenance (Unit)** | maintenance.*.spec.ts | 49 | Maintenance CRUD, workflow transitions, authorization | ⏳ |
 | **Maintenance (E2E)** | maintenance.e2e-spec.ts | 18 | Full maintenance workflow, approval, completion | ⏳ |
+| **Lease Renewal (Unit)** | lease-renewal.service.spec.ts | 20 | Cron jobs, offer CRUD, status transitions, authorization | ⏳ |
+| **Lease Renewal (E2E)** | lease-renewal.e2e-spec.ts | 15 | Full renewal workflow, accept/decline, new lease generation | ⏳ |
 
 ---
 
@@ -1208,10 +1318,11 @@ The following requirements do not yet have test coverage:
 | PROD-050 | AI Recommendations | Not yet implemented |
 | ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller); 47 E2E tests covering full API flow |
 | PROD-096-097 | Advanced Transaction Features | Not yet implemented |
-| PROD-100-108 | Property Management | Partial implementation; PROD-101, PROD-102, PROD-103 complete |
+| PROD-100-108 | Property Management | Partial implementation; PROD-101, PROD-102, PROD-103, PROD-105 complete |
 | ~~PROD-101~~ | ~~Rental Applications~~ | ✅ **COMPLETE** - RentalApplication model, ApplicationStatus enum, ApplicationsModule (controller, service, DTOs), notifications integration; 24 unit tests (18 service + 6 controller); 15 E2E tests covering application flow |
 | ~~PROD-102~~ | ~~Rent Reminders~~ | ✅ **COMPLETE** - Lease model, RentPayment model, LeaseStatus/RentPaymentStatus enums, LeasesModule with RentReminderService, cron jobs for 5-day reminders and overdue checks, email templates; 44 unit tests (25 service + 10 reminder + 9 controller); 15 E2E tests |
 | ~~PROD-103~~ | ~~Maintenance Workflows~~ | ✅ **COMPLETE** - MaintenanceRequest model, MaintenanceRequestType/Status/Priority enums, MaintenanceModule (controller, service, DTOs), full workflow (submit→approve→assign→schedule→complete→confirm), email templates; 49 unit tests (37 service + 12 controller); 18 E2E tests |
+| ~~PROD-105~~ | ~~Lease Renewal Automation~~ | ✅ **COMPLETE** - LeaseRenewal model, LeaseRenewalStatus enum, LeaseRenewalService with cron jobs (60-day check, expiration), 6 endpoints (pending list, get/create/accept/decline/cancel), 5 email templates, auto-generates new lease on accept; 20 unit tests; 15 E2E tests |
 | PROD-120-133 | AI Tour Guide | Not yet implemented |
 | ~~PROD-200-205~~ | ~~Communication~~ | ✅ **COMPLETE** - Backend, WebSocket, Frontend UI, E2E tests, Playwright tests, offline support, virtualization |
 
@@ -1249,6 +1360,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-29 | Claude | Implemented Rent Reminders (PROD-102.1-102.6): Lease model with LeaseStatus enum, RentPayment model with RentPaymentStatus enum, LeasesModule (controller, service, DTOs), RentReminderService with @Cron jobs for 5-day reminders and overdue checks, email templates for rent-reminder/rent-overdue/rent-payment-received; 44 unit tests (25 service + 10 reminder + 9 controller); 15 E2E tests |
 | 2025-12-29 | Claude | Verified PROD-102 tests passing: Updated all 38 PROD-102 test case statuses from ⏳ to ✅; fixed E2E test status code expectations (POST endpoints return 201); CI confirmed all 59 lease tests passing (44 unit + 15 E2E); updated test counts (1079 unit, 269 E2E, 1353 total) |
 | 2025-12-29 | Claude | Implemented Maintenance Workflows (PROD-103.1-103.13): MaintenanceRequest model with Type/Status/Priority enums, MaintenanceModule (controller, service, DTOs), full multi-party workflow (tenant submit, landlord approve/reject/assign, provider start/complete, dual-party confirm), 6 email templates, 7 NotificationType values; 49 unit tests (37 service + 12 controller); 18 E2E tests covering full maintenance lifecycle |
+| 2025-12-29 | Claude | Implemented Lease Renewal Automation (PROD-105.1-105.9): LeaseRenewal model with LeaseRenewalStatus enum (PENDING, OFFERED, ACCEPTED, DECLINED, EXPIRED, CANCELLED), LeaseRenewalService with @Cron jobs (60-day check at 2 AM, offer expiration at 3 AM), 6 endpoints (GET pending renewals, GET/POST/DELETE renewal, POST accept/decline), 5 email templates, 5 NotificationType values, auto-generates new lease on accept; 20 unit tests; 15 E2E tests |
 
 ---
 
