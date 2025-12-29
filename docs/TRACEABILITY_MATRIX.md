@@ -15,12 +15,14 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 984 | 0 | 984 | 100% |
-| E2E Tests | 207 | 0 | 207 | 100% |
+| Unit Tests | 1035 | 0 | 1035 | 100% |
+| E2E Tests | 254 | 0 | 254 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **1196** | **0** | **1196** | **100%** |
+| **Total** | **1294** | **0** | **1294** | **100%** |
 
 All tests passing locally and in CI.
+
+Note: E2E tests require Docker/database to run.
 
 ---
 
@@ -899,7 +901,7 @@ The following requirements do not yet have test coverage:
 | PROD-031 | Time-of-Day Photos | Not yet implemented |
 | PROD-044-047 | Advanced Search Features (Voice, Visual, AR, Lifestyle) | Phase 4 features |
 | PROD-050 | AI Recommendations | Not yet implemented |
-| ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller) |
+| ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller); 47 E2E tests covering full API flow |
 | PROD-096-097 | Advanced Transaction Features | Not yet implemented |
 | PROD-100-108 | Property Management | Partial implementation |
 | PROD-120-133 | AI Tour Guide | Not yet implemented |
@@ -934,6 +936,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-29 | Claude | Added offline support and reconnection handling (Phase 5): ConnectionStatus tracking (connected/connecting/disconnected/offline), browser online/offline event listeners, exponential backoff reconnection, message queue for offline messages, ConnectionStatusIndicator and ConnectionBanner UI components |
 | 2025-12-29 | Claude | Added virtualized lists for performance (Phase 5): @tanstack/react-virtual for efficient rendering, VirtualizedMessageList for messages > 50, VirtualizedConversationList for long conversation lists, auto-virtualization in MessageThread component |
 | 2025-12-29 | Claude | Implemented Service Providers (PROD-060-068): Prisma models (ServiceProvider, ProviderAvailability, AvailabilityException, ServiceRequest, ProviderReview), ServiceProvidersModule with full REST API for provider applications, profiles, availability calendar, job matching, admin approval, rating/review system; 51 unit tests (33 service + 18 controller) |
+| 2025-12-29 | Claude | Added E2E tests for Service Providers (PROD-060-068): 47 test cases in service-providers.e2e-spec.ts covering provider application, profile management, availability calendar, service requests workflow, admin approval/suspension, reviews CRUD, and authorization |
 
 ---
 
