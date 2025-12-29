@@ -51,7 +51,7 @@ export function MobileBottomNav() {
   const messageCount = unreadMessages?.count || 0;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <nav data-testid="mobile-bottom-nav" className="fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive =
@@ -76,7 +76,7 @@ export function MobileBottomNav() {
               <div className="relative">
                 <item.icon className="h-5 w-5" />
                 {showBadge && (
-                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 bg-primary text-primary-foreground text-[10px] font-medium rounded-full flex items-center justify-center">
+                  <span data-testid="unread-badge" className="absolute -top-1 -right-1 h-4 min-w-4 px-1 bg-primary text-primary-foreground text-[10px] font-medium rounded-full flex items-center justify-center">
                     {messageCount > 9 ? '9+' : messageCount}
                   </span>
                 )}

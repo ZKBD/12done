@@ -28,7 +28,7 @@ export function ConversationList({
 }: ConversationListProps) {
   if (isLoading) {
     return (
-      <div className="divide-y">
+      <div className="divide-y" data-testid="skeleton">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="flex gap-3 p-4">
             <Skeleton className="h-12 w-12 rounded-full flex-shrink-0" />
@@ -59,7 +59,7 @@ export function ConversationList({
 
   return (
     <ScrollArea className="h-full">
-      <div className="divide-y">
+      <div className="divide-y" data-testid="conversation-list">
         {conversations.map((conversation) => (
           <ConversationItem
             key={conversation.id}

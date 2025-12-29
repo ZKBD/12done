@@ -745,6 +745,40 @@ All tests passing locally and in CI.
 | MSG-E2E-019 | `DELETE /messages/:id > should delete own message` | messaging.e2e-spec.ts | Verifies message deletion | ⏳ |
 | MSG-E2E-020 | `Full Messaging Flow > complete conversation flow` | messaging.e2e-spec.ts | Verifies end-to-end messaging | ⏳ |
 
+### Messaging Browser Tests (Playwright)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| MSG-PW-001 | `Messages Page > should display messages page from sidebar` | messaging.spec.ts | Verifies sidebar navigation to messages | ⏳ |
+| MSG-PW-002 | `Messages Page > should show empty state when no conversations` | messaging.spec.ts | Verifies empty state display | ⏳ |
+| MSG-PW-003 | `Messages Page > should navigate to conversation detail` | messaging.spec.ts | Verifies conversation click navigation | ⏳ |
+| MSG-PW-004 | `Conversation List > should display conversation items` | messaging.spec.ts | Verifies conversation list rendering | ⏳ |
+| MSG-PW-005 | `Conversation List > should show last message preview` | messaging.spec.ts | Verifies message preview in list | ⏳ |
+| MSG-PW-006 | `Conversation List > should indicate unread conversations` | messaging.spec.ts | Verifies unread badge display | ⏳ |
+| MSG-PW-007 | `Message Thread > should display messages chronologically` | messaging.spec.ts | Verifies message ordering | ⏳ |
+| MSG-PW-008 | `Message Thread > should distinguish sent/received messages` | messaging.spec.ts | Verifies message alignment/styling | ⏳ |
+| MSG-PW-009 | `Message Thread > should scroll to bottom on new message` | messaging.spec.ts | Verifies auto-scroll behavior | ⏳ |
+| MSG-PW-010 | `Message Input > should have message input field` | messaging.spec.ts | Verifies input field presence | ⏳ |
+| MSG-PW-011 | `Message Input > should send message on button click` | messaging.spec.ts | Verifies send button functionality | ⏳ |
+| MSG-PW-012 | `Message Input > should send message on Enter key` | messaging.spec.ts | Verifies keyboard shortcut | ⏳ |
+| MSG-PW-013 | `Message Input > should not send empty messages` | messaging.spec.ts | Verifies empty message validation | ⏳ |
+| MSG-PW-014 | `Message Input > should disable send while sending` | messaging.spec.ts | Verifies send button state | ⏳ |
+| MSG-PW-015 | `Typing Indicator > should show when other user types` | messaging.spec.ts | Verifies typing indicator display | ⏳ |
+| MSG-PW-016 | `Real-time Messages > should receive messages in real-time` | messaging.spec.ts | Verifies WebSocket message delivery | ⏳ |
+| MSG-PW-017 | `Mobile Bottom Nav > should display messages icon` | messaging.spec.ts | Verifies mobile navigation | ⏳ |
+| MSG-PW-018 | `Mobile Bottom Nav > should show unread badge` | messaging.spec.ts | Verifies mobile unread indicator | ⏳ |
+| MSG-PW-019 | `Mobile Bottom Nav > should navigate to messages` | messaging.spec.ts | Verifies mobile navigation click | ⏳ |
+| MSG-PW-020 | `Negotiation Messages Tab > should display messages tab` | messaging.spec.ts | Verifies negotiation messaging integration | ⏳ |
+| MSG-PW-021 | `Negotiation Messages Tab > should show message thread` | messaging.spec.ts | Verifies negotiation message display | ⏳ |
+| MSG-PW-022 | `Negotiation Messages Tab > should send messages` | messaging.spec.ts | Verifies negotiation message sending | ⏳ |
+| MSG-PW-023 | `Accessibility > message input should have proper label` | messaging.spec.ts | Verifies ARIA accessibility | ⏳ |
+| MSG-PW-024 | `Accessibility > messages should be keyboard navigable` | messaging.spec.ts | Verifies keyboard navigation | ⏳ |
+| MSG-PW-025 | `Accessibility > send button should have accessible name` | messaging.spec.ts | Verifies button accessibility | ⏳ |
+| MSG-PW-026 | `Error Handling > should show error when message fails` | messaging.spec.ts | Verifies error toast display | ⏳ |
+| MSG-PW-027 | `Error Handling > should handle 404 conversation not found` | messaging.spec.ts | Verifies 404 handling | ⏳ |
+| MSG-PW-028 | `Loading States > should show loading for conversations` | messaging.spec.ts | Verifies loading skeleton | ⏳ |
+| MSG-PW-029 | `Loading States > should show loading for messages` | messaging.spec.ts | Verifies message loading state | ⏳ |
+
 ---
 
 ## 8. E2E Test Coverage
@@ -764,6 +798,7 @@ All tests passing locally and in CI.
 | **Payments (Browser)** | Playwright MCP | 5 | Mock checkout, cancellation, transactions, refunds | ✅ |
 | **Messaging (Unit)** | messaging.*.spec.ts | 79 | Conversations, messages, WebSocket gateway, real-time events | ✅ |
 | **Messaging (E2E)** | messaging.e2e-spec.ts | 38 | Full messaging flow, conversations CRUD, messages, archive | ⏳ |
+| **Messaging (Browser)** | messaging.spec.ts | 29 | UI interactions, real-time, accessibility, mobile responsive | ⏳ |
 
 ---
 
@@ -843,9 +878,9 @@ docker-compose exec app npm run test:cov
 | Service Unit Tests | 18 | ~485 |
 | Controller Unit Tests | 6 | ~175 |
 | Gateway/Guard Tests | 2 | ~30 |
-| E2E Tests | 8 | ~207 |
-| Browser Tests (Playwright) | 1 | 5 |
-| **Total** | **35** | **~902** |
+| E2E Tests | 9 | ~245 |
+| Browser Tests (Playwright) | 2 | 34 |
+| **Total** | **37** | **~1016** |
 
 ---
 
@@ -895,6 +930,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-29 | Claude | Implemented frontend messaging hooks (Phase 3): messaging API client, TypeScript types, React Query hooks (useConversations, useMessages, useSendMessage, etc.), WebSocket hook (useMessagingSocket) with real-time updates, installed socket.io-client |
 | 2025-12-29 | Claude | Implemented frontend messaging UI (Phase 4): messaging components (ConversationList, MessageThread, MessageBubble, MessageInput, TypingIndicator), messages pages (/dashboard/messages, /dashboard/messages/[conversationId]), NegotiationMessages component for in-negotiation chat, sidebar/mobile nav with unread badge, backend endpoint GET /messages/negotiations/:negotiationId/conversation |
 | 2025-12-29 | Claude | Added messaging E2E tests (Phase 5): 38 test cases covering conversation CRUD, messages, read/unread status, archive, negotiation conversations, authorization checks, full messaging flow |
+| 2025-12-29 | Claude | Added Playwright browser tests for messaging UI (Phase 5): 29 test cases in frontend/e2e/messaging.spec.ts covering messages page, conversation list, message thread, message input, typing indicators, real-time updates, mobile nav, negotiation messages tab, accessibility, error handling, loading states; added data-testid attributes to all messaging components for testability |
 
 ---
 

@@ -99,6 +99,8 @@ export function MessageInput({
     <div className="flex items-end gap-2 p-4 border-t bg-background">
       <Textarea
         ref={textareaRef}
+        data-testid="message-input"
+        aria-label="Type a message"
         value={content}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
@@ -112,6 +114,8 @@ export function MessageInput({
         disabled={!content.trim() || isSending || disabled}
         size="icon"
         className="flex-shrink-0"
+        data-testid="send-button"
+        aria-label="Send message"
       >
         {isSending ? (
           <Loader2 className="h-4 w-4 animate-spin" />

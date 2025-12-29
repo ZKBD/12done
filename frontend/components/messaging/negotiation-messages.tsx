@@ -120,7 +120,7 @@ export function NegotiationMessages({
   }
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col" data-testid="negotiation-messages">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <MessageSquare className="h-4 w-4" />

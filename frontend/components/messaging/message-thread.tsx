@@ -170,7 +170,7 @@ export function MessageThread({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full" data-testid="loading">
         {/* Header skeleton */}
         <div className="flex items-center gap-3 p-4 border-b">
           <Skeleton className="h-10 w-10 rounded-full" />
@@ -260,6 +260,7 @@ export function MessageThread({
         ref={scrollAreaRef}
         className="flex-1"
         onScroll={handleScroll}
+        data-testid="message-container"
       >
         {isLoadingMore && (
           <div className="flex justify-center py-4">
@@ -280,7 +281,7 @@ export function MessageThread({
           </div>
         )}
 
-        <div className="py-2">{renderMessages()}</div>
+        <div className="py-2" data-testid="message-list">{renderMessages()}</div>
 
         <TypingIndicator users={typingUsers} />
 

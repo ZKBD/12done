@@ -40,6 +40,7 @@ export function ConversationItem({
   return (
     <Link href={`/dashboard/messages/${conversation.id}`}>
       <div
+        data-testid="conversation-item"
         className={cn(
           'flex items-start gap-3 p-4 border-b transition-colors hover:bg-muted/50 cursor-pointer',
           isActive && 'bg-primary/5',
@@ -85,6 +86,7 @@ export function ConversationItem({
           {lastMessage && (
             <div className="flex items-center justify-between gap-2 mt-1">
               <p
+                data-testid="message-preview"
                 className={cn(
                   'text-sm truncate',
                   isUnread
@@ -99,6 +101,7 @@ export function ConversationItem({
               </p>
               {isUnread && (
                 <Badge
+                  data-testid="unread-indicator"
                   variant="default"
                   className="h-5 min-w-5 px-1.5 text-xs flex-shrink-0"
                 >

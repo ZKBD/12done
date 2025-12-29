@@ -35,6 +35,7 @@ export function MessageBubble({
 
   return (
     <div
+      data-testid={isOwn ? 'message-sent' : 'message-received'}
       className={cn(
         'flex gap-2 px-4 py-1',
         isOwn ? 'flex-row-reverse' : 'flex-row'
