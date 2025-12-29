@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { MessageThread } from '@/components/messaging';
+import { MessageThread, ConnectionBanner } from '@/components/messaging';
 import {
   useConversation,
   useMessages,
@@ -41,6 +41,8 @@ export default function ConversationPage() {
 
   // Real-time socket connection
   const {
+    connectionStatus,
+    pendingMessages,
     typingUsers,
     startTyping,
     stopTyping,
@@ -104,23 +106,26 @@ export default function ConversationPage() {
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
-    <div className="h-[calc(100vh-8rem)] -m-6 lg:-m-8">
-      <MessageThread
-        conversation={conversation}
-        messages={messages}
-        currentUserId={currentUserId}
-        isLoading={isLoadingConversation || isLoadingMessages}
-        isLoadingMore={isFetchingNextPage}
-        hasMoreMessages={hasNextPage}
-        isSending={sendMessageMutation.isPending}
-        typingUsers={typingUsers}
-        onSendMessage={handleSendMessage}
-        onLoadMoreMessages={handleLoadMore}
-        onTypingStart={startTyping}
-        onTypingStop={stopTyping}
-        onArchive={handleArchive}
-        showBackButton
-      />
+    <div className="h-[calc(100vh-8rem)] -m-6 lg:-m-8 flex flex-col">
+      <ConnectionBanner status={connectionStatus} pendingMessages={pendingMessages} />
+      <div className="flex-1 min-h-0">
+        <MessageThread
+          conversation={conversation}
+          messages={messages}
+          currentUserId={currentUserId}
+          isLoading={isLoadingConversation || isLoadingMessages}
+          isLoadingMore={isFetchingNextPage}
+          hasMoreMessages={hasNextPage}
+          isSending={sendMessageMutation.isPending}
+          typingUsers={typingUsers}
+          onSendMessage={handleSendMessage}
+          onLoadMoreMessages={handleLoadMore}
+          onTypingStart={startTyping}
+          onTypingStop={stopTyping}
+          onArchive={handleArchive}
+          showBackButton
+        />
+      </div>
     </div>
   );
 }

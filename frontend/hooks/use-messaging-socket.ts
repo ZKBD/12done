@@ -6,6 +6,10 @@ import { Socket } from 'socket.io-client';
 import {
   connectSocket,
   disconnectSocket,
+  subscribeToConnectionStatus,
+  queueMessage,
+  getQueuedMessages,
+  type ConnectionStatus,
   type NewMessageEvent,
   type TypingEvent,
   type StoppedTypingEvent,
@@ -14,12 +18,16 @@ import {
 import { messagingKeys } from './use-messaging';
 import type { Message } from '@/lib/types';
 
+// Re-export ConnectionStatus type for consumers
+export type { ConnectionStatus } from '@/lib/socket';
+
 interface UseMessagingSocketOptions {
   conversationId?: string;
   onNewMessage?: (message: NewMessageEvent) => void;
   onTyping?: (event: TypingEvent) => void;
   onStoppedTyping?: (event: StoppedTypingEvent) => void;
   onReadReceipt?: (event: ReadReceiptEvent) => void;
+  onConnectionChange?: (status: ConnectionStatus) => void;
 }
 
 interface TypingUser {
@@ -29,32 +37,43 @@ interface TypingUser {
 }
 
 export function useMessagingSocket(options: UseMessagingSocketOptions = {}) {
-  const { conversationId, onNewMessage, onTyping, onStoppedTyping, onReadReceipt } = options;
+  const { conversationId, onNewMessage, onTyping, onStoppedTyping, onReadReceipt, onConnectionChange } = options;
   const queryClient = useQueryClient();
   const socketRef = useRef<Socket | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
+  const [pendingMessages, setPendingMessages] = useState<number>(0);
 
-  // Connect to socket
+  // Derived states for convenience
+  const isConnected = connectionStatus === 'connected';
+  const isConnecting = connectionStatus === 'connecting';
+  const isOffline = connectionStatus === 'offline';
+
+  // Connect to socket and subscribe to connection status
   useEffect(() => {
     socketRef.current = connectSocket();
 
-    if (socketRef.current) {
-      socketRef.current.on('connect', () => {
-        setIsConnected(true);
-      });
+    // Subscribe to connection status changes
+    const unsubscribe = subscribeToConnectionStatus((status) => {
+      setConnectionStatus(status);
+      onConnectionChange?.(status);
 
-      socketRef.current.on('disconnect', () => {
-        setIsConnected(false);
-      });
-    }
+      // Update pending messages count
+      if (status === 'connected') {
+        setPendingMessages(0);
+      }
+    });
+
+    // Initialize pending messages count
+    setPendingMessages(getQueuedMessages().length);
 
     return () => {
+      unsubscribe();
       disconnectSocket();
-      setIsConnected(false);
+      setConnectionStatus('disconnected');
     };
-  }, []);
+  }, [onConnectionChange]);
 
   // Join/leave conversation room
   useEffect(() => {
@@ -156,12 +175,22 @@ export function useMessagingSocket(options: UseMessagingSocketOptions = {}) {
     };
   }, [queryClient, onReadReceipt]);
 
-  // Send message via socket (alternative to REST)
+  // Send message via socket (with offline queue support)
   const sendMessage = useCallback(
-    (content: string) => {
-      if (!socketRef.current || !conversationId) return;
+    (content: string): { queued: boolean; queueId?: string } => {
+      if (!conversationId) return { queued: false };
 
-      socketRef.current.emit('send_message', { conversationId, content });
+      // If connected, send immediately
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('send_message', { conversationId, content });
+        return { queued: false };
+      }
+
+      // If offline or disconnected, queue the message
+      const queueId = queueMessage(conversationId, content);
+      setPendingMessages((prev) => prev + 1);
+      console.log('[Socket] Message queued for later delivery:', queueId);
+      return { queued: true, queueId };
     },
     [conversationId]
   );
@@ -212,8 +241,19 @@ export function useMessagingSocket(options: UseMessagingSocketOptions = {}) {
   }, []);
 
   return {
+    // Connection status
+    connectionStatus,
     isConnected,
+    isConnecting,
+    isOffline,
+
+    // Typing
     typingUsers,
+
+    // Pending messages (queued while offline)
+    pendingMessages,
+
+    // Actions
     sendMessage,
     startTyping,
     stopTyping,

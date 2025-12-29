@@ -5,3 +5,4 @@ export { MessageInput } from './message-input';
 export { MessageThread } from './message-thread';
 export { NegotiationMessages } from './negotiation-messages';
 export { TypingIndicator } from './typing-indicator';
+export { ConnectionStatusIndicator, ConnectionBanner } from './connection-status';
