@@ -15,10 +15,10 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 954 | 0 | 954 | 100% |
+| Unit Tests | 984 | 0 | 984 | 100% |
 | E2E Tests | 207 | 0 | 207 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **1166** | **0** | **1166** | **100%** |
+| **Total** | **1196** | **0** | **1196** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -686,6 +686,40 @@ All tests passing locally and in CI.
 | MSG-CTL-012 | `deleteMessage > should delete a message` | messaging.controller.spec.ts | Verifies DELETE /messages/:messageId endpoint | ✅ |
 | MSG-CTL-013 | `getUnreadCount > should return unread message count` | messaging.controller.spec.ts | Verifies GET /messages/unread-count endpoint | ✅ |
 
+### WebSocket Gateway Tests
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| MSG-WS-001 | `handleConnection > should authenticate and store socket mapping` | messaging.gateway.spec.ts | Verifies JWT auth on WebSocket connection | ✅ |
+| MSG-WS-002 | `handleConnection > should disconnect socket with no token` | messaging.gateway.spec.ts | Verifies unauthenticated connections rejected | ✅ |
+| MSG-WS-003 | `handleConnection > should disconnect socket with invalid token` | messaging.gateway.spec.ts | Verifies invalid tokens rejected | ✅ |
+| MSG-WS-004 | `handleConnection > should disconnect for deleted/suspended user` | messaging.gateway.spec.ts | Verifies inactive accounts blocked | ✅ |
+| MSG-WS-005 | `handleConnection > should extract token from query/header` | messaging.gateway.spec.ts | Verifies multiple token extraction methods | ✅ |
+| MSG-WS-006 | `handleDisconnect > should clean up socket mappings` | messaging.gateway.spec.ts | Verifies cleanup on disconnect | ✅ |
+| MSG-WS-007 | `handleJoinConversation > should join room if participant` | messaging.gateway.spec.ts | Verifies join_conversation event | ✅ |
+| MSG-WS-008 | `handleJoinConversation > should throw if not participant` | messaging.gateway.spec.ts | Verifies authorization for room join | ✅ |
+| MSG-WS-009 | `handleLeaveConversation > should leave conversation room` | messaging.gateway.spec.ts | Verifies leave_conversation event | ✅ |
+| MSG-WS-010 | `handleSendMessage > should send and broadcast message` | messaging.gateway.spec.ts | Verifies send_message event + new_message broadcast | ✅ |
+| MSG-WS-011 | `handleTypingStart > should broadcast typing event` | messaging.gateway.spec.ts | Verifies typing_start → user_typing broadcast | ✅ |
+| MSG-WS-012 | `handleTypingStart > should not broadcast if not participant` | messaging.gateway.spec.ts | Verifies typing authorization | ✅ |
+| MSG-WS-013 | `handleTypingStop > should broadcast stopped event` | messaging.gateway.spec.ts | Verifies typing_stop → user_stopped_typing broadcast | ✅ |
+| MSG-WS-014 | `handleMarkRead > should mark read and broadcast receipt` | messaging.gateway.spec.ts | Verifies mark_read → read_receipt broadcast | ✅ |
+| MSG-WS-015 | `emitToUser > should emit to all user sockets` | messaging.gateway.spec.ts | Verifies targeted user notifications | ✅ |
+| MSG-WS-016 | `emitToConversation > should emit to room` | messaging.gateway.spec.ts | Verifies room broadcasts | ✅ |
+
+### WebSocket JWT Guard Tests
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| MSG-GUARD-001 | `canActivate > should return true for valid token` | ws-jwt.guard.spec.ts | Verifies valid JWT authentication | ✅ |
+| MSG-GUARD-002 | `canActivate > should throw for missing token` | ws-jwt.guard.spec.ts | Verifies no token rejection | ✅ |
+| MSG-GUARD-003 | `canActivate > should throw for invalid token` | ws-jwt.guard.spec.ts | Verifies invalid token rejection | ✅ |
+| MSG-GUARD-004 | `canActivate > should throw for non-existent user` | ws-jwt.guard.spec.ts | Verifies user validation | ✅ |
+| MSG-GUARD-005 | `canActivate > should throw for deleted/suspended user` | ws-jwt.guard.spec.ts | Verifies account status check | ✅ |
+| MSG-GUARD-006 | `canActivate > should extract token from query/header` | ws-jwt.guard.spec.ts | Verifies token extraction methods | ✅ |
+| MSG-GUARD-007 | `canActivate > should prioritize auth token` | ws-jwt.guard.spec.ts | Verifies token priority order | ✅ |
+| MSG-GUARD-008 | `canActivate > should attach user to socket` | ws-jwt.guard.spec.ts | Verifies user attachment for handlers | ✅ |
+
 ---
 
 ## 8. E2E Test Coverage
@@ -703,7 +737,7 @@ All tests passing locally and in CI.
 | Negotiations | negotiations.e2e-spec.ts | 19 | Negotiation and transaction flow | ✅ |
 | Payments | payments.e2e-spec.ts | 38 | Payment checkout, transactions, stats, refunds | ✅ |
 | **Payments (Browser)** | Playwright MCP | 5 | Mock checkout, cancellation, transactions, refunds | ✅ |
-| **Messaging** | messaging.*.spec.ts | 49 | Conversations, messages, read status, archive | ✅ |
+| **Messaging** | messaging.*.spec.ts | 79 | Conversations, messages, WebSocket gateway, real-time events | ✅ |
 
 ---
 
@@ -745,6 +779,7 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | Browser Tests | CI Status | Notes |
 |------|------------|-----------|---------------|-----------|-------|
+| 2025-12-29 | ✅ 984 passed | ✅ 207 passed | ✅ 5 passed | ✅ Passing | Added WebSocket gateway for real-time messaging (30 tests) |
 | 2025-12-29 | ✅ 954 passed | ✅ 207 passed | ✅ 5 passed | ✅ Passing | Added in-app messaging backend (49 tests) |
 | 2025-12-29 | ✅ 905 passed | ✅ 207 passed | ✅ 5 passed | ✅ Passing | Browser payment flow tests (checkout, cancel, transactions, refund) |
 | 2025-12-28 | ✅ 901 passed | ✅ 207 passed | - | ✅ Passing | Frontend payment checkout flow, backend schema fixes |
@@ -781,9 +816,10 @@ docker-compose exec app npm run test:cov
 |----------|-------|---------------------|
 | Service Unit Tests | 18 | ~485 |
 | Controller Unit Tests | 6 | ~175 |
+| Gateway/Guard Tests | 2 | ~30 |
 | E2E Tests | 8 | ~207 |
 | Browser Tests (Playwright) | 1 | 5 |
-| **Total** | **33** | **~872** |
+| **Total** | **35** | **~902** |
 
 ---
 
@@ -829,6 +865,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-28 | Claude | Implemented frontend payment checkout flow; added PaymentConfirmationModal, PaymentStatusCard components; fixed backend schema mismatches (platformFeeRate, stripeSessionId); fixed frontend pagination format in useTransactions/usePayouts hooks |
 | 2025-12-29 | Claude | Browser integration tests for payment system: mock checkout flow, cancellation, transactions list (buyer/seller views), refund flow; 5 Playwright tests added; all 905 unit tests passing |
 | 2025-12-29 | Claude | Implemented in-app messaging backend (Phase 1): Prisma models (Conversation, ConversationParticipant, Message), MessagingModule with REST API for conversations and messages, WebSocket dependencies installed; 49 unit tests (35 service + 14 controller) |
+| 2025-12-29 | Claude | Implemented WebSocket gateway (Phase 2): MessagingGateway with real-time events (join/leave conversation, send message, typing indicators, read receipts), WsJwtGuard for WebSocket authentication; 30 unit tests (22 gateway + 8 guard) |
 
 ---
 
