@@ -18,6 +18,7 @@ import { HealthModule } from './modules/health';
 import { PaymentsModule } from './modules/payments';
 import { MessagingModule } from './modules/messaging/messaging.module';
 import { ServiceProvidersModule } from './modules/service-providers';
+import { ApplicationsModule } from './modules/applications';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { ServiceProvidersModule } from './modules/service-providers';
     PaymentsModule,
     MessagingModule,
     ServiceProvidersModule,
+    ApplicationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
