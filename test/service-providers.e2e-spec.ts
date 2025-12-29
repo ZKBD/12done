@@ -257,10 +257,15 @@ describe('ServiceProvidersController (e2e)', () => {
         .send({
           serviceType: ServiceType.LAWYER,
           bio: 'Experienced lawyer with 10 years of experience',
-          hourlyRate: 100,
-          currency: 'EUR',
-          serviceAreas: ['Budapest'],
-          languages: ['Hungarian', 'English'],
+          serviceDetails: {
+            hourlyRate: 100,
+            currency: 'EUR',
+            languages: ['Hungarian', 'English'],
+          },
+          serviceArea: {
+            city: 'Budapest',
+            country: 'HU',
+          },
         });
 
       expect(response.status).toBe(201);
@@ -335,12 +340,16 @@ describe('ServiceProvidersController (e2e)', () => {
         .set('Authorization', `Bearer ${providerToken}`)
         .send({
           bio: 'Updated bio with more details',
-          hourlyRate: 120,
+          serviceDetails: {
+            hourlyRate: 120,
+            currency: 'EUR',
+            languages: ['Hungarian', 'English'],
+          },
         });
 
       expect(response.status).toBe(200);
       expect(response.body.bio).toBe('Updated bio with more details');
-      expect(response.body.hourlyRate).toBe('120');
+      expect(response.body.serviceDetails.hourlyRate).toBe(120);
     });
 
     it('should not allow updating other user profile', async () => {
@@ -396,7 +405,7 @@ describe('ServiceProvidersController (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           decision: 'approve',
-          notes: 'Application approved',
+          adminNotes: 'Application approved',
         });
 
       expect(response.status).toBe(200);
@@ -653,7 +662,6 @@ describe('ServiceProvidersController (e2e)', () => {
         .set('Authorization', `Bearer ${providerToken}`)
         .send({
           action: 'accept',
-          message: 'I can help you with this',
         });
 
       expect(response.status).toBe(200);
