@@ -19,6 +19,7 @@ import { PaymentsModule } from './modules/payments';
 import { MessagingModule } from './modules/messaging/messaging.module';
 import { ServiceProvidersModule } from './modules/service-providers';
 import { ApplicationsModule } from './modules/applications';
+import { LeasesModule } from './modules/leases';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { ApplicationsModule } from './modules/applications';
     MessagingModule,
     ServiceProvidersModule,
     ApplicationsModule,
+    LeasesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -850,6 +850,94 @@ Note: E2E tests require Docker/database to run.
 
 ---
 
+## 7.8 Rent Reminders / Leases (PROD-102)
+
+### PROD-102.1: Lease Model
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-102.1.1 | Schema includes Lease model | prisma/schema.prisma | Verifies model with tenant, landlord, property relations | ⏳ |
+| PROD-102.1.2 | Schema includes LeaseStatus enum | prisma/schema.prisma | Verifies DRAFT, ACTIVE, EXPIRED, TERMINATED statuses | ⏳ |
+| PROD-102.1.3 | Schema includes RentPayment model | prisma/schema.prisma | Verifies payment tracking with status, dates | ⏳ |
+| PROD-102.1.4 | Schema includes RentPaymentStatus enum | prisma/schema.prisma | Verifies PENDING, PAID, OVERDUE, WAIVED statuses | ⏳ |
+| PROD-102.1.5 | `create > should create a lease successfully` | leases.service.spec.ts | Verifies lease creation with property ownership check | ⏳ |
+| PROD-102.1.6 | `create > should throw NotFoundException if property not found` | leases.service.spec.ts | Verifies error for non-existent property | ⏳ |
+| PROD-102.1.7 | `create > should throw ForbiddenException if not owner` | leases.service.spec.ts | Verifies only owner can create lease | ⏳ |
+| PROD-102.1.8 | `create > should throw ConflictException if active lease exists` | leases.service.spec.ts | Verifies only one active lease per property | ⏳ |
+| PROD-102.1 | `POST /leases > should create a lease` | leases.e2e-spec.ts | E2E test of lease creation | ⏳ |
+
+### PROD-102.2: Rent Due Date Tracking (GET /leases/:id/payments)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-102.2.1 | `activate > should generate payment schedule` | leases.service.spec.ts | Verifies payments generated for lease term | ⏳ |
+| PROD-102.2.2 | `getPayments > should return payment history` | leases.service.spec.ts | Verifies payment listing for tenant/landlord | ⏳ |
+| PROD-102.2.3 | `getPayments > should filter by status` | leases.service.spec.ts | Verifies status filtering (PENDING, PAID, etc.) | ⏳ |
+| PROD-102.2 | `GET /leases/:id/payments > should return payment history` | leases.e2e-spec.ts | E2E test of payment history | ⏳ |
+
+### PROD-102.3: Tenant Reminder Email (5 days before)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-102.3.1 | `sendRentReminders > should send reminders for payments due in 5 days` | rent-reminder.service.spec.ts | Verifies cron job finds upcoming payments | ⏳ |
+| PROD-102.3.2 | `sendRentReminders > should send email to tenant` | rent-reminder.service.spec.ts | Verifies email sent via mail service | ⏳ |
+| PROD-102.3.3 | `sendRentReminders > should update reminderSentAt` | rent-reminder.service.spec.ts | Verifies reminder tracking to prevent duplicates | ⏳ |
+| PROD-102.3.4 | `sendRentReminderEmail > should send rent reminder` | mail.service.spec.ts | Verifies email template usage | ⏳ |
+
+### PROD-102.4: Landlord Notification (Payment Received)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-102.4.1 | `recordPayment > should record payment successfully` | leases.service.spec.ts | Verifies landlord can record payments | ⏳ |
+| PROD-102.4.2 | `recordPayment > should notify landlord` | leases.service.spec.ts | Verifies notification sent on payment | ⏳ |
+| PROD-102.4.3 | `recordPayment > should throw ForbiddenException for non-landlord` | leases.service.spec.ts | Verifies only landlord can record | ⏳ |
+| PROD-102.4.4 | `recordPayment > should throw BadRequestException if already paid` | leases.service.spec.ts | Verifies cannot re-record paid payment | ⏳ |
+| PROD-102.4 | `POST /leases/:id/payments/:paymentId/record > should record payment` | leases.e2e-spec.ts | E2E test of payment recording | ⏳ |
+
+### PROD-102.5: Overdue Notifications
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-102.5.1 | `checkOverduePayments > should mark pending payments as overdue` | rent-reminder.service.spec.ts | Verifies status update to OVERDUE | ⏳ |
+| PROD-102.5.2 | `checkOverduePayments > should notify tenant` | rent-reminder.service.spec.ts | Verifies tenant receives overdue alert | ⏳ |
+| PROD-102.5.3 | `checkOverduePayments > should notify landlord` | rent-reminder.service.spec.ts | Verifies landlord receives overdue alert | ⏳ |
+| PROD-102.5.4 | `checkOverduePayments > should resend after 7 days` | rent-reminder.service.spec.ts | Verifies repeated notifications for ongoing overdue | ⏳ |
+| PROD-102.5.5 | `sendRentOverdueEmail > should send overdue email` | mail.service.spec.ts | Verifies overdue email template | ⏳ |
+
+### PROD-102.6: In-App Reminders
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-102.6.1 | NotificationType includes RENT_REMINDER_TENANT | prisma/schema.prisma | Verifies notification type exists | ⏳ |
+| PROD-102.6.2 | NotificationType includes RENT_PAYMENT_RECEIVED | prisma/schema.prisma | Verifies notification type exists | ⏳ |
+| PROD-102.6.3 | NotificationType includes RENT_OVERDUE_TENANT | prisma/schema.prisma | Verifies notification type exists | ⏳ |
+| PROD-102.6.4 | NotificationType includes RENT_OVERDUE_LANDLORD | prisma/schema.prisma | Verifies notification type exists | ⏳ |
+| PROD-102.6.5 | `sendRentReminders > should create in-app notification` | rent-reminder.service.spec.ts | Verifies badge notification created | ⏳ |
+
+### Additional Lease Management Tests
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-102.A1 | `update > should update draft lease` | leases.service.spec.ts | Verifies only DRAFT leases can be modified | ⏳ |
+| PROD-102.A2 | `activate > should activate draft lease` | leases.service.spec.ts | Verifies lease activation flow | ⏳ |
+| PROD-102.A3 | `terminate > should terminate active lease` | leases.service.spec.ts | Verifies early termination | ⏳ |
+| PROD-102.A4 | `findAll > should return user leases` | leases.service.spec.ts | Verifies lease listing with role filter | ⏳ |
+| PROD-102.A5 | `findOne > should return lease for tenant/landlord` | leases.service.spec.ts | Verifies access control | ⏳ |
+| PROD-102.A6 | `waivePayment > should waive payment` | leases.service.spec.ts | Verifies landlord can waive payments | ⏳ |
+| PROD-102.A7 | `checkExpiredLeases > should mark expired leases` | rent-reminder.service.spec.ts | Verifies lease expiry cron job | ⏳ |
+
+### Test Summary for PROD-102
+
+| Test Type | Count | Status |
+|-----------|-------|--------|
+| Service Unit Tests (LeasesService) | 25 | ⏳ |
+| Service Unit Tests (RentReminderService) | 10 | ⏳ |
+| Controller Unit Tests | 9 | ⏳ |
+| E2E Tests | 15 | ⏳ |
+| **Total** | **59** | ⏳ |
+
+---
+
 ## 8. E2E Test Coverage
 
 ### End-to-End Test Summary
@@ -870,6 +958,8 @@ Note: E2E tests require Docker/database to run.
 | **Messaging (Browser)** | messaging.spec.ts | 29 | UI interactions, real-time, accessibility, mobile responsive | ⏳ |
 | **Applications (Unit)** | applications.*.spec.ts | 24 | Application CRUD, status transitions, authorization | ⏳ |
 | **Applications (E2E)** | applications.e2e-spec.ts | 15 | Full rental application flow, owner review, withdrawal | ⏳ |
+| **Leases (Unit)** | leases.*.spec.ts | 44 | Lease CRUD, payments, rent reminders, cron jobs | ⏳ |
+| **Leases (E2E)** | leases.e2e-spec.ts | 15 | Full lease lifecycle, payments, activation, termination | ⏳ |
 
 ---
 
@@ -972,8 +1062,9 @@ The following requirements do not yet have test coverage:
 | PROD-050 | AI Recommendations | Not yet implemented |
 | ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller); 47 E2E tests covering full API flow |
 | PROD-096-097 | Advanced Transaction Features | Not yet implemented |
-| PROD-100-108 | Property Management | Partial implementation; PROD-101 (Rental Applications) complete |
+| PROD-100-108 | Property Management | Partial implementation; PROD-101 and PROD-102 complete |
 | ~~PROD-101~~ | ~~Rental Applications~~ | ✅ **COMPLETE** - RentalApplication model, ApplicationStatus enum, ApplicationsModule (controller, service, DTOs), notifications integration; 24 unit tests (18 service + 6 controller); 15 E2E tests covering application flow |
+| ~~PROD-102~~ | ~~Rent Reminders~~ | ✅ **COMPLETE** - Lease model, RentPayment model, LeaseStatus/RentPaymentStatus enums, LeasesModule with RentReminderService, cron jobs for 5-day reminders and overdue checks, email templates; 44 unit tests (25 service + 10 reminder + 9 controller); 15 E2E tests |
 | PROD-120-133 | AI Tour Guide | Not yet implemented |
 | ~~PROD-200-205~~ | ~~Communication~~ | ✅ **COMPLETE** - Backend, WebSocket, Frontend UI, E2E tests, Playwright tests, offline support, virtualization |
 
@@ -1008,6 +1099,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-29 | Claude | Implemented Service Providers (PROD-060-068): Prisma models (ServiceProvider, ProviderAvailability, AvailabilityException, ServiceRequest, ProviderReview), ServiceProvidersModule with full REST API for provider applications, profiles, availability calendar, job matching, admin approval, rating/review system; 51 unit tests (33 service + 18 controller) |
 | 2025-12-29 | Claude | Added E2E tests for Service Providers (PROD-060-068): 47 test cases in service-providers.e2e-spec.ts covering provider application, profile management, availability calendar, service requests workflow, admin approval/suspension, reviews CRUD, and authorization |
 | 2025-12-29 | Claude | Implemented Rental Applications (PROD-101.2-101.6): RentalApplication model with ApplicationStatus enum, ApplicationsModule (controller, service, DTOs), notifications for APPLICATION_RECEIVED/STATUS_CHANGED/WITHDRAWN; 24 unit tests (18 service + 6 controller); 15 E2E tests covering full application lifecycle |
+| 2025-12-29 | Claude | Implemented Rent Reminders (PROD-102.1-102.6): Lease model with LeaseStatus enum, RentPayment model with RentPaymentStatus enum, LeasesModule (controller, service, DTOs), RentReminderService with @Cron jobs for 5-day reminders and overdue checks, email templates for rent-reminder/rent-overdue/rent-payment-received; 44 unit tests (25 service + 10 reminder + 9 controller); 15 E2E tests |
 
 ---
 

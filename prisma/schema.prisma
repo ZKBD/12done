@@ -98,6 +98,11 @@ enum NotificationType {
   APPLICATION_RECEIVED
   APPLICATION_STATUS_CHANGED
   APPLICATION_WITHDRAWN
+  // Rent Reminders (PROD-102)
+  RENT_REMINDER_TENANT
+  RENT_PAYMENT_RECEIVED
+  RENT_OVERDUE_TENANT
+  RENT_OVERDUE_LANDLORD
 }
 
 // ============================================
@@ -186,6 +191,24 @@ enum ApplicationStatus {
 }
 
 // ============================================
+// LEASES & RENT PAYMENTS (PROD-102)
+// ============================================
+
+enum LeaseStatus {
+  DRAFT         // Lease created but not yet active
+  ACTIVE        // Currently active lease
+  EXPIRED       // Lease has ended naturally
+  TERMINATED    // Lease was terminated early
+}
+
+enum RentPaymentStatus {
+  PENDING       // Payment is expected
+  PAID          // Payment received
+  OVERDUE       // Payment is past due date
+  WAIVED        // Payment was waived by landlord
+}
+
+// ============================================
 // USER MANAGEMENT (PROD-001 to PROD-011)
 // ============================================
 
@@ -261,6 +284,10 @@ model User {
 
   // Rental Applications (PROD-101)
   rentalApplications       RentalApplication[]
+
+  // Leases (PROD-102)
+  tenantLeases             Lease[]             @relation("TenantLeases")
+  landlordLeases           Lease[]             @relation("LandlordLeases")
 
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
@@ -429,6 +456,7 @@ model Property {
   conversations          Conversation[]       // Direct property inquiries
   serviceRequests        ServiceRequest[]     // Service requests for this property
   rentalApplications     RentalApplication[]  // Rental applications (PROD-101)
+  leases                 Lease[]              // Leases (PROD-102)
 
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
@@ -655,6 +683,93 @@ model RentalApplication {
   @@unique([applicantId, propertyId])
   @@index([applicantId])
   @@index([propertyId])
+  @@index([status])
+}
+
+// ============================================
+// LEASES (PROD-102)
+// ============================================
+
+// Lease Agreement (PROD-102.1)
+model Lease {
+  id                  String            @id @default(uuid())
+
+  // Property being leased
+  propertyId          String
+  property            Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Tenant (renter)
+  tenantId            String
+  tenant              User              @relation("TenantLeases", fields: [tenantId], references: [id])
+
+  // Landlord (property owner)
+  landlordId          String
+  landlord            User              @relation("LandlordLeases", fields: [landlordId], references: [id])
+
+  // Lease terms
+  startDate           DateTime
+  endDate             DateTime
+  rentAmount          Decimal           @db.Decimal(12, 2)
+  currency            String            @default("EUR")
+  dueDay              Int               // 1-28 day of month when rent is due
+
+  // Security deposit
+  securityDeposit     Decimal?          @db.Decimal(12, 2)
+  securityDepositPaid Boolean           @default(false)
+
+  // Status
+  status              LeaseStatus       @default(DRAFT)
+
+  // Optional document
+  documentUrl         String?
+
+  // Relations
+  rentPayments        RentPayment[]
+
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@index([propertyId])
+  @@index([tenantId])
+  @@index([landlordId])
+  @@index([status])
+}
+
+// Rent Payment Tracking (PROD-102.2 to PROD-102.6)
+model RentPayment {
+  id                  String            @id @default(uuid())
+
+  // Associated lease
+  leaseId             String
+  lease               Lease             @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+
+  // Payment details
+  dueDate             DateTime
+  amount              Decimal           @db.Decimal(12, 2)
+  currency            String            @default("EUR")
+
+  // Status
+  status              RentPaymentStatus @default(PENDING)
+
+  // Payment info (when paid)
+  paidAt              DateTime?
+  paidAmount          Decimal?          @db.Decimal(12, 2)
+  paymentMethod       String?           // "bank_transfer", "cash", "card", etc.
+  transactionRef      String?           // External reference number
+
+  // Notification tracking
+  reminderSentAt      DateTime?         // When 5-day reminder was sent
+  overdueSentAt       DateTime?         // When overdue notification was sent
+
+  // Notes
+  notes               String?
+
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@unique([leaseId, dueDate])          // One payment per due date per lease
+  @@index([leaseId])
+  @@index([dueDate])
   @@index([status])
 }
 

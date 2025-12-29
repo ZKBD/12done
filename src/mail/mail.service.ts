@@ -206,4 +206,79 @@ export class MailService {
       },
     });
   }
+
+  // ============================================
+  // RENT REMINDER EMAILS (PROD-102)
+  // ============================================
+
+  async sendRentReminderEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    amount: number,
+    currency: string,
+    dueDate: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Rent Due Soon - ${propertyTitle}`,
+      template: 'rent-reminder',
+      context: {
+        firstName,
+        propertyTitle,
+        amount,
+        currency,
+        dueDate,
+        dashboardUrl: `${this.frontendUrl}/leases`,
+      },
+    });
+  }
+
+  async sendRentOverdueEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    amount: number,
+    currency: string,
+    daysOverdue: number,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Rent Payment Overdue - ${propertyTitle}`,
+      template: 'rent-overdue',
+      context: {
+        firstName,
+        propertyTitle,
+        amount,
+        currency,
+        daysOverdue,
+        dashboardUrl: `${this.frontendUrl}/leases`,
+      },
+    });
+  }
+
+  async sendRentPaymentReceivedEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    tenantName: string,
+    amount: number,
+    currency: string,
+    paidAt: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Rent Payment Received - ${propertyTitle}`,
+      template: 'rent-payment-received',
+      context: {
+        firstName,
+        propertyTitle,
+        tenantName,
+        amount,
+        currency,
+        paidAt,
+        dashboardUrl: `${this.frontendUrl}/leases`,
+      },
+    });
+  }
 }
