@@ -141,6 +141,35 @@ enum MessageType {
 }
 
 // ============================================
+// SERVICE PROVIDERS (PROD-060 to PROD-068)
+// ============================================
+
+enum ServiceType {
+  LAWYER
+  CLEANER
+  HANDYMAN
+  PROPERTY_SHOWING
+  RECEPTIONIST
+}
+
+enum ServiceProviderStatus {
+  PENDING     // Application submitted, awaiting review
+  APPROVED    // Approved by admin
+  REJECTED    // Rejected by admin
+  SUSPENDED   // Temporarily suspended
+  INACTIVE    // Provider chose to deactivate
+}
+
+enum ServiceRequestStatus {
+  PENDING       // Request sent, awaiting provider response
+  ACCEPTED      // Provider accepted the job
+  REJECTED      // Provider declined
+  IN_PROGRESS   // Job is being performed
+  COMPLETED     // Job completed
+  CANCELLED     // Request cancelled
+}
+
+// ============================================
 // USER MANAGEMENT (PROD-001 to PROD-011)
 // ============================================
 
@@ -208,6 +237,11 @@ model User {
   // Messaging
   conversationParticipants ConversationParticipant[]
   messagesSent             Message[]
+
+  // Service Providers (PROD-060+)
+  serviceProviderProfiles  ServiceProvider[]
+  serviceRequests          ServiceRequest[]
+  providerReviews          ProviderReview[]
 
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
@@ -374,6 +408,7 @@ model Property {
   browsingHistory        BrowsingHistory[]
   negotiations           Negotiation[]        // (PROD-090)
   conversations          Conversation[]       // Direct property inquiries
+  serviceRequests        ServiceRequest[]     // Service requests for this property
 
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
@@ -772,4 +807,199 @@ model Message {
   @@index([conversationId])
   @@index([senderId])
   @@index([createdAt])
+}
+
+// ============================================
+// SERVICE PROVIDERS (PROD-060 to PROD-068)
+// ============================================
+
+// Service Provider Profile (PROD-060, PROD-061)
+model ServiceProvider {
+  id                  String                @id @default(uuid())
+  userId              String
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Service type (PROD-060.2)
+  serviceType         ServiceType
+
+  // Application status (PROD-060.6)
+  status              ServiceProviderStatus @default(PENDING)
+
+  // Profile details (PROD-061.3) - flexible JSON structure per service type
+  // Example: { "yearsExperience": 5, "specializations": ["residential", "commercial"], "hourlyRate": 50 }
+  serviceDetails      Json?
+
+  // Service area coverage (PROD-061.5)
+  // Stored as JSON: { "city": "Budapest", "radius": 25, "country": "HU" }
+  serviceArea         Json?
+
+  // Supporting documents (PROD-060.5)
+  // Array of { "type": "license", "url": "...", "name": "..." }
+  documents           Json?
+
+  // Profile completeness (PROD-061.4)
+  profileCompleteness Int                   @default(0) // 0-100 percentage
+
+  // Biography and qualifications
+  bio                 String?
+  qualifications      String?
+  experience          String?
+
+  // Verification
+  isVerified          Boolean               @default(false)
+  verifiedAt          DateTime?
+
+  // Admin notes (for approval/rejection)
+  adminNotes          String?
+  reviewedAt          DateTime?
+  reviewedById        String?
+
+  // Relations
+  availability        ProviderAvailability[]
+  availabilityExceptions AvailabilityException[]
+  receivedRequests    ServiceRequest[]      @relation("ProviderRequests")
+  reviews             ProviderReview[]
+
+  // Aggregated rating (PROD-068.6)
+  averageRating       Float                 @default(0)
+  totalReviews        Int                   @default(0)
+
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  @@unique([userId, serviceType]) // One profile per service type per user (PROD-061.2)
+  @@index([userId])
+  @@index([serviceType])
+  @@index([status])
+  @@index([averageRating])
+}
+
+// Provider Weekly Availability (PROD-062.1, PROD-062.2)
+model ProviderAvailability {
+  id            String          @id @default(uuid())
+  providerId    String
+  provider      ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  dayOfWeek     Int             // 0-6 (Sunday-Saturday)
+  startTime     String          // "09:00" format
+  endTime       String          // "17:00" format
+  isAvailable   Boolean         @default(true)
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@unique([providerId, dayOfWeek])
+  @@index([providerId])
+}
+
+// Availability Exceptions (PROD-062.3) - specific dates unavailable
+model AvailabilityException {
+  id            String          @id @default(uuid())
+  providerId    String
+  provider      ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  date          DateTime        @db.Date
+  isAvailable   Boolean         @default(false) // false = unavailable, true = override to available
+  reason        String?
+
+  createdAt     DateTime        @default(now())
+
+  @@unique([providerId, date])
+  @@index([providerId])
+  @@index([date])
+}
+
+// Service Request / Job Offer (PROD-063, PROD-064)
+model ServiceRequest {
+  id                String               @id @default(uuid())
+
+  // Who is requesting the service
+  requesterId       String
+  requester         User                 @relation(fields: [requesterId], references: [id])
+
+  // Which provider (can be null if broadcasting to matching providers)
+  providerId        String?
+  provider          ServiceProvider?     @relation("ProviderRequests", fields: [providerId], references: [id])
+
+  // Service details
+  serviceType       ServiceType
+  propertyId        String?              // Optional link to property
+  property          Property?            @relation(fields: [propertyId], references: [id])
+
+  // Request details
+  title             String
+  description       String
+  preferredDate     DateTime?
+  preferredTimeSlot String?              // "09:00-12:00"
+  urgency           String?              // "normal", "urgent", "flexible"
+
+  // Location (can differ from property)
+  address           String?
+  city              String?
+  country           String?
+
+  // Budget
+  budget            Decimal?             @db.Decimal(10, 2)
+  currency          String               @default("EUR")
+
+  // Status (PROD-064.4)
+  status            ServiceRequestStatus @default(PENDING)
+
+  // Provider response
+  respondedAt       DateTime?
+  rejectionReason   String?
+
+  // Completion
+  completedAt       DateTime?
+  completionNotes   String?
+
+  // Payment link (if applicable)
+  transactionId     String?
+
+  // Review reference
+  review            ProviderReview?
+
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@index([requesterId])
+  @@index([providerId])
+  @@index([serviceType])
+  @@index([status])
+  @@index([propertyId])
+}
+
+// Provider Reviews (PROD-068)
+model ProviderReview {
+  id            String          @id @default(uuid())
+
+  providerId    String
+  provider      ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  reviewerId    String
+  reviewer      User            @relation(fields: [reviewerId], references: [id])
+
+  // Must be linked to a completed service request (PROD-068.5)
+  serviceRequestId String       @unique
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id])
+
+  // Rating (PROD-068.3)
+  rating        Int             // 1-5 stars
+
+  // Written review (PROD-068.4)
+  title         String?
+  comment       String?
+
+  // Helpful votes
+  helpfulCount  Int             @default(0)
+
+  // Visibility
+  isPublic      Boolean         @default(true)
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([providerId])
+  @@index([reviewerId])
+  @@index([rating])
 }
