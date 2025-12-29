@@ -842,7 +842,7 @@ The following requirements do not yet have test coverage:
 | PROD-096-097 | Advanced Transaction Features | Not yet implemented |
 | PROD-100-108 | Property Management | Partial implementation |
 | PROD-120-133 | AI Tour Guide | Not yet implemented |
-| PROD-200-205 | Communication | Backend complete; Frontend + WebSocket pending |
+| PROD-200-205 | Communication | Backend + Frontend hooks complete; UI components pending |
 
 ---
 
@@ -866,6 +866,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-29 | Claude | Browser integration tests for payment system: mock checkout flow, cancellation, transactions list (buyer/seller views), refund flow; 5 Playwright tests added; all 905 unit tests passing |
 | 2025-12-29 | Claude | Implemented in-app messaging backend (Phase 1): Prisma models (Conversation, ConversationParticipant, Message), MessagingModule with REST API for conversations and messages, WebSocket dependencies installed; 49 unit tests (35 service + 14 controller) |
 | 2025-12-29 | Claude | Implemented WebSocket gateway (Phase 2): MessagingGateway with real-time events (join/leave conversation, send message, typing indicators, read receipts), WsJwtGuard for WebSocket authentication; 30 unit tests (22 gateway + 8 guard) |
+| 2025-12-29 | Claude | Implemented frontend messaging hooks (Phase 3): messaging API client, TypeScript types, React Query hooks (useConversations, useMessages, useSendMessage, etc.), WebSocket hook (useMessagingSocket) with real-time updates, installed socket.io-client |
 
 ---
 

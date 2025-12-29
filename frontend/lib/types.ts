@@ -233,3 +233,57 @@ export interface ApiError {
   statusCode: number;
   error?: string;
 }
+
+// Messaging types
+export type MessageType = 'TEXT' | 'SYSTEM';
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  sender?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  type: MessageType;
+  content: string;
+  isEdited: boolean;
+  editedAt?: string;
+  createdAt: string;
+}
+
+export interface ConversationParticipant {
+  id: string;
+  odString: string;
+  firstName: string;
+  lastName: string;
+  lastReadAt?: string;
+  unreadCount: number;
+}
+
+export interface Conversation {
+  id: string;
+  negotiationId?: string;
+  propertyId?: string;
+  subject?: string;
+  lastMessageAt?: string;
+  createdAt: string;
+  property?: {
+    id: string;
+    title: string;
+    city: string;
+  };
+  negotiation?: {
+    id: string;
+    type: string;
+    status: string;
+  };
+  participants: ConversationParticipant[];
+  lastMessage?: Message;
+  unreadCount: number;
+}
+
+export interface ConversationDetail extends Conversation {
+  messages: Message[];
+}

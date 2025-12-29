@@ -8,3 +8,4 @@ export { paymentsApi } from './payments';
 export { notificationsApi } from './notifications';
 export { dashboardApi } from './dashboard';
 export { searchAgentsApi } from './search-agents';
+export { messagingApi } from './messaging';
