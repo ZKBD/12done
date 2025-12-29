@@ -6,7 +6,6 @@ import { MessageType } from '@prisma/client';
 
 describe('MessagingService', () => {
   let service: MessagingService;
-  let prisma: PrismaService;
 
   const mockUser = {
     id: 'user-123',
@@ -141,7 +140,6 @@ describe('MessagingService', () => {
     }).compile();
 
     service = module.get<MessagingService>(MessagingService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     // Reset all mocks
     jest.clearAllMocks();

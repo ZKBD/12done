@@ -32,3 +32,34 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+# ignore node_modules symlink
+node_modules/.bin/browserslist
+node_modules/.bin/next
+node_modules/.bin/jiti
+node_modules/.bin/loose-envify
+node_modules/.bin/sucrase
+node_modules/.bin/tsserver
+node_modules/.bin/autoprefixer
+node_modules/.bin/rimraf
+node_modules/.bin/resolve
+node_modules/.bin/sucrase-node
+node_modules/.bin/nanoid
+node_modules/.bin/acorn
+node_modules/.bin/node-which
+node_modules/.bin/baseline-browser-mapping
+node_modules/.bin/tsc
+node_modules/.bin/js-yaml
+node_modules/.bin/napi-postinstall
+node_modules/.bin/tailwind
+node_modules/.bin/semver
+node_modules/.bin/json5
+node_modules/.bin/update-browserslist-db
+node_modules/.bin/eslint
+node_modules/.bin/glob
+node_modules/.bin/cssesc
+node_modules/.bin/tailwindcss
+node_modules/eslint-plugin-import/node_modules/.bin/semver
+node_modules/node_modules.nosync
+node_modules/eslint-plugin-react/node_modules/.bin/resolve
+node_modules/eslint-plugin-react/node_modules/.bin/semver
+node_modules.nosync

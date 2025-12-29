@@ -9,7 +9,6 @@ import {
 
 describe('ServiceProvidersController', () => {
   let controller: ServiceProvidersController;
-  let service: ServiceProvidersService;
 
   const mockServiceProvidersService = {
     apply: jest.fn(),
@@ -59,7 +58,6 @@ describe('ServiceProvidersController', () => {
     }).compile();
 
     controller = module.get<ServiceProvidersController>(ServiceProvidersController);
-    service = module.get<ServiceProvidersService>(ServiceProvidersService);
 
     jest.clearAllMocks();
   });

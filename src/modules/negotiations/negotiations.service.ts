@@ -8,7 +8,6 @@ import {
 import { PrismaService } from '@/database';
 import {
   NegotiationStatus,
-  NegotiationType,
   OfferStatus,
   TransactionStatus,
   NotificationType,

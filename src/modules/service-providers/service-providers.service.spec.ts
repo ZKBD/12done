@@ -15,7 +15,6 @@ import {
 
 describe('ServiceProvidersService', () => {
   let service: ServiceProvidersService;
-  let prisma: PrismaService;
 
   const mockPrismaService: any = {
     serviceProvider: {
@@ -81,7 +80,6 @@ describe('ServiceProvidersService', () => {
     }).compile();
 
     service = module.get<ServiceProvidersService>(ServiceProvidersService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     // Reset all mocks before each test
     jest.clearAllMocks();

@@ -85,7 +85,6 @@ export class PaymentsService {
 
     const amount = parseFloat(acceptedOffer.amount.toString());
     const currency = acceptedOffer.currency.toLowerCase();
-    const platformFee = Math.round(amount * (this.platformFeePercent / 100) * 100); // in cents
     const amountInCents = Math.round(amount * 100);
 
     // Check if transaction already exists

@@ -15,7 +15,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { diskStorage, Multer } from 'multer';
 import { extname, join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { existsSync, mkdirSync } from 'fs';
@@ -513,7 +513,7 @@ export class PropertiesController {
       storage: diskStorage({
         destination: (
           req: Request,
-          file: Express.Multer.File,
+          file: Multer.File,
           cb: (error: Error | null, destination: string) => void,
         ) => {
           const uploadPath = join(process.cwd(), 'uploads', 'properties');
@@ -524,7 +524,7 @@ export class PropertiesController {
         },
         filename: (
           req: Request,
-          file: Express.Multer.File,
+          file: Multer.File,
           cb: (error: Error | null, filename: string) => void,
         ) => {
           const uniqueSuffix = uuidv4();
@@ -534,7 +534,7 @@ export class PropertiesController {
       }),
       fileFilter: (
         req: Request,
-        file: Express.Multer.File,
+        file: Multer.File,
         cb: (error: Error | null, acceptFile: boolean) => void,
       ) => {
         const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -551,7 +551,7 @@ export class PropertiesController {
   )
   async uploadMedia(
     @Param('id') propertyId: string,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Multer.File[],
     @CurrentUser() user: CurrentUserData,
     @Body('type') type: string = 'photo',
   ): Promise<PropertyMediaResponseDto[]> {

@@ -22,7 +22,6 @@ describe('MessagingController (e2e)', () => {
   let propertyId: string;
   let negotiationId: string;
   let conversationId: string;
-  let messageId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -448,8 +447,6 @@ describe('MessagingController (e2e)', () => {
       expect(response.body.content).toBe('Hello from user1!');
       expect(response.body.senderId).toBe(user1Id);
       expect(response.body.type).toBe('TEXT');
-
-      messageId = response.body.id;
     });
 
     it('should reject empty messages', async () => {
