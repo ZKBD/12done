@@ -6,3 +6,5 @@ export { MessageThread } from './message-thread';
 export { NegotiationMessages } from './negotiation-messages';
 export { TypingIndicator } from './typing-indicator';
 export { ConnectionStatusIndicator, ConnectionBanner } from './connection-status';
+export { VirtualizedMessageList } from './virtualized-message-list';
+export { VirtualizedConversationList } from './virtualized-conversation-list';

@@ -17,7 +17,11 @@ import {
 import { MessageBubble } from './message-bubble';
 import { MessageInput } from './message-input';
 import { TypingIndicator } from './typing-indicator';
+import { VirtualizedMessageList } from './virtualized-message-list';
 import type { Message, ConversationDetail } from '@/lib/types';
+
+// Threshold for enabling virtualization
+const VIRTUALIZATION_THRESHOLD = 50;
 
 interface TypingUser {
   id: string;
@@ -40,6 +44,11 @@ interface MessageThreadProps {
   onTypingStop?: () => void;
   onArchive?: () => void;
   showBackButton?: boolean;
+  /**
+   * Enable virtualization for better performance with many messages.
+   * When 'auto', virtualization is enabled when message count exceeds threshold.
+   */
+  virtualize?: boolean | 'auto';
 }
 
 function DateDivider({ date }: { date: Date }) {
@@ -80,7 +89,12 @@ export function MessageThread({
   onTypingStop,
   onArchive,
   showBackButton = false,
+  virtualize = 'auto',
 }: MessageThreadProps) {
+  // Determine if virtualization should be used
+  const shouldVirtualize =
+    virtualize === true ||
+    (virtualize === 'auto' && messages.length > VIRTUALIZATION_THRESHOLD);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(0);
@@ -256,37 +270,48 @@ export function MessageThread({
       </div>
 
       {/* Messages */}
-      <ScrollArea
-        ref={scrollAreaRef}
-        className="flex-1"
-        onScroll={handleScroll}
-        data-testid="message-container"
-      >
-        {isLoadingMore && (
-          <div className="flex justify-center py-4">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-          </div>
-        )}
+      {shouldVirtualize ? (
+        <VirtualizedMessageList
+          messages={messages}
+          currentUserId={currentUserId}
+          typingUsers={typingUsers}
+          hasMoreMessages={hasMoreMessages}
+          isLoadingMore={isLoadingMore}
+          onLoadMore={onLoadMoreMessages}
+        />
+      ) : (
+        <ScrollArea
+          ref={scrollAreaRef}
+          className="flex-1"
+          onScroll={handleScroll}
+          data-testid="message-container"
+        >
+          {isLoadingMore && (
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          )}
 
-        {hasMoreMessages && !isLoadingMore && (
-          <div className="flex justify-center py-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onLoadMoreMessages}
-              className="text-muted-foreground"
-            >
-              Load earlier messages
-            </Button>
-          </div>
-        )}
+          {hasMoreMessages && !isLoadingMore && (
+            <div className="flex justify-center py-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onLoadMoreMessages}
+                className="text-muted-foreground"
+              >
+                Load earlier messages
+              </Button>
+            </div>
+          )}
 
-        <div className="py-2" data-testid="message-list">{renderMessages()}</div>
+          <div className="py-2" data-testid="message-list">{renderMessages()}</div>
 
-        <TypingIndicator users={typingUsers} />
+          <TypingIndicator users={typingUsers} />
 
-        <div ref={messagesEndRef} />
-      </ScrollArea>
+          <div ref={messagesEndRef} />
+        </ScrollArea>
+      )}
 
       {/* Input */}
       <MessageInput
