@@ -1238,6 +1238,119 @@ Note: E2E tests require Docker/database to run.
 
 ---
 
+## 7.12 Management Dashboard (PROD-100)
+
+### PROD-100.1: Landlord Dashboard Aggregation (GET /dashboard/landlord)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-100.1.1 | `getLandlordDashboard > should return complete dashboard with all fields` | dashboard.service.spec.ts | Verifies aggregated dashboard contains all required fields | ✅ |
+| PROD-100.1.2 | `getLandlordDashboard > should call dashboardService with correct parameters` | dashboard.controller.spec.ts | Verifies controller delegates to service | ✅ |
+| PROD-100.1.3 | `should return aggregated dashboard data` | dashboard.e2e-spec.ts | E2E test of full dashboard response | ✅ |
+| PROD-100.1.4 | `should require authentication` | dashboard.e2e-spec.ts | Verifies 401 for unauthenticated requests | ✅ |
+
+### PROD-100.2: Property Summary with Status
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-100.2.1 | `getLandlordDashboard > should include property summary with tenant info` | dashboard.service.spec.ts | Verifies properties include status, tenant, lease info | ✅ |
+| PROD-100.2.2 | `getLandlordDashboard > should filter by propertyId when provided` | dashboard.service.spec.ts | Verifies property filtering | ✅ |
+| PROD-100.2.3 | `should include property summary with status` | dashboard.e2e-spec.ts | E2E test of property summary | ✅ |
+| PROD-100.2.4 | `should filter by propertyId` | dashboard.e2e-spec.ts | E2E test of property filter | ✅ |
+
+### PROD-100.3: Monthly Income Tracker
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-100.3.1 | `getLandlordDashboard > should aggregate monthly income data correctly` | dashboard.service.spec.ts | Verifies monthly income grouping from RentPayments | ✅ |
+| PROD-100.3.2 | `getLandlordDashboard > should use date range when provided` | dashboard.service.spec.ts | Verifies date range filtering | ✅ |
+| PROD-100.3.3 | `should include monthly income data` | dashboard.e2e-spec.ts | E2E test of monthly income chart data | ✅ |
+| PROD-100.3.4 | `should filter by date range` | dashboard.e2e-spec.ts | E2E test of date range filter | ✅ |
+
+### PROD-100.4: Expense Tracker (CRUD)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-100.4.1 | Schema includes ExpenseCategory enum | prisma/schema.prisma | Verifies expense categories (MAINTENANCE, INSURANCE, etc.) | ✅ |
+| PROD-100.4.2 | Schema includes Expense model | prisma/schema.prisma | Verifies model with landlord, property relations | ✅ |
+| PROD-100.4.3 | `create > should create an expense successfully` | expense.service.spec.ts | Verifies expense creation with validation | ✅ |
+| PROD-100.4.4 | `create > should create expense without property (general expense)` | expense.service.spec.ts | Verifies general expense without property | ✅ |
+| PROD-100.4.5 | `create > should throw NotFoundException if property not found` | expense.service.spec.ts | Verifies error for non-existent property | ✅ |
+| PROD-100.4.6 | `create > should throw ForbiddenException if not property owner` | expense.service.spec.ts | Verifies ownership check | ✅ |
+| PROD-100.4.7 | `findAll > should return paginated expenses` | expense.service.spec.ts | Verifies pagination of expenses | ✅ |
+| PROD-100.4.8 | `findAll > should filter by category` | expense.service.spec.ts | Verifies category filtering | ✅ |
+| PROD-100.4.9 | `findAll > should filter by date range` | expense.service.spec.ts | Verifies date range filtering | ✅ |
+| PROD-100.4.10 | `findAll > should filter by property` | expense.service.spec.ts | Verifies property filtering | ✅ |
+| PROD-100.4.11 | `findOne > should return expense for owner` | expense.service.spec.ts | Verifies get single expense | ✅ |
+| PROD-100.4.12 | `findOne > should throw NotFoundException if expense not found` | expense.service.spec.ts | Verifies error for missing expense | ✅ |
+| PROD-100.4.13 | `findOne > should throw ForbiddenException for other user` | expense.service.spec.ts | Verifies authorization | ✅ |
+| PROD-100.4.14 | `update > should update expense successfully` | expense.service.spec.ts | Verifies expense update | ✅ |
+| PROD-100.4.15 | `update > should validate property ownership when changing propertyId` | expense.service.spec.ts | Verifies property change validation | ✅ |
+| PROD-100.4.16 | `delete > should delete expense successfully` | expense.service.spec.ts | Verifies expense deletion | ✅ |
+| PROD-100.4.17 | `createExpense > should call expenseService.create` | dashboard.controller.spec.ts | Verifies controller delegates to service | ✅ |
+| PROD-100.4.18 | `getExpenses > should call expenseService.findAll` | dashboard.controller.spec.ts | Verifies controller delegates to service | ✅ |
+| PROD-100.4.19 | `getExpense > should call expenseService.findOne` | dashboard.controller.spec.ts | Verifies controller delegates to service | ✅ |
+| PROD-100.4.20 | `updateExpense > should call expenseService.update` | dashboard.controller.spec.ts | Verifies controller delegates to service | ✅ |
+| PROD-100.4.21 | `deleteExpense > should call expenseService.delete` | dashboard.controller.spec.ts | Verifies controller delegates to service | ✅ |
+| PROD-100.4.22 | `POST /dashboard/expenses > should create an expense` | dashboard.e2e-spec.ts | E2E test of expense creation | ✅ |
+| PROD-100.4.23 | `POST /dashboard/expenses > should create expense without property` | dashboard.e2e-spec.ts | E2E test of general expense | ✅ |
+| PROD-100.4.24 | `POST /dashboard/expenses > should fail with invalid property` | dashboard.e2e-spec.ts | E2E test of property validation | ✅ |
+| PROD-100.4.25 | `POST /dashboard/expenses > should fail when not property owner` | dashboard.e2e-spec.ts | E2E test of authorization | ✅ |
+| PROD-100.4.26 | `POST /dashboard/expenses > should validate required fields` | dashboard.e2e-spec.ts | E2E test of validation | ✅ |
+| PROD-100.4.27 | `GET /dashboard/expenses > should return paginated expenses` | dashboard.e2e-spec.ts | E2E test of expense listing | ✅ |
+| PROD-100.4.28 | `GET /dashboard/expenses > should filter by category` | dashboard.e2e-spec.ts | E2E test of category filter | ✅ |
+| PROD-100.4.29 | `GET /dashboard/expenses > should filter by date range` | dashboard.e2e-spec.ts | E2E test of date filter | ✅ |
+| PROD-100.4.30 | `GET /dashboard/expenses > should filter by property` | dashboard.e2e-spec.ts | E2E test of property filter | ✅ |
+| PROD-100.4.31 | `GET /dashboard/expenses/:id > should return expense details` | dashboard.e2e-spec.ts | E2E test of get expense | ✅ |
+| PROD-100.4.32 | `GET /dashboard/expenses/:id > should fail for non-owner` | dashboard.e2e-spec.ts | E2E test of authorization | ✅ |
+| PROD-100.4.33 | `GET /dashboard/expenses/:id > should return 404 for non-existent` | dashboard.e2e-spec.ts | E2E test of not found | ✅ |
+| PROD-100.4.34 | `PATCH /dashboard/expenses/:id > should update expense` | dashboard.e2e-spec.ts | E2E test of update | ✅ |
+| PROD-100.4.35 | `PATCH /dashboard/expenses/:id > should fail for non-owner` | dashboard.e2e-spec.ts | E2E test of authorization | ✅ |
+| PROD-100.4.36 | `DELETE /dashboard/expenses/:id > should delete expense` | dashboard.e2e-spec.ts | E2E test of deletion | ✅ |
+| PROD-100.4.37 | `DELETE /dashboard/expenses/:id > should fail for non-owner` | dashboard.e2e-spec.ts | E2E test of authorization | ✅ |
+
+### PROD-100.5: Net Income Calculation
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-100.5.1 | `getLandlordDashboard > should calculate net income correctly` | dashboard.service.spec.ts | Verifies netIncome = actualIncome - expenses | ✅ |
+| PROD-100.5.2 | `getTotalExpenses > should calculate total expenses correctly` | expense.service.spec.ts | Verifies expense aggregation | ✅ |
+| PROD-100.5.3 | `getTotalExpenses > should filter by date range` | expense.service.spec.ts | Verifies date filtering | ✅ |
+| PROD-100.5.4 | `getTotalExpenses > should return 0 when no expenses` | expense.service.spec.ts | Verifies empty state handling | ✅ |
+| PROD-100.5.5 | `should calculate net income correctly` | dashboard.e2e-spec.ts | E2E test of net income calculation | ✅ |
+
+### PROD-100.6: Maintenance Requests List
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-100.6.1 | `getLandlordDashboard > maintenanceRequests and pendingMaintenanceRequests` | dashboard.service.spec.ts | Verifies maintenance data included | ✅ |
+| PROD-100.6.2 | `should include maintenance requests` | dashboard.e2e-spec.ts | E2E test of maintenance in dashboard | ✅ |
+
+### PROD-100.7: Expenses by Category
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-100.7.1 | `getExpensesByCategory > should group expenses by category` | expense.service.spec.ts | Verifies category grouping with totals | ✅ |
+| PROD-100.7.2 | Dashboard response includes expensesByCategory | dashboard.service.spec.ts | Verifies category breakdown in dashboard | ✅ |
+
+### PROD-100.8: Empty State Handling
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-100.8.1 | `getLandlordDashboard > should return empty arrays for landlord with no data` | dashboard.service.spec.ts | Verifies graceful handling of new landlord | ✅ |
+
+### Test Summary for PROD-100
+
+| Test Type | Count | Status |
+|-----------|-------|--------|
+| ExpenseService Unit Tests | 15 | ✅ |
+| DashboardService Unit Tests | 8 | ✅ |
+| DashboardController Unit Tests | 6 | ✅ |
+| E2E Tests | 24 | ✅ |
+| **Total** | **53** | ✅ |
+
+---
+
 ## 8. E2E Test Coverage
 
 ### End-to-End Test Summary
@@ -1264,6 +1377,8 @@ Note: E2E tests require Docker/database to run.
 | **Maintenance (E2E)** | maintenance.e2e-spec.ts | 18 | Full maintenance workflow, approval, completion | ⏳ |
 | **Lease Renewal (Unit)** | lease-renewal.service.spec.ts | 20 | Cron jobs, offer CRUD, status transitions, authorization | ⏳ |
 | **Lease Renewal (E2E)** | lease-renewal.e2e-spec.ts | 15 | Full renewal workflow, accept/decline, new lease generation | ⏳ |
+| **Dashboard (Unit)** | dashboard.*.spec.ts | 29 | Expense CRUD, dashboard aggregation, net income calculation | ✅ |
+| **Dashboard (E2E)** | dashboard.e2e-spec.ts | 24 | Full landlord dashboard, expenses CRUD, filtering, authorization | ✅ |
 
 ---
 
@@ -1305,6 +1420,7 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | Browser Tests | CI Status | Notes |
 |------|------------|-----------|---------------|-----------|-------|
+| 2025-12-29 | ✅ 1013 passed | ✅ 231 passed | ✅ 5 passed | ✅ Passing | Implemented PROD-100 Management Dashboard (29 unit + 24 E2E) |
 | 2025-12-29 | ✅ 984 passed | ✅ 207 passed | ✅ 5 passed | ✅ Passing | Added WebSocket gateway for real-time messaging (30 tests) |
 | 2025-12-29 | ✅ 954 passed | ✅ 207 passed | ✅ 5 passed | ✅ Passing | Added in-app messaging backend (49 tests) |
 | 2025-12-29 | ✅ 905 passed | ✅ 207 passed | ✅ 5 passed | ✅ Passing | Browser payment flow tests (checkout, cancel, transactions, refund) |
@@ -1340,12 +1456,12 @@ docker-compose exec app npm run test:cov
 
 | Category | Files | Test Cases (Approx) |
 |----------|-------|---------------------|
-| Service Unit Tests | 18 | ~485 |
-| Controller Unit Tests | 6 | ~175 |
+| Service Unit Tests | 20 | ~514 |
+| Controller Unit Tests | 7 | ~181 |
 | Gateway/Guard Tests | 2 | ~30 |
-| E2E Tests | 9 | ~245 |
+| E2E Tests | 10 | ~269 |
 | Browser Tests (Playwright) | 2 | 34 |
-| **Total** | **37** | **~1016** |
+| **Total** | **41** | **~1069** |
 
 ---
 
@@ -1366,7 +1482,8 @@ The following requirements do not yet have test coverage:
 | PROD-050 | AI Recommendations | Not yet implemented |
 | ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller); 47 E2E tests covering full API flow |
 | PROD-096-097 | Advanced Transaction Features | Not yet implemented |
-| PROD-100-108 | Property Management | Partial implementation; PROD-101, PROD-102, PROD-103, PROD-104, PROD-105 complete |
+| PROD-100-108 | Property Management | Partial implementation; PROD-100, PROD-101, PROD-102, PROD-103, PROD-104, PROD-105 complete |
+| ~~PROD-100~~ | ~~Management Dashboard~~ | ✅ **COMPLETE** - Expense model, ExpenseCategory enum, DashboardModule (controller, services, DTOs), landlord dashboard aggregation, expense CRUD, net income calculation; 29 unit tests (15 expense + 8 dashboard + 6 controller); 24 E2E tests covering full dashboard flow |
 | ~~PROD-101~~ | ~~Rental Applications~~ | ✅ **COMPLETE** - RentalApplication model, ApplicationStatus enum, ApplicationsModule (controller, service, DTOs), notifications integration; 24 unit tests (18 service + 6 controller); 15 E2E tests covering application flow |
 | ~~PROD-102~~ | ~~Rent Reminders~~ | ✅ **COMPLETE** - Lease model, RentPayment model, LeaseStatus/RentPaymentStatus enums, LeasesModule with RentReminderService, cron jobs for 5-day reminders and overdue checks, email templates; 44 unit tests (25 service + 10 reminder + 9 controller); 15 E2E tests |
 | ~~PROD-103~~ | ~~Maintenance Workflows~~ | ✅ **COMPLETE** - MaintenanceRequest model, MaintenanceRequestType/Status/Priority enums, MaintenanceModule (controller, service, DTOs), full workflow (submit→approve→assign→schedule→complete→confirm), email templates; 49 unit tests (37 service + 12 controller); 18 E2E tests |
@@ -1411,6 +1528,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-29 | Claude | Implemented Maintenance Workflows (PROD-103.1-103.13): MaintenanceRequest model with Type/Status/Priority enums, MaintenanceModule (controller, service, DTOs), full multi-party workflow (tenant submit, landlord approve/reject/assign, provider start/complete, dual-party confirm), 6 email templates, 7 NotificationType values; 49 unit tests (37 service + 12 controller); 18 E2E tests covering full maintenance lifecycle |
 | 2025-12-29 | Claude | Implemented Lease Renewal Automation (PROD-105.1-105.9): LeaseRenewal model with LeaseRenewalStatus enum (PENDING, OFFERED, ACCEPTED, DECLINED, EXPIRED, CANCELLED), LeaseRenewalService with @Cron jobs (60-day check at 2 AM, offer expiration at 3 AM), 6 endpoints (GET pending renewals, GET/POST/DELETE renewal, POST accept/decline), 5 email templates, 5 NotificationType values, auto-generates new lease on accept; 20 unit tests; 15 E2E tests |
 | 2025-12-29 | Claude | Implemented Application Status Notifications (PROD-104.1-104.5): Email notifications for application lifecycle (received confirmation to applicant, congratulations on approval, empathetic rejection), 3 email templates (application-received.hbs, application-approved.hbs, application-rejected.hbs), MailService integration in ApplicationsService; 7 unit tests added |
+| 2025-12-29 | Claude | Implemented Management Dashboard (PROD-100.1-100.8): ExpenseCategory enum, Expense model with landlord/property relations, DashboardModule (DashboardController, DashboardService, ExpenseService), landlord dashboard aggregation (properties, income, expenses, maintenance), expense CRUD with filtering, net income calculation; 29 unit tests (15 expense + 8 dashboard + 6 controller); 24 E2E tests |
 
 ---
 

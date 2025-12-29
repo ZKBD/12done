@@ -21,6 +21,7 @@ import { ServiceProvidersModule } from './modules/service-providers';
 import { ApplicationsModule } from './modules/applications';
 import { LeasesModule } from './modules/leases';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
+import { DashboardModule } from './modules/dashboard';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { MaintenanceModule } from './modules/maintenance/maintenance.module';
     ApplicationsModule,
     LeasesModule,
     MaintenanceModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
