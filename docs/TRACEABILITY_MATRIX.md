@@ -867,6 +867,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-29 | Claude | Implemented in-app messaging backend (Phase 1): Prisma models (Conversation, ConversationParticipant, Message), MessagingModule with REST API for conversations and messages, WebSocket dependencies installed; 49 unit tests (35 service + 14 controller) |
 | 2025-12-29 | Claude | Implemented WebSocket gateway (Phase 2): MessagingGateway with real-time events (join/leave conversation, send message, typing indicators, read receipts), WsJwtGuard for WebSocket authentication; 30 unit tests (22 gateway + 8 guard) |
 | 2025-12-29 | Claude | Implemented frontend messaging hooks (Phase 3): messaging API client, TypeScript types, React Query hooks (useConversations, useMessages, useSendMessage, etc.), WebSocket hook (useMessagingSocket) with real-time updates, installed socket.io-client |
+| 2025-12-29 | Claude | Implemented frontend messaging UI (Phase 4): messaging components (ConversationList, MessageThread, MessageBubble, MessageInput, TypingIndicator), messages pages (/dashboard/messages, /dashboard/messages/[conversationId]), NegotiationMessages component for in-negotiation chat, sidebar/mobile nav with unread badge, backend endpoint GET /messages/negotiations/:negotiationId/conversation |
 
 ---
 

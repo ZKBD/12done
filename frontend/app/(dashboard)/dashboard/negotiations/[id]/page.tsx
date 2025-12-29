@@ -39,6 +39,7 @@ import {
   PaymentStatusCard,
   PaymentCancelledNotice,
 } from '@/components/payments';
+import { NegotiationMessages } from '@/components/messaging';
 import {
   useNegotiation,
   useNegotiationOffers,
@@ -526,6 +527,12 @@ export default function NegotiationDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Messages */}
+          <NegotiationMessages
+            negotiationId={negotiationId}
+            currentUserId={user?.id || ''}
+          />
 
           {/* Status Message */}
           {negotiation.status === 'ACCEPTED' && (

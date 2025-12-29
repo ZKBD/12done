@@ -164,3 +164,12 @@ export function useUnarchiveConversation() {
     },
   });
 }
+
+// Get or create negotiation conversation
+export function useNegotiationConversation(negotiationId: string | undefined) {
+  return useQuery({
+    queryKey: [...messagingKeys.all, 'negotiation', negotiationId],
+    queryFn: () => messagingApi.getNegotiationConversation(negotiationId!),
+    enabled: !!negotiationId,
+  });
+}

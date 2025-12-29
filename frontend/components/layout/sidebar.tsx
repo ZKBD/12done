@@ -11,9 +11,12 @@ import {
   CreditCard,
   Settings,
   Search,
+  Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useUnreadMessageCount } from '@/hooks/use-messaging';
 
 const sidebarLinks = [
   {
@@ -42,6 +45,12 @@ const sidebarLinks = [
     icon: MessageSquare,
   },
   {
+    title: 'Messages',
+    href: '/dashboard/messages',
+    icon: Mail,
+    showBadge: true,
+  },
+  {
     title: 'Transactions',
     href: '/dashboard/transactions',
     icon: CreditCard,
@@ -56,10 +65,12 @@ const sidebarLinks = [
     href: '/dashboard/settings',
     icon: Settings,
   },
-];
+] as const;
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: unreadData } = useUnreadMessageCount();
+  const unreadCount = unreadData?.count || 0;
 
   return (
     <aside className="hidden lg:flex w-64 flex-col border-r bg-slate-50/50">
@@ -74,6 +85,8 @@ export function Sidebar() {
             pathname === link.href ||
             (link.href !== '/dashboard' && pathname.startsWith(link.href));
 
+          const showBadge = 'showBadge' in link && link.showBadge && unreadCount > 0;
+
           return (
             <Link key={link.href} href={link.href}>
               <Button
@@ -84,7 +97,15 @@ export function Sidebar() {
                 )}
               >
                 <link.icon className="h-4 w-4" />
-                {link.title}
+                <span className="flex-1 text-left">{link.title}</span>
+                {showBadge && (
+                  <Badge
+                    variant="default"
+                    className="h-5 min-w-5 px-1.5 text-xs"
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Badge>
+                )}
               </Button>
             </Link>
           );

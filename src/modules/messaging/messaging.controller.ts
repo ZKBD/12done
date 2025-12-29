@@ -88,6 +88,24 @@ export class MessagingController {
     return this.messagingService.getConversation(user.id, id);
   }
 
+  @Get('negotiations/:negotiationId/conversation')
+  @ApiOperation({ summary: 'Get or create conversation for a negotiation' })
+  @ApiParam({ name: 'negotiationId', description: 'Negotiation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Conversation for the negotiation',
+    type: ConversationResponseDto,
+  })
+  async getNegotiationConversation(
+    @CurrentUser() user: CurrentUserData,
+    @Param('negotiationId') negotiationId: string,
+  ): Promise<ConversationResponseDto> {
+    return this.messagingService.getOrCreateNegotiationConversation(
+      negotiationId,
+      user.id,
+    );
+  }
+
   @Get('conversations/:id/messages')
   @ApiOperation({ summary: 'Get paginated messages from a conversation' })
   @ApiParam({ name: 'id', description: 'Conversation ID' })

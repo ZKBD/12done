@@ -102,4 +102,9 @@ export const messagingApi = {
       `/messages/conversations/${conversationId}/unarchive`
     );
   },
+
+  // Negotiation conversation
+  getNegotiationConversation: async (negotiationId: string): Promise<Conversation> => {
+    return apiClient.get<Conversation>(`/messages/negotiations/${negotiationId}/conversation`);
+  },
 };
