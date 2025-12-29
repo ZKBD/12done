@@ -20,6 +20,7 @@ import { MessagingModule } from './modules/messaging/messaging.module';
 import { ServiceProvidersModule } from './modules/service-providers';
 import { ApplicationsModule } from './modules/applications';
 import { LeasesModule } from './modules/leases';
+import { MaintenanceModule } from './modules/maintenance/maintenance.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { LeasesModule } from './modules/leases';
     ServiceProvidersModule,
     ApplicationsModule,
     LeasesModule,
+    MaintenanceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

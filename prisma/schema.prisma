@@ -103,6 +103,14 @@ enum NotificationType {
   RENT_PAYMENT_RECEIVED
   RENT_OVERDUE_TENANT
   RENT_OVERDUE_LANDLORD
+  // Maintenance Requests (PROD-103)
+  MAINTENANCE_REQUEST_SUBMITTED
+  MAINTENANCE_REQUEST_APPROVED
+  MAINTENANCE_REQUEST_REJECTED
+  MAINTENANCE_REQUEST_ASSIGNED
+  MAINTENANCE_REQUEST_SCHEDULED
+  MAINTENANCE_REQUEST_COMPLETED
+  MAINTENANCE_REQUEST_CONFIRMED
 }
 
 // ============================================
@@ -209,6 +217,41 @@ enum RentPaymentStatus {
 }
 
 // ============================================
+// MAINTENANCE REQUESTS (PROD-103)
+// ============================================
+
+enum MaintenanceRequestType {
+  PLUMBING
+  ELECTRICAL
+  HVAC
+  APPLIANCE
+  STRUCTURAL
+  PEST_CONTROL
+  CLEANING
+  LANDSCAPING
+  OTHER
+}
+
+enum MaintenanceRequestStatus {
+  SUBMITTED      // Tenant submitted, awaiting landlord review
+  APPROVED       // Landlord approved, ready for assignment
+  REJECTED       // Landlord rejected with reason
+  ASSIGNED       // Provider assigned, awaiting scheduling
+  SCHEDULED      // Date/time confirmed
+  IN_PROGRESS    // Work started
+  COMPLETED      // Work finished, awaiting confirmation
+  CONFIRMED      // Both parties confirmed completion
+  CANCELLED      // Request cancelled
+}
+
+enum MaintenancePriority {
+  LOW
+  NORMAL
+  URGENT
+  EMERGENCY
+}
+
+// ============================================
 // USER MANAGEMENT (PROD-001 to PROD-011)
 // ============================================
 
@@ -288,6 +331,10 @@ model User {
   // Leases (PROD-102)
   tenantLeases             Lease[]             @relation("TenantLeases")
   landlordLeases           Lease[]             @relation("LandlordLeases")
+
+  // Maintenance Requests (PROD-103)
+  tenantMaintenanceRequests   MaintenanceRequest[] @relation("TenantMaintenanceRequests")
+  landlordMaintenanceRequests MaintenanceRequest[] @relation("LandlordMaintenanceRequests")
 
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
@@ -457,6 +504,7 @@ model Property {
   serviceRequests        ServiceRequest[]     // Service requests for this property
   rentalApplications     RentalApplication[]  // Rental applications (PROD-101)
   leases                 Lease[]              // Leases (PROD-102)
+  maintenanceRequests    MaintenanceRequest[] // Maintenance requests (PROD-103)
 
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
@@ -725,6 +773,7 @@ model Lease {
 
   // Relations
   rentPayments        RentPayment[]
+  maintenanceRequests MaintenanceRequest[] // Maintenance requests (PROD-103)
 
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
@@ -1051,6 +1100,7 @@ model ServiceProvider {
   availabilityExceptions AvailabilityException[]
   receivedRequests    ServiceRequest[]      @relation("ProviderRequests")
   reviews             ProviderReview[]
+  maintenanceAssignments MaintenanceRequest[] // Maintenance assignments (PROD-103)
 
   // Aggregated rating (PROD-068.6)
   averageRating       Float                 @default(0)
@@ -1194,4 +1244,67 @@ model ProviderReview {
   @@index([providerId])
   @@index([reviewerId])
   @@index([rating])
+}
+
+// ============================================
+// MAINTENANCE REQUESTS (PROD-103)
+// ============================================
+
+model MaintenanceRequest {
+  id                  String                    @id @default(uuid())
+
+  // Property being maintained
+  propertyId          String
+  property            Property                  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Associated lease (tenant's lease)
+  leaseId             String
+  lease               Lease                     @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+
+  // Tenant (requester)
+  tenantId            String
+  tenant              User                      @relation("TenantMaintenanceRequests", fields: [tenantId], references: [id])
+
+  // Landlord (property owner)
+  landlordId          String
+  landlord            User                      @relation("LandlordMaintenanceRequests", fields: [landlordId], references: [id])
+
+  // Assigned service provider (optional)
+  assignedProviderId  String?
+  assignedProvider    ServiceProvider?          @relation(fields: [assignedProviderId], references: [id])
+
+  // Request details
+  type                MaintenanceRequestType
+  priority            MaintenancePriority       @default(NORMAL)
+  title               String
+  description         String
+  attachmentUrls      String[]                  @default([])
+
+  // Status & workflow
+  status              MaintenanceRequestStatus  @default(SUBMITTED)
+  rejectionReason     String?
+
+  // Scheduling
+  preferredDate       DateTime?
+  scheduledDate       DateTime?
+  scheduledTimeSlot   String?                   // e.g., "09:00-12:00"
+
+  // Completion
+  completionNotes     String?
+  completionPhotos    String[]                  @default([])
+  estimatedCost       Decimal?                  @db.Decimal(10, 2)
+  actualCost          Decimal?                  @db.Decimal(10, 2)
+  completedAt         DateTime?
+  confirmedByTenant   Boolean                   @default(false)
+  confirmedByLandlord Boolean                   @default(false)
+
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+
+  @@index([propertyId])
+  @@index([leaseId])
+  @@index([tenantId])
+  @@index([landlordId])
+  @@index([status])
+  @@index([assignedProviderId])
 }

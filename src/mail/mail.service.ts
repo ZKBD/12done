@@ -281,4 +281,146 @@ export class MailService {
       },
     });
   }
+
+  // ============================================
+  // MAINTENANCE REQUEST EMAILS (PROD-103)
+  // ============================================
+
+  async sendMaintenanceSubmittedEmail(
+    email: string,
+    firstName: string,
+    tenantName: string,
+    propertyTitle: string,
+    title: string,
+    description: string,
+    priority: string,
+    preferredDate?: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `New Maintenance Request - ${propertyTitle}`,
+      template: 'maintenance-submitted',
+      context: {
+        firstName,
+        tenantName,
+        propertyTitle,
+        title,
+        description,
+        priority,
+        preferredDate,
+        dashboardUrl: `${this.frontendUrl}/maintenance`,
+      },
+    });
+  }
+
+  async sendMaintenanceApprovedEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    title: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Maintenance Request Approved - ${propertyTitle}`,
+      template: 'maintenance-approved',
+      context: {
+        firstName,
+        propertyTitle,
+        title,
+        dashboardUrl: `${this.frontendUrl}/maintenance`,
+      },
+    });
+  }
+
+  async sendMaintenanceRejectedEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    title: string,
+    rejectionReason: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Maintenance Request Rejected - ${propertyTitle}`,
+      template: 'maintenance-rejected',
+      context: {
+        firstName,
+        propertyTitle,
+        title,
+        rejectionReason,
+        dashboardUrl: `${this.frontendUrl}/maintenance`,
+      },
+    });
+  }
+
+  async sendMaintenanceAssignedEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    title: string,
+    providerName: string,
+    scheduledDate?: string,
+    scheduledTimeSlot?: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Service Provider Assigned - ${propertyTitle}`,
+      template: 'maintenance-assigned',
+      context: {
+        firstName,
+        propertyTitle,
+        title,
+        providerName,
+        scheduledDate,
+        scheduledTimeSlot,
+        dashboardUrl: `${this.frontendUrl}/maintenance`,
+      },
+    });
+  }
+
+  async sendMaintenanceScheduledEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    title: string,
+    scheduledDate: string,
+    scheduledTimeSlot: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Maintenance Scheduled - ${propertyTitle}`,
+      template: 'maintenance-scheduled',
+      context: {
+        firstName,
+        propertyTitle,
+        title,
+        scheduledDate,
+        scheduledTimeSlot,
+        dashboardUrl: `${this.frontendUrl}/maintenance`,
+      },
+    });
+  }
+
+  async sendMaintenanceCompletedEmail(
+    email: string,
+    firstName: string,
+    propertyTitle: string,
+    title: string,
+    completionNotes?: string,
+    actualCost?: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Maintenance Completed - ${propertyTitle}`,
+      template: 'maintenance-completed',
+      context: {
+        firstName,
+        propertyTitle,
+        title,
+        completionNotes,
+        actualCost,
+        dashboardUrl: `${this.frontendUrl}/maintenance`,
+      },
+    });
+  }
 }

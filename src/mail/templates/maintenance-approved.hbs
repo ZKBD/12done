@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maintenance Request Approved - 12done.com</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #4F46E5; }
+    .logo { font-size: 24px; font-weight: bold; color: #4F46E5; }
+    .content { padding: 30px 0; }
+    .success-badge { background: #10B981; color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; font-weight: 600; margin-bottom: 20px; }
+    .details-box { background: #ECFDF5; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #10B981; }
+    .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #D1FAE5; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: #047857; font-weight: 500; }
+    .detail-value { color: #065F46; }
+    .button { display: inline-block; background: #4F46E5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+    .footer { text-align: center; padding: 20px 0; color: #666; font-size: 12px; border-top: 1px solid #eee; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">12done.com</div>
+  </div>
+
+  <div class="content">
+    <div class="success-badge">Request Approved</div>
+
+    <h1>Your maintenance request has been approved!</h1>
+
+    <p>Hi {{firstName}},</p>
+
+    <p>Great news! Your landlord has approved your maintenance request. A service provider will be assigned soon.</p>
+
+    <div class="details-box">
+      <h3 style="margin-top: 0;">Request Details</h3>
+      <div class="detail-row">
+        <span class="detail-label">Property</span>
+        <span class="detail-value">{{propertyTitle}}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Issue</span>
+        <span class="detail-value">{{title}}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Status</span>
+        <span class="detail-value">Approved - Awaiting Provider Assignment</span>
+      </div>
+    </div>
+
+    <p>You will be notified once a service provider has been assigned and a date has been scheduled for the maintenance work.</p>
+
+    <p style="text-align: center;">
+      <a href="{{dashboardUrl}}" class="button">View Request Status</a>
+    </p>
+
+    <p>Best regards,<br>The 12done.com Team</p>
+  </div>
+
+  <div class="footer">
+    <p>&copy; {{year}} 12done.com. All rights reserved.</p>
+    <p>This is a transactional email regarding property maintenance on 12done.com.</p>
+  </div>
+</body>
+</html>
