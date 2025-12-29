@@ -1,7 +1,25 @@
 import * as React from 'react';
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import type { User } from '@/lib/types';
+import { create, StateCreator } from 'zustand';
+import { persist, createJSONStorage, PersistOptions } from 'zustand/middleware';
+
+// Define User type inline to avoid path resolution issues in CI
+interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  address?: string;
+  postalCode?: string;
+  city?: string;
+  country?: string;
+  avatarUrl?: string;
+  role: 'USER' | 'AGENT' | 'ADMIN';
+  status: 'PENDING_VERIFICATION' | 'PENDING_PROFILE' | 'ACTIVE' | 'SUSPENDED' | 'DELETED';
+  emailVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface AuthState {
   user: User | null;
@@ -18,8 +36,13 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
 }
 
+type AuthPersist = (
+  config: StateCreator<AuthState>,
+  options: PersistOptions<AuthState, Pick<AuthState, 'user' | 'accessToken' | 'refreshToken' | 'isAuthenticated'>>
+) => StateCreator<AuthState>;
+
 export const useAuthStore = create<AuthState>()(
-  persist(
+  (persist as AuthPersist)(
     (set) => ({
       user: null,
       accessToken: null,
@@ -27,7 +50,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: true,
 
-      setAuth: (user, accessToken, refreshToken) =>
+      setAuth: (user: User, accessToken: string, refreshToken: string) =>
         set({
           user,
           accessToken,
@@ -36,10 +59,10 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
         }),
 
-      setUser: (user) =>
+      setUser: (user: User) =>
         set({ user }),
 
-      setTokens: (accessToken, refreshToken) =>
+      setTokens: (accessToken: string, refreshToken: string) =>
         set({ accessToken, refreshToken }),
 
       clearAuth: () =>
@@ -51,13 +74,13 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
         }),
 
-      setLoading: (isLoading) =>
+      setLoading: (isLoading: boolean) =>
         set({ isLoading }),
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
+      partialize: (state: AuthState) => ({
         user: state.user,
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
