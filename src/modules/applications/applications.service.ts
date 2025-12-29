@@ -86,7 +86,7 @@ export class ApplicationsService {
         monthlyIncome: dto.monthlyIncome,
         incomeCurrency: dto.incomeCurrency || 'EUR',
         employmentDuration: dto.employmentDuration,
-        references: dto.references as Prisma.InputJsonValue,
+        references: dto.references as unknown as Prisma.InputJsonValue,
         desiredMoveInDate: dto.desiredMoveInDate
           ? new Date(dto.desiredMoveInDate)
           : null,
@@ -469,35 +469,45 @@ export class ApplicationsService {
    * Map database entity to response DTO
    */
   private mapToResponseDto(
-    application: Prisma.RentalApplicationGetPayload<{
-      include?: {
-        property?: {
-          select: {
-            id: true;
-            title: true;
-            address: true;
-            city: true;
-            country: true;
-            ownerId?: true;
-          };
-        };
-        applicant?: {
-          select: {
-            id: true;
-            firstName: true;
-            lastName: true;
-            email: true;
-          };
-        };
+    application: {
+      id: string;
+      applicantId: string;
+      propertyId: string;
+      status: ApplicationStatus;
+      employmentStatus: string | null;
+      employer: string | null;
+      jobTitle: string | null;
+      monthlyIncome: unknown;
+      incomeCurrency: string;
+      employmentDuration: string | null;
+      references: unknown;
+      desiredMoveInDate: Date | null;
+      desiredLeaseTerm: number | null;
+      numberOfOccupants: number | null;
+      hasPets: boolean;
+      petDetails: string | null;
+      additionalNotes: string | null;
+      ownerNotes: string | null;
+      reviewedAt: Date | null;
+      createdAt: Date;
+      updatedAt: Date;
+      property?: {
+        id: string;
+        title: string;
+        address: string;
+        city: string;
+        country: string;
       };
-    }>,
+      applicant?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+      };
+    },
   ): ApplicationResponseDto {
-    const property = application.property as
-      | { id: string; title: string; address: string; city: string; country: string }
-      | undefined;
-    const applicant = application.applicant as
-      | { id: string; firstName: string; lastName: string; email: string }
-      | undefined;
+    const property = application.property;
+    const applicant = application.applicant;
 
     return {
       id: application.id,
