@@ -8,7 +8,6 @@ import {
   IsEnum,
   IsBoolean,
   IsDateString,
-  IsNumber,
   MinLength,
   MaxLength,
   Min,

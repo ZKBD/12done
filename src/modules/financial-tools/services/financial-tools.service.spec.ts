@@ -6,7 +6,7 @@ import { FinancialPropertyType, MarketTrend, Prisma } from '@prisma/client';
 
 describe('FinancialToolsService', () => {
   let service: FinancialToolsService;
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
 
   const mockPrismaService = {
     property: {

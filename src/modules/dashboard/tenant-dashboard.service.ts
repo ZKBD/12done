@@ -15,9 +15,9 @@ export class TenantDashboardService {
 
   async getTenantDashboard(
     tenantId: string,
-    query: TenantDashboardQueryDto,
+    _query: TenantDashboardQueryDto,
   ): Promise<TenantDashboardResponseDto> {
-    const now = new Date();
+    const _now = new Date();
 
     // Run all queries in parallel for better performance
     const [
@@ -164,7 +164,7 @@ export class TenantDashboardService {
   private async getOverduePayments(
     tenantId: string,
   ): Promise<TenantPaymentSummaryDto[]> {
-    const now = new Date();
+    const _now = new Date();
 
     const payments = await this.prisma.rentPayment.findMany({
       where: {

@@ -744,7 +744,7 @@ export class LeasesService {
       }
 
       // Sign and auto-activate the lease
-      const updated = await this.prisma.$transaction(async (tx) => {
+      const _updated = await this.prisma.$transaction(async (tx) => {
         // Record tenant signature
         const signedLease = await tx.lease.update({
           where: { id: leaseId },

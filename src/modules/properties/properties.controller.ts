@@ -40,7 +40,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
-import { PropertyStatus, UserRole, ListingType, RoomType, StagingStyle, TimeOfDay, Season } from '@prisma/client';
+import { PropertyStatus, UserRole, ListingType, TimeOfDay, Season } from '@prisma/client';
 import { PropertiesService } from './properties.service';
 import {
   AvailabilityService,

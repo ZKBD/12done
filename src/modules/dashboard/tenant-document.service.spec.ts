@@ -6,7 +6,7 @@ import { TenantDocumentTypeEnum } from './dto';
 
 describe('TenantDocumentService', () => {
   let service: TenantDocumentService;
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
 
   const mockPrisma = {
     lease: {

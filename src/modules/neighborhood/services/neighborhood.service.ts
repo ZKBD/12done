@@ -413,7 +413,7 @@ export class NeighborhoodService {
     };
   }
 
-  private getMockMobilityScores(lat: number, lng: number): MobilityScoresDto {
+  private getMockMobilityScores(lat: number, _lng: number): MobilityScoresDto {
     // Simulate higher scores for urban areas (lower latitudes in US)
     const baseScore = Math.min(100, Math.max(20, 100 - Math.abs(lat - 34) * 5));
 
@@ -427,7 +427,7 @@ export class NeighborhoodService {
     };
   }
 
-  private getMockSafetyData(lat: number, lng: number): SafetyDataDto {
+  private getMockSafetyData(_lat: number, _lng: number): SafetyDataDto {
     const safetyScore = Math.round(50 + Math.random() * 40);
     const crimeRating = safetyScore >= 70 ? 'LOW' : safetyScore >= 40 ? 'MODERATE' : 'HIGH';
 
@@ -532,7 +532,7 @@ export class NeighborhoodService {
     return mockSchools;
   }
 
-  private getMockSchools(lat: number, lng: number): SchoolResponseDto[] {
+  private getMockSchools(_lat: number, _lng: number): SchoolResponseDto[] {
     return [
       {
         id: 'school-1',
@@ -655,7 +655,7 @@ export class NeighborhoodService {
     return mockAmenities;
   }
 
-  private getMockAmenities(lat: number, lng: number): AmenityResponseDto[] {
+  private getMockAmenities(_lat: number, _lng: number): AmenityResponseDto[] {
     return [
       { id: 'a1', category: AmenityCategory.GROCERY, name: 'Whole Foods Market', address: '100 Market St', distanceMeters: 350, walkingMinutes: 4, drivingMinutes: 1, rating: 4.5, priceLevel: 3, isOpenNow: true },
       { id: 'a2', category: AmenityCategory.GROCERY, name: 'Trader Joe\'s', address: '200 Food Ave', distanceMeters: 600, walkingMinutes: 8, drivingMinutes: 2, rating: 4.7, priceLevel: 2, isOpenNow: true },
@@ -795,7 +795,7 @@ export class NeighborhoodService {
     };
   }
 
-  private getMockFutureDevelopments(lat: number, lng: number): FutureDevelopmentsResponseDto {
+  private getMockFutureDevelopments(_lat: number, _lng: number): FutureDevelopmentsResponseDto {
     return {
       developments: [
         {

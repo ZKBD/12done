@@ -3,15 +3,11 @@ import {
   IsNumber,
   IsOptional,
   IsUUID,
-  IsEnum,
   IsArray,
   Min,
   Max,
   IsObject,
-  ValidateNested,
-  IsBoolean,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { RevenueShareType, RevenueShareStatus, PayoutStatus } from '@prisma/client';
 

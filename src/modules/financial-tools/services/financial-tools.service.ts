@@ -457,7 +457,7 @@ export class FinancialToolsService {
       purchasePrice,
       landValue = purchasePrice * 0.2, // Default 20% for land
       propertyType,
-      startDate = new Date().toISOString(),
+      startDate: _startDate = new Date().toISOString(),
       improvementCosts = 0,
     } = input;
 
@@ -854,7 +854,7 @@ export class FinancialToolsService {
     }
 
     // Remove internal field before returning
-    return results.map(({ totalUpfront, ...rest }) => rest);
+    return results.map(({ totalUpfront: _totalUpfront, ...rest }) => rest);
   }
 
   // ============================================

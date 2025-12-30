@@ -5,7 +5,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 
 describe('TenantDashboardService', () => {
   let service: TenantDashboardService;
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
 
   const mockPrisma = {
     lease: {

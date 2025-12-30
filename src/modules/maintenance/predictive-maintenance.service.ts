@@ -486,7 +486,7 @@ export class PredictiveMaintenanceService {
   private generateRecommendation(
     type: MaintenanceRequestType,
     riskCategory: string,
-    daysSinceLast: number,
+    _daysSinceLast: number,
   ): string {
     const typeLabels: Record<MaintenanceRequestType, string> = {
       [MaintenanceRequestType.PLUMBING]: 'plumbing system',
