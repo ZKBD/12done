@@ -7,3 +7,4 @@ export * from './complete-request.dto';
 export * from './maintenance-query.dto';
 export * from './maintenance-response.dto';
 export * from './ai-maintenance.dto';
+export * from './predictive-maintenance.dto';

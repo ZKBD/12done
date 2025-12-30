@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppConfigModule } from './config';
@@ -27,6 +28,9 @@ import { DashboardModule } from './modules/dashboard';
   imports: [
     // Configuration with validation
     AppConfigModule,
+
+    // Scheduling (for cron jobs)
+    ScheduleModule.forRoot(),
 
     // Rate limiting
     ThrottlerModule.forRoot([

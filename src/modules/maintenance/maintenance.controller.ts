@@ -15,9 +15,11 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { MaintenanceService } from './maintenance.service';
 import { AiMaintenanceService } from './ai-maintenance.service';
+import { PredictiveMaintenanceService } from './predictive-maintenance.service';
 import { JwtAuthGuard } from '@/modules/auth/guards';
 import { CurrentUser, CurrentUserData } from '@/common/decorators';
 import {
@@ -35,6 +37,11 @@ import {
   AiMaintenanceAnalysisResponseDto,
   AiAppointmentSuggestionsResponseDto,
   AiRequestSuggestionsResponseDto,
+  MaintenanceHistoryDto,
+  PropertyPredictionsDto,
+  PortfolioPredictionSummaryDto,
+  AlertsResponseDto,
+  HvacPredictionDto,
 } from './dto';
 
 @ApiTags('maintenance-requests')
@@ -43,6 +50,7 @@ export class MaintenanceController {
   constructor(
     private readonly maintenanceService: MaintenanceService,
     private readonly aiMaintenanceService: AiMaintenanceService,
+    private readonly predictiveMaintenanceService: PredictiveMaintenanceService,
   ) {}
 
   // ============================================
@@ -128,6 +136,149 @@ export class MaintenanceController {
       dto.propertyId,
       dto.type,
     );
+  }
+
+  // ============================================
+  // PREDICTIVE MAINTENANCE ENDPOINTS (PROD-108)
+  // ============================================
+
+  /**
+   * Get maintenance history for a property (PROD-108.1)
+   */
+  @Get('history/:propertyId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get property maintenance history (PROD-108.1)',
+    description: 'Get comprehensive maintenance history and statistics for a property',
+  })
+  @ApiParam({ name: 'propertyId', description: 'Property UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Maintenance history',
+    type: MaintenanceHistoryDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Property not found',
+  })
+  async getPropertyHistory(
+    @Param('propertyId') propertyId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<MaintenanceHistoryDto> {
+    return this.predictiveMaintenanceService.getPropertyHistory(propertyId, user.id);
+  }
+
+  /**
+   * Get predictions for a specific property (PROD-108.2)
+   */
+  @Get('predictions/property/:propertyId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get property maintenance predictions (PROD-108.2)',
+    description: 'Get AI-powered predictions for upcoming maintenance needs',
+  })
+  @ApiParam({ name: 'propertyId', description: 'Property UUID' })
+  @ApiQuery({
+    name: 'monthsAhead',
+    required: false,
+    description: 'Number of months to look ahead (default: 12, max: 24)',
+    type: Number,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Property predictions',
+    type: PropertyPredictionsDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Property not found',
+  })
+  async getPropertyPredictions(
+    @Param('propertyId') propertyId: string,
+    @Query('monthsAhead') monthsAhead: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PropertyPredictionsDto> {
+    const months = monthsAhead ? Math.min(Math.max(parseInt(monthsAhead, 10), 1), 24) : 12;
+    return this.predictiveMaintenanceService.getPropertyPredictions(propertyId, user.id, months);
+  }
+
+  /**
+   * Get predictions for all properties in portfolio (PROD-108.2)
+   */
+  @Get('predictions/portfolio')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get portfolio maintenance predictions (PROD-108.2)',
+    description: 'Get predictions for all properties owned by the landlord',
+  })
+  @ApiQuery({
+    name: 'monthsAhead',
+    required: false,
+    description: 'Number of months to look ahead (default: 6, max: 12)',
+    type: Number,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Portfolio predictions',
+    type: PortfolioPredictionSummaryDto,
+  })
+  async getPortfolioPredictions(
+    @Query('monthsAhead') monthsAhead: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PortfolioPredictionSummaryDto> {
+    const months = monthsAhead ? Math.min(Math.max(parseInt(monthsAhead, 10), 1), 12) : 6;
+    return this.predictiveMaintenanceService.getPortfolioPredictions(user.id, months);
+  }
+
+  /**
+   * Get proactive maintenance alerts (PROD-108.3)
+   */
+  @Get('alerts')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get proactive maintenance alerts (PROD-108.3)',
+    description: 'Get alerts for properties requiring attention based on predictions',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Maintenance alerts',
+    type: AlertsResponseDto,
+  })
+  async getAlerts(
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<AlertsResponseDto> {
+    return this.predictiveMaintenanceService.getAlerts(user.id);
+  }
+
+  /**
+   * Get HVAC-specific predictions (PROD-108.4)
+   */
+  @Get('hvac/:propertyId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get HVAC predictions (PROD-108.4)',
+    description: 'Get detailed HVAC system health and predictions for a property',
+  })
+  @ApiParam({ name: 'propertyId', description: 'Property UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'HVAC prediction',
+    type: HvacPredictionDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Property not found',
+  })
+  async getHvacPrediction(
+    @Param('propertyId') propertyId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<HvacPredictionDto> {
+    return this.predictiveMaintenanceService.getHvacPrediction(propertyId, user.id);
   }
 
   // ============================================

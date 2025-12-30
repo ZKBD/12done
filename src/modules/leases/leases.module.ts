@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
 import { LeasesController } from './leases.controller';
 import { LeasesService } from './leases.service';
 import { RentReminderService } from './rent-reminder.service';
@@ -9,12 +8,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { MailModule } from '@/mail/mail.module';
 
 @Module({
-  imports: [
-    ScheduleModule.forRoot(),
-    DatabaseModule,
-    NotificationsModule,
-    MailModule,
-  ],
+  imports: [DatabaseModule, NotificationsModule, MailModule],
   controllers: [LeasesController],
   providers: [LeasesService, RentReminderService, LeaseRenewalService],
   exports: [LeasesService, LeaseRenewalService],

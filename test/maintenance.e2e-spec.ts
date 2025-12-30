@@ -884,4 +884,322 @@ describe('MaintenanceController (e2e)', () => {
       });
     });
   });
+
+  // ============================================
+  // PREDICTIVE MAINTENANCE ENDPOINTS (PROD-108)
+  // ============================================
+  describe('Predictive Maintenance (PROD-108)', () => {
+    describe('GET /maintenance-requests/history/:propertyId (PROD-108.1)', () => {
+      it('should return maintenance history for property owner', async () => {
+        const response = await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/history/${propertyId}`)
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        expect(response.body.propertyId).toBe(propertyId);
+        expect(response.body.propertyTitle).toBeDefined();
+        expect(response.body.totalRequests).toBeGreaterThanOrEqual(0);
+        expect(response.body.totalSpent).toBeGreaterThanOrEqual(0);
+        expect(response.body.byType).toBeDefined();
+        expect(Array.isArray(response.body.byType)).toBe(true);
+        expect(response.body.analysisStartDate).toBeDefined();
+        expect(response.body.analysisEndDate).toBeDefined();
+      });
+
+      it('should calculate statistics by maintenance type', async () => {
+        const response = await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/history/${propertyId}`)
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        if (response.body.byType.length > 0) {
+          const typeStats = response.body.byType[0];
+          expect(typeStats.type).toBeDefined();
+          expect(typeStats.count).toBeGreaterThan(0);
+          expect(typeStats.avgResolutionDays).toBeGreaterThanOrEqual(0);
+          expect(typeStats.totalCost).toBeGreaterThanOrEqual(0);
+        }
+      });
+
+      it('should deny access to non-owner', async () => {
+        await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/history/${propertyId}`)
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .expect(404);
+      });
+
+      it('should return 404 for non-existent property', async () => {
+        await request(app.getHttpServer())
+          .get('/api/maintenance-requests/history/550e8400-e29b-41d4-a716-446655440000')
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(404);
+      });
+
+      it('should require authentication', async () => {
+        await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/history/${propertyId}`)
+          .expect(401);
+      });
+    });
+
+    describe('GET /maintenance-requests/predictions/property/:propertyId (PROD-108.2)', () => {
+      it('should return predictions for property owner', async () => {
+        const response = await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/predictions/property/${propertyId}`)
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        expect(response.body.propertyId).toBe(propertyId);
+        expect(response.body.propertyTitle).toBeDefined();
+        expect(response.body.overallRiskScore).toBeGreaterThanOrEqual(0);
+        expect(response.body.overallRiskScore).toBeLessThanOrEqual(1);
+        expect(response.body.predictions).toBeDefined();
+        expect(Array.isArray(response.body.predictions)).toBe(true);
+        expect(response.body.generatedAt).toBeDefined();
+      });
+
+      it('should include risk categories in predictions', async () => {
+        const response = await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/predictions/property/${propertyId}`)
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        if (response.body.predictions.length > 0) {
+          const prediction = response.body.predictions[0];
+          expect(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).toContain(
+            prediction.riskCategory,
+          );
+          expect(prediction.riskScore).toBeGreaterThanOrEqual(0);
+          expect(prediction.riskScore).toBeLessThanOrEqual(1);
+          expect(prediction.recommendation).toBeDefined();
+          expect(prediction.estimatedCost).toBeGreaterThanOrEqual(0);
+        }
+      });
+
+      it('should respect monthsAhead query parameter', async () => {
+        const response = await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/predictions/property/${propertyId}`)
+          .query({ monthsAhead: 3 })
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        expect(response.body.predictions).toBeDefined();
+      });
+
+      it('should deny access to non-owner', async () => {
+        await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/predictions/property/${propertyId}`)
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .expect(404);
+      });
+
+      it('should require authentication', async () => {
+        await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/predictions/property/${propertyId}`)
+          .expect(401);
+      });
+    });
+
+    describe('GET /maintenance-requests/predictions/portfolio (PROD-108.2)', () => {
+      it('should return portfolio predictions for landlord', async () => {
+        const response = await request(app.getHttpServer())
+          .get('/api/maintenance-requests/predictions/portfolio')
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        expect(response.body.totalProperties).toBeGreaterThanOrEqual(0);
+        expect(response.body.highRiskProperties).toBeGreaterThanOrEqual(0);
+        expect(response.body.totalEstimatedCosts).toBeGreaterThanOrEqual(0);
+        expect(response.body.properties).toBeDefined();
+        expect(Array.isArray(response.body.properties)).toBe(true);
+        expect(response.body.generatedAt).toBeDefined();
+      });
+
+      it('should include property predictions in portfolio', async () => {
+        const response = await request(app.getHttpServer())
+          .get('/api/maintenance-requests/predictions/portfolio')
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        if (response.body.properties.length > 0) {
+          const property = response.body.properties[0];
+          expect(property.propertyId).toBeDefined();
+          expect(property.propertyTitle).toBeDefined();
+          expect(property.overallRiskScore).toBeGreaterThanOrEqual(0);
+          expect(property.predictions).toBeDefined();
+        }
+      });
+
+      it('should respect monthsAhead query parameter', async () => {
+        const response = await request(app.getHttpServer())
+          .get('/api/maintenance-requests/predictions/portfolio')
+          .query({ monthsAhead: 6 })
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        expect(response.body.properties).toBeDefined();
+      });
+
+      it('should return empty portfolio for user with no properties', async () => {
+        const response = await request(app.getHttpServer())
+          .get('/api/maintenance-requests/predictions/portfolio')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .expect(200);
+
+        expect(response.body.totalProperties).toBe(0);
+        expect(response.body.properties).toEqual([]);
+      });
+
+      it('should require authentication', async () => {
+        await request(app.getHttpServer())
+          .get('/api/maintenance-requests/predictions/portfolio')
+          .expect(401);
+      });
+    });
+
+    describe('GET /maintenance-requests/alerts (PROD-108.3)', () => {
+      it('should return maintenance alerts for landlord', async () => {
+        const response = await request(app.getHttpServer())
+          .get('/api/maintenance-requests/alerts')
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        expect(response.body.alerts).toBeDefined();
+        expect(Array.isArray(response.body.alerts)).toBe(true);
+        expect(response.body.totalAlerts).toBeGreaterThanOrEqual(0);
+        expect(response.body.criticalCount).toBeGreaterThanOrEqual(0);
+        expect(response.body.urgentCount).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should include alert details when alerts exist', async () => {
+        const response = await request(app.getHttpServer())
+          .get('/api/maintenance-requests/alerts')
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        if (response.body.alerts.length > 0) {
+          const alert = response.body.alerts[0];
+          expect(alert.id).toBeDefined();
+          expect(alert.propertyId).toBeDefined();
+          expect(alert.propertyTitle).toBeDefined();
+          expect(['INFO', 'WARNING', 'URGENT', 'CRITICAL']).toContain(alert.severity);
+          expect(alert.title).toBeDefined();
+          expect(alert.message).toBeDefined();
+          expect(alert.recommendedAction).toBeDefined();
+        }
+      });
+
+      it('should sort alerts by severity', async () => {
+        const response = await request(app.getHttpServer())
+          .get('/api/maintenance-requests/alerts')
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        const severityOrder = { CRITICAL: 0, URGENT: 1, WARNING: 2, INFO: 3 };
+        const alerts = response.body.alerts;
+
+        for (let i = 1; i < alerts.length; i++) {
+          const prevOrder = severityOrder[alerts[i - 1].severity];
+          const currOrder = severityOrder[alerts[i].severity];
+          expect(currOrder).toBeGreaterThanOrEqual(prevOrder);
+        }
+      });
+
+      it('should return empty alerts for user with no properties', async () => {
+        const response = await request(app.getHttpServer())
+          .get('/api/maintenance-requests/alerts')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .expect(200);
+
+        expect(response.body.totalAlerts).toBe(0);
+        expect(response.body.alerts).toEqual([]);
+      });
+
+      it('should require authentication', async () => {
+        await request(app.getHttpServer())
+          .get('/api/maintenance-requests/alerts')
+          .expect(401);
+      });
+    });
+
+    describe('GET /maintenance-requests/hvac/:propertyId (PROD-108.4)', () => {
+      it('should return HVAC predictions for property owner', async () => {
+        const response = await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/hvac/${propertyId}`)
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        expect(response.body.propertyId).toBe(propertyId);
+        expect(response.body.propertyTitle).toBeDefined();
+        expect(response.body.estimatedHvacAge).toBeGreaterThanOrEqual(0);
+        expect(response.body.typicalLifespan).toBe(20);
+        expect(response.body.lifespanPercentage).toBeGreaterThanOrEqual(0);
+        expect(response.body.lifespanPercentage).toBeLessThanOrEqual(100);
+        expect(response.body.failureRisk).toBeGreaterThanOrEqual(0);
+        expect(response.body.failureRisk).toBeLessThanOrEqual(1);
+      });
+
+      it('should include HVAC health status', async () => {
+        const response = await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/hvac/${propertyId}`)
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        expect(['EXCELLENT', 'GOOD', 'FAIR', 'POOR', 'CRITICAL']).toContain(
+          response.body.healthStatus,
+        );
+      });
+
+      it('should include seasonal risk assessment', async () => {
+        const response = await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/hvac/${propertyId}`)
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        expect(response.body.seasonalRisk).toBeDefined();
+        expect(typeof response.body.seasonalRisk).toBe('string');
+      });
+
+      it('should include HVAC recommendations', async () => {
+        const response = await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/hvac/${propertyId}`)
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        expect(response.body.recommendations).toBeDefined();
+        expect(Array.isArray(response.body.recommendations)).toBe(true);
+        expect(response.body.recommendations.length).toBeGreaterThan(0);
+      });
+
+      it('should include cost estimates', async () => {
+        const response = await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/hvac/${propertyId}`)
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(200);
+
+        expect(response.body.estimatedReplacementCost).toBeGreaterThan(0);
+        expect(response.body.estimatedAnnualMaintenanceCost).toBeGreaterThan(0);
+      });
+
+      it('should deny access to non-owner', async () => {
+        await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/hvac/${propertyId}`)
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .expect(404);
+      });
+
+      it('should return 404 for non-existent property', async () => {
+        await request(app.getHttpServer())
+          .get('/api/maintenance-requests/hvac/550e8400-e29b-41d4-a716-446655440000')
+          .set('Authorization', `Bearer ${landlordToken}`)
+          .expect(404);
+      });
+
+      it('should require authentication', async () => {
+        await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/hvac/${propertyId}`)
+          .expect(401);
+      });
+    });
+  });
 });

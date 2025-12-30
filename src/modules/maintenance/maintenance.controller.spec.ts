@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MaintenanceController } from './maintenance.controller';
 import { MaintenanceService } from './maintenance.service';
+import { AiMaintenanceService } from './ai-maintenance.service';
+import { PredictiveMaintenanceService } from './predictive-maintenance.service';
 import {
   MaintenanceRequestStatus,
   MaintenanceRequestType,
@@ -25,6 +27,20 @@ describe('MaintenanceController', () => {
     cancel: jest.fn(),
   };
 
+  const mockAiMaintenanceService = {
+    analyzeRequest: jest.fn(),
+    getRequestSuggestions: jest.fn(),
+    suggestAppointments: jest.fn(),
+  };
+
+  const mockPredictiveMaintenanceService = {
+    getPropertyHistory: jest.fn(),
+    getPropertyPredictions: jest.fn(),
+    getPortfolioPredictions: jest.fn(),
+    getAlerts: jest.fn(),
+    getHvacPrediction: jest.fn(),
+  };
+
   const mockUser = { id: 'user-123', email: 'test@example.com' };
 
   const mockRequest = {
@@ -47,6 +63,14 @@ describe('MaintenanceController', () => {
         {
           provide: MaintenanceService,
           useValue: mockMaintenanceService,
+        },
+        {
+          provide: AiMaintenanceService,
+          useValue: mockAiMaintenanceService,
+        },
+        {
+          provide: PredictiveMaintenanceService,
+          useValue: mockPredictiveMaintenanceService,
         },
       ],
     }).compile();
