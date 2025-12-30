@@ -425,6 +425,38 @@ Note: E2E tests require Docker/database to run.
 | PROD-050.10 | `scoring > weights by engagement` | recommendations.service.spec.ts | Verifies engagement scoring | ✅ |
 | PROD-050.11 | `explanations > generates correctly` | recommendations.service.spec.ts | Verifies recommendation explanations | ✅ |
 
+### PROD-083: Mortgage Calculator
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-083.1 | `calculateMortgage > should calculate monthly payment correctly` | mortgage-calculator.service.spec.ts | Verifies principal+interest formula with price, down payment, rate, term inputs | ✅ |
+| PROD-083.2 | `calculateMortgage > should handle different term lengths` | mortgage-calculator.service.spec.ts | Verifies 15-year vs 30-year comparison works | ✅ |
+| PROD-083.3 | `calculateMortgage > should handle 0% interest rate` | mortgage-calculator.service.spec.ts | Verifies edge case of zero interest | ✅ |
+| PROD-083.4 | `calculateMortgage > should calculate down payment percentage correctly` | mortgage-calculator.service.spec.ts | Verifies percentage calculation | ✅ |
+| PROD-083.5 | `calculateMortgage > should include propertyId when provided` | mortgage-calculator.service.spec.ts | Verifies property context in response | ✅ |
+| PROD-083.6 | `calculateMortgage > should handle small down payments` | mortgage-calculator.service.spec.ts | Verifies FHA-style 3.5% down payment | ✅ |
+| PROD-083.7 | `calculateForProperty > should fetch property price and calculate mortgage` | mortgage-calculator.service.spec.ts | Verifies property page embedded calculator | ✅ |
+| PROD-083.8 | `calculateForProperty > should throw NotFoundException if property not found` | mortgage-calculator.service.spec.ts | Verifies property validation | ✅ |
+| PROD-083.9 | `calculateForProperty > should throw NotFoundException if property has no price` | mortgage-calculator.service.spec.ts | Verifies price exists | ✅ |
+| PROD-083.10 | `generateAmortizationSchedule > should generate correct number of payments` | mortgage-calculator.service.spec.ts | Verifies 360 payments for 30-year term | ✅ |
+| PROD-083.11 | `generateAmortizationSchedule > should have first payment with correct structure` | mortgage-calculator.service.spec.ts | Verifies principal/interest split | ✅ |
+| PROD-083.12 | `generateAmortizationSchedule > should have last payment reduce balance to zero` | mortgage-calculator.service.spec.ts | Verifies loan is fully paid off | ✅ |
+| PROD-083.13 | `generateAmortizationSchedule > should have principal portion increase over time` | mortgage-calculator.service.spec.ts | Verifies amortization pattern | ✅ |
+| PROD-083.14 | `generateAmortizationSchedule > should calculate cumulative totals correctly` | mortgage-calculator.service.spec.ts | Verifies running totals | ✅ |
+| PROD-083.15 | `generateAmortizationSchedule > should generate yearly summary` | mortgage-calculator.service.spec.ts | Verifies annual breakdown table | ✅ |
+| PROD-083.16 | `generateAmortizationForProperty > should generate amortization schedule for property` | mortgage-calculator.service.spec.ts | Verifies property-specific schedule | ✅ |
+| PROD-083.17 | `generateAmortizationForProperty > should throw NotFoundException if property not found` | mortgage-calculator.service.spec.ts | Verifies property validation | ✅ |
+| PROD-083.18 | `calculateAffordability > should calculate maximum affordable home price` | mortgage-calculator.service.spec.ts | Verifies DTI-based affordability | ✅ |
+| PROD-083.19 | `calculateAffordability > should use custom DTI ratio when provided` | mortgage-calculator.service.spec.ts | Verifies configurable DTI | ✅ |
+| PROD-083.20 | `calculateAffordability > should handle high existing debt` | mortgage-calculator.service.spec.ts | Verifies debt impact calculation | ✅ |
+| PROD-083.21 | `calculateAffordability > should return zero when debt exceeds DTI limit` | mortgage-calculator.service.spec.ts | Verifies edge case handling | ✅ |
+| PROD-083.22 | `compareMortgages > should compare multiple mortgage scenarios` | mortgage-calculator.service.spec.ts | Verifies scenario comparison | ✅ |
+| PROD-083.23 | `compareMortgages > should recommend lowest total cost option` | mortgage-calculator.service.spec.ts | Verifies recommendation logic | ✅ |
+| PROD-083.24 | `compareMortgages > should show 15-year has lower total interest than 30-year` | mortgage-calculator.service.spec.ts | Verifies interest comparison | ✅ |
+| PROD-083.25 | `getDefaultScenarios > should return default scenarios with 20% down payment` | mortgage-calculator.service.spec.ts | Verifies property-specific defaults | ✅ |
+| PROD-083.26 | `getDefaultScenarios > should throw NotFoundException if property not found` | mortgage-calculator.service.spec.ts | Verifies property validation | ✅ |
+| PROD-083.27 | `getDefaultScenarios > should throw NotFoundException if property has no price` | mortgage-calculator.service.spec.ts | Verifies price exists | ✅ |
+
 ---
 
 ## 4. Authentication & Security
@@ -1889,6 +1921,7 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | Browser Tests | CI Status | Notes |
 |------|------------|-----------|---------------|-----------|-------|
+| 2025-12-30 | ✅ 1157 passed | ✅ 279 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-083 Mortgage Calculator (27 unit tests) |
 | 2025-12-30 | ✅ 1130 passed | ✅ 279 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-030-031 Virtual Staging & Time-of-Day Photos (44 unit tests) |
 | 2025-12-30 | ✅ 1086 passed | ✅ 279 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-108 Predictive Maintenance (36 unit + 22 E2E) |
 | 2025-12-30 | ✅ 1050 passed | ✅ 257 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-106 Tenant Portal (37 unit + 26 E2E) |
@@ -1951,6 +1984,7 @@ The following requirements do not yet have test coverage:
 | ~~PROD-030~~ | ~~Virtual Staging~~ | ✅ **COMPLETE** - VirtualStagingService with room type (13 options) and style (12 options) parameters, mock AI provider integration, staging status tracking, before/after comparison, endpoints (POST /ai/staging, GET requests, DELETE staged, compare); 19 unit tests |
 | ~~PROD-031~~ | ~~Time-of-Day Photos~~ | ✅ **COMPLETE** - TimeOfDayPhotosService with time-of-day (6 options) and season (4 options) tagging, photo groups for same-angle linking, slider data API, filter by time/season, bulk tagging; 25 unit tests |
 | PROD-044-047 | Advanced Search Features (Voice, Visual, AR, Lifestyle) | Phase 4 features |
+| ~~PROD-083~~ | ~~Mortgage Calculator~~ | ✅ **COMPLETE** - MortgageCalculatorService with principal+interest formula, amortization schedule (monthly/yearly breakdown), affordability calculation (DTI-based), scenario comparison, property-specific embedded calculator, 7 endpoints (calculate, amortization, affordability, compare, property calculate, property amortization, default scenarios); 27 unit tests |
 | ~~PROD-050~~ | ~~AI Recommendations~~ | ✅ **COMPLETE** - BrowsingHistoryService (view tracking, history retrieval), RecommendationsService (preference extraction from favorites/search agents, similarity calculation, scoring algorithm with 40% preference + 40% similarity + 20% popularity weights, explanation generation), RecommendationFeedback model, 4 endpoints (GET /recommendations, GET /recommendations/preferences, GET /recommendations/similar/:propertyId, POST /recommendations/:propertyId/feedback); 30 browsing history tests; 31 recommendation tests |
 | ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller); 47 E2E tests covering full API flow |
 | ~~PROD-096-097~~ | ~~Advanced Transaction Features~~ | ✅ **COMPLETE** - Split Payments (PROD-096): SplitPaymentService with participant management, payment links, email notifications, reminders, cancellation; 27 test cases. Escrow Services (PROD-097): EscrowService with milestone-based releases, threshold-based escrow, funding, dispute resolution; 47 test cases. PaymentsController with 20+ endpoints for both features. |

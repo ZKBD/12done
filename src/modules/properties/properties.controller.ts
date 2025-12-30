@@ -51,6 +51,7 @@ import {
   AiDescriptionService,
   VirtualStagingService,
   TimeOfDayPhotosService,
+  MortgageCalculatorService,
 } from './services';
 import {
   BrowsingHistoryService,
@@ -100,6 +101,14 @@ import {
   UpdateMediaTimeTagDto,
   TimeTaggedMediaResponseDto,
   PhotoGroupResponseDto,
+  MortgageCalculationDto,
+  MortgageCalculationResponseDto,
+  PropertyMortgageCalculationDto,
+  AmortizationScheduleResponseDto,
+  AffordabilityCalculationDto,
+  AffordabilityResponseDto,
+  MortgageComparisonRequestDto,
+  MortgageComparisonResponseDto,
 } from './dto';
 import { PropertyMediaResponseDto, FloorPlanResponseDto } from './dto/property-response.dto';
 
@@ -117,6 +126,7 @@ export class PropertiesController {
     private readonly aiDescriptionService: AiDescriptionService,
     private readonly virtualStagingService: VirtualStagingService,
     private readonly timeOfDayPhotosService: TimeOfDayPhotosService,
+    private readonly mortgageCalculatorService: MortgageCalculatorService,
   ) {}
 
   // ============ PROPERTY CRUD ============
@@ -1324,5 +1334,109 @@ export class PropertiesController {
       user.id,
       user.role as UserRole,
     );
+  }
+
+  // ============ MORTGAGE CALCULATOR (PROD-083) ============
+
+  @Post('mortgage/calculate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Calculate mortgage payment (PROD-083.1, PROD-083.2)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Mortgage calculation result',
+    type: MortgageCalculationResponseDto,
+  })
+  calculateMortgage(
+    @Body() dto: MortgageCalculationDto,
+  ): MortgageCalculationResponseDto {
+    return this.mortgageCalculatorService.calculateMortgage(dto);
+  }
+
+  @Post(':id/mortgage/calculate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Calculate mortgage for specific property (PROD-083.3)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Mortgage calculation for property',
+    type: MortgageCalculationResponseDto,
+  })
+  async calculatePropertyMortgage(
+    @Param('id') propertyId: string,
+    @Body() dto: PropertyMortgageCalculationDto,
+  ): Promise<MortgageCalculationResponseDto> {
+    return this.mortgageCalculatorService.calculateForProperty(propertyId, dto);
+  }
+
+  @Post('mortgage/amortization')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate full amortization schedule (PROD-083.4)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Amortization schedule with monthly breakdown',
+    type: AmortizationScheduleResponseDto,
+  })
+  generateAmortizationSchedule(
+    @Body() dto: MortgageCalculationDto,
+  ): AmortizationScheduleResponseDto {
+    return this.mortgageCalculatorService.generateAmortizationSchedule(dto);
+  }
+
+  @Post(':id/mortgage/amortization')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate amortization schedule for property (PROD-083.4)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Amortization schedule for property',
+    type: AmortizationScheduleResponseDto,
+  })
+  async generatePropertyAmortization(
+    @Param('id') propertyId: string,
+    @Body() dto: PropertyMortgageCalculationDto,
+  ): Promise<AmortizationScheduleResponseDto> {
+    return this.mortgageCalculatorService.generateAmortizationForProperty(propertyId, dto);
+  }
+
+  @Post('mortgage/affordability')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Calculate maximum affordable home price' })
+  @ApiResponse({
+    status: 200,
+    description: 'Affordability calculation result',
+    type: AffordabilityResponseDto,
+  })
+  calculateAffordability(
+    @Body() dto: AffordabilityCalculationDto,
+  ): AffordabilityResponseDto {
+    return this.mortgageCalculatorService.calculateAffordability(dto);
+  }
+
+  @Post('mortgage/compare')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Compare multiple mortgage scenarios' })
+  @ApiResponse({
+    status: 200,
+    description: 'Comparison of mortgage scenarios',
+    type: MortgageComparisonResponseDto,
+  })
+  compareMortgages(
+    @Body() dto: MortgageComparisonRequestDto,
+  ): MortgageComparisonResponseDto {
+    return this.mortgageCalculatorService.compareMortgages(dto);
+  }
+
+  @Get(':id/mortgage/scenarios')
+  @ApiOperation({ summary: 'Get default mortgage scenarios for property' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Default mortgage scenarios with 20% down payment',
+    type: MortgageComparisonResponseDto,
+  })
+  async getDefaultScenarios(
+    @Param('id') propertyId: string,
+  ): Promise<MortgageComparisonResponseDto> {
+    return this.mortgageCalculatorService.getDefaultScenarios(propertyId);
   }
 }

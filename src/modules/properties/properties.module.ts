@@ -10,6 +10,7 @@ import {
   AiDescriptionService,
   VirtualStagingService,
   TimeOfDayPhotosService,
+  MortgageCalculatorService,
 } from './services';
 import { SearchModule } from '../search/search.module';
 
@@ -26,6 +27,7 @@ import { SearchModule } from '../search/search.module';
     AiDescriptionService,
     VirtualStagingService,
     TimeOfDayPhotosService,
+    MortgageCalculatorService,
   ],
   exports: [PropertiesService],
 })

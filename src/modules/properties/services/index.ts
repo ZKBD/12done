@@ -6,3 +6,4 @@ export * from './open-house.service';
 export * from './ai-description.service';
 export * from './virtual-staging.service';
 export * from './time-of-day-photos.service';
+export * from './mortgage-calculator.service';
