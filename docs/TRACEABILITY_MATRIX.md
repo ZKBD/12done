@@ -2,7 +2,7 @@
 
 **Project:** 12done.com
 **Last Updated:** 2025-12-30
-**Version:** 2.0
+**Version:** 2.1
 
 This document traces requirements from the SRS to their implementing test cases and results. It must be updated whenever:
 - New requirements are added to the SRS
@@ -15,10 +15,10 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 1392 | 0 | 1392 | 100% |
+| Unit Tests | 1422 | 0 | 1422 | 100% |
 | E2E Tests | 287 | 0 | 287 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **1684** | **0** | **1684** | **100%** |
+| **Total** | **1714** | **0** | **1714** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -716,6 +716,66 @@ Note: E2E tests require Docker/database to run.
 | PROD-169.3 | `createCashFlowProjection > should apply vacancy rate to income` | financial-tools.service.spec.ts | Verifies vacancy rate | ⏳ |
 | PROD-169.4 | `createCashFlowProjection > should apply growth rates over time` | financial-tools.service.spec.ts | Verifies growth rate application | ⏳ |
 | PROD-169.5 | `getCashFlowProjections > should return projections for property` | financial-tools.service.spec.ts | Verifies projection retrieval | ⏳ |
+
+---
+
+## Profit-Sharing & Revenue Distribution
+
+### Platform Configuration
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROFIT-001.1 | `getActiveConfig > should return active config if exists` | revenue-share.service.spec.ts | Verifies config retrieval | ⏳ |
+| PROFIT-001.2 | `getActiveConfig > should create default config if none exists` | revenue-share.service.spec.ts | Verifies default config creation | ⏳ |
+| PROFIT-001.3 | `updateConfig > should update config with valid percentages` | revenue-share.service.spec.ts | Verifies config update | ⏳ |
+| PROFIT-001.4 | `updateConfig > should throw error if %A + %B + %C != 100` | revenue-share.service.spec.ts | Validates percentage sum rule | ⏳ |
+| PROFIT-001.5 | `updateConfig > should throw error if %D + %E + %F != %B` | revenue-share.service.spec.ts | Validates network breakdown rule | ⏳ |
+| PROFIT-001.6 | `updateConfig > should validate network breakdown equals user network total` | revenue-share.service.spec.ts | Validates network percentage math | ⏳ |
+
+### Wallet Management
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROFIT-002.1 | `getOrCreateWallet > should return existing wallet` | revenue-share.service.spec.ts | Verifies wallet retrieval | ⏳ |
+| PROFIT-002.2 | `getOrCreateWallet > should create wallet if none exists` | revenue-share.service.spec.ts | Verifies wallet auto-creation | ⏳ |
+| PROFIT-002.3 | `getWalletTransactions > should return transaction history` | revenue-share.service.spec.ts | Verifies transaction history | ⏳ |
+| PROFIT-002.4 | `getWalletTransactions > should return empty array if no wallet` | revenue-share.service.spec.ts | Handles missing wallet | ⏳ |
+
+### Revenue Distribution
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROFIT-003.1 | `distributeRevenue > should throw error if already distributed` | revenue-share.service.spec.ts | Prevents duplicate distribution | ⏳ |
+| PROFIT-003.2 | `distributeRevenue > should throw error if transaction not found` | revenue-share.service.spec.ts | Validates transaction exists | ⏳ |
+| PROFIT-003.3 | `distributeRevenue > should throw error if transaction not completed` | revenue-share.service.spec.ts | Validates transaction status | ⏳ |
+| PROFIT-003.4 | `distributeRevenue > should create distribution with correct amounts` | revenue-share.service.spec.ts | Verifies amount calculations | ⏳ |
+| PROFIT-003.5 | `getDistributionById > should return distribution with shares` | revenue-share.service.spec.ts | Verifies distribution retrieval | ⏳ |
+| PROFIT-003.6 | `getDistributionById > should throw error if distribution not found` | revenue-share.service.spec.ts | Handles missing distribution | ⏳ |
+| PROFIT-003.7 | `upstream network > should distribute to multiple upstream levels` | revenue-share.service.spec.ts | Verifies multi-level network shares | ⏳ |
+
+### Payout Management
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROFIT-004.1 | `requestPayout > should create payout request with valid amount` | revenue-share.service.spec.ts | Verifies payout creation | ⏳ |
+| PROFIT-004.2 | `requestPayout > should throw error if wallet not found` | revenue-share.service.spec.ts | Validates wallet exists | ⏳ |
+| PROFIT-004.3 | `requestPayout > should throw error if insufficient balance` | revenue-share.service.spec.ts | Validates sufficient balance | ⏳ |
+| PROFIT-004.4 | `requestPayout > should throw error if below minimum payout amount` | revenue-share.service.spec.ts | Validates minimum amount | ⏳ |
+| PROFIT-004.5 | `requestPayout > should throw error if pending payout exists` | revenue-share.service.spec.ts | Prevents duplicate pending requests | ⏳ |
+| PROFIT-004.6 | `processPayout > should process pending payout` | revenue-share.service.spec.ts | Verifies payout processing | ⏳ |
+| PROFIT-004.7 | `processPayout > should throw error if payout not found` | revenue-share.service.spec.ts | Handles missing payout | ⏳ |
+| PROFIT-004.8 | `processPayout > should throw error if payout not pending` | revenue-share.service.spec.ts | Validates payout status | ⏳ |
+| PROFIT-004.9 | `cancelPayout > should cancel own pending payout and refund` | revenue-share.service.spec.ts | Verifies cancellation and refund | ⏳ |
+| PROFIT-004.10 | `cancelPayout > should throw error if not owner` | revenue-share.service.spec.ts | Validates ownership | ⏳ |
+| PROFIT-004.11 | `cancelPayout > should throw error if payout not pending` | revenue-share.service.spec.ts | Validates payout status for cancel | ⏳ |
+
+### Statistics
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROFIT-005.1 | `getRevenueStats > should return aggregated revenue stats` | revenue-share.service.spec.ts | Verifies platform-wide stats | ⏳ |
+| PROFIT-005.2 | `getUserEarningsStats > should return user earnings breakdown` | revenue-share.service.spec.ts | Verifies user-level stats | ⏳ |
+| PROFIT-005.3 | `getUserEarningsStats > should return zeros if no wallet` | revenue-share.service.spec.ts | Handles missing wallet | ⏳ |
 
 ---
 

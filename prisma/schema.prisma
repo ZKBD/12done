@@ -430,6 +430,9 @@ model User {
   investmentPortfolios InvestmentPortfolio[]
   taxReports           TaxReport[]
 
+  // Profit-Sharing (Revenue Distribution)
+  wallet UserWallet?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1266,6 +1269,9 @@ model Transaction {
 
   // Escrow (PROD-097)
   escrow Escrow?
+
+  // Revenue Distribution (Profit-Sharing)
+  revenueDistribution RevenueDistribution?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2936,4 +2942,242 @@ model CashFlowProjection {
   updatedAt DateTime @updatedAt
 
   @@index([propertyId])
+}
+
+// ============================================
+// PROFIT-SHARING & REVENUE DISTRIBUTION
+// ============================================
+
+// Revenue Share Type
+enum RevenueShareType {
+  PLATFORM_OWNER    // %A - Platform's share
+  BUYER_REWARD      // %D - Reward for buyer
+  DIRECT_INVITER    // %E - Direct inviter commission
+  UPSTREAM_NETWORK  // %F - Upstream network shares (up to 10 levels)
+  ALL_USERS_SHARE   // %C - Distributed to all active users
+}
+
+// Revenue Share Status
+enum RevenueShareStatus {
+  PENDING     // Calculated but not yet processed
+  PROCESSED   // Added to user wallet
+  PAID_OUT    // Withdrawn by user
+  CANCELLED   // Transaction was refunded/cancelled
+}
+
+// Payout Request Status
+enum PayoutStatus {
+  PENDING     // Request submitted
+  PROCESSING  // Being processed
+  COMPLETED   // Payout sent
+  FAILED      // Payout failed
+  CANCELLED   // Cancelled by user or admin
+}
+
+// Platform Configuration (Singleton - only one active at a time)
+model PlatformConfiguration {
+  id String @id @default(uuid())
+
+  // Percentage Configuration (must equal 100%)
+  platformOwnerPercent    Float @default(30)  // %A - Platform Owner (30%)
+  userNetworkTotalPercent Float @default(50)  // %B - User Network Total (50%)
+  allUsersSharePercent    Float @default(20)  // %C - All Users Share (20%)
+
+  // Network Breakdown (must equal userNetworkTotalPercent)
+  buyerRewardPercent      Float @default(10)  // %D - Buyer Reward (10%)
+  directInviterPercent    Float @default(20)  // %E - Direct Inviter (20%)
+  upstreamNetworkPercent  Float @default(20)  // %F - Upstream Network (20%)
+
+  // Upstream Network Configuration
+  maxUpstreamLevels       Int   @default(10)  // Maximum levels for upstream distribution
+
+  // How upstream network share is divided per level (decreasing)
+  // Each level gets: upstreamNetworkPercent / sum(levelWeights) * levelWeight[level]
+  upstreamLevelWeights    Json  @default("[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]")
+
+  // Minimum balance for payout request
+  minPayoutAmount         Decimal @db.Decimal(10, 2) @default(50.00)
+
+  // Active flag (only one config should be active)
+  isActive Boolean @default(false)
+
+  // Audit trail
+  createdById String?
+  updatedById String?
+  activatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+// User Wallet - Tracks user earnings and balance
+model UserWallet {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Current balance (available for payout)
+  balance         Decimal @db.Decimal(14, 2) @default(0)
+  currency        String  @default("EUR")
+
+  // Lifetime earnings breakdown
+  totalEarnings           Decimal @db.Decimal(14, 2) @default(0)
+  buyerRewardsEarned      Decimal @db.Decimal(14, 2) @default(0)
+  inviterCommissionsEarned Decimal @db.Decimal(14, 2) @default(0)
+  networkSharesEarned     Decimal @db.Decimal(14, 2) @default(0)
+  allUsersShareEarned     Decimal @db.Decimal(14, 2) @default(0)
+
+  // Payout history
+  totalPaidOut    Decimal @db.Decimal(14, 2) @default(0)
+  lastPayoutAt    DateTime?
+
+  // Relations
+  revenueShares   RevenueShare[]
+  payoutRequests  PayoutRequest[]
+  walletHistory   WalletTransaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([balance])
+}
+
+// Revenue Distribution - Tracks how a transaction's revenue was distributed
+model RevenueDistribution {
+  id String @id @default(uuid())
+
+  // Link to the transaction that generated this revenue
+  transactionId String @unique
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  // Total revenue amount (platform fee from the transaction)
+  totalRevenue    Decimal @db.Decimal(14, 2)
+  currency        String  @default("EUR")
+
+  // Distribution amounts (calculated based on active config at time of transaction)
+  platformAmount      Decimal @db.Decimal(14, 2)  // %A
+  buyerRewardAmount   Decimal @db.Decimal(14, 2)  // %D
+  directInviterAmount Decimal @db.Decimal(14, 2)  // %E
+  upstreamNetworkAmount Decimal @db.Decimal(14, 2) // %F
+  allUsersShareAmount Decimal @db.Decimal(14, 2)  // %C
+
+  // Configuration snapshot (percentages at time of distribution)
+  configSnapshot Json
+
+  // Processing status
+  status          RevenueShareStatus @default(PENDING)
+  processedAt     DateTime?
+  errorMessage    String?
+
+  // Individual shares (one per recipient)
+  shares RevenueShare[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Revenue Share - Individual share for a recipient
+model RevenueShare {
+  id String @id @default(uuid())
+
+  // Link to distribution
+  distributionId String
+  distribution   RevenueDistribution @relation(fields: [distributionId], references: [id], onDelete: Cascade)
+
+  // Recipient
+  recipientId String
+  wallet      UserWallet @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  // Share details
+  shareType   RevenueShareType
+  amount      Decimal @db.Decimal(14, 2)
+  currency    String  @default("EUR")
+
+  // For upstream network shares, which level (1 = direct inviter's inviter, etc.)
+  upstreamLevel Int?
+
+  // Status
+  status      RevenueShareStatus @default(PENDING)
+  processedAt DateTime?
+
+  // Notes (e.g., "Level 3 upstream from buyer")
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([distributionId])
+  @@index([recipientId])
+  @@index([shareType])
+  @@index([status])
+}
+
+// Wallet Transaction - Audit log for all wallet changes
+model WalletTransaction {
+  id String @id @default(uuid())
+
+  walletId String
+  wallet   UserWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  // Transaction type
+  type        String  // "CREDIT", "DEBIT", "PAYOUT", "ADJUSTMENT"
+  amount      Decimal @db.Decimal(14, 2)
+  currency    String  @default("EUR")
+
+  // Balance after this transaction
+  balanceAfter Decimal @db.Decimal(14, 2)
+
+  // Reference to source (revenue share, payout, etc.)
+  referenceType String?  // "REVENUE_SHARE", "PAYOUT", "ADMIN_ADJUSTMENT"
+  referenceId   String?
+
+  // Description
+  description String?
+
+  createdAt DateTime @default(now())
+
+  @@index([walletId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// Payout Request - User requests to withdraw their balance
+model PayoutRequest {
+  id String @id @default(uuid())
+
+  walletId String
+  wallet   UserWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  // Amount requested
+  amount   Decimal @db.Decimal(14, 2)
+  currency String  @default("EUR")
+
+  // Payout method
+  payoutMethod String // "BANK_TRANSFER", "PAYPAL", "STRIPE"
+  payoutDetails Json  // { iban, accountName } or { paypalEmail } etc.
+
+  // Status
+  status      PayoutStatus @default(PENDING)
+  processedAt DateTime?
+  processedBy String?
+
+  // External reference (from payment provider)
+  externalReference String?
+
+  // Notes
+  notes       String?
+  failureReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([walletId])
+  @@index([status])
+  @@index([createdAt])
 }

@@ -28,6 +28,7 @@ import { VerificationModule } from './modules/verification';
 import { PlatformServicesModule } from './modules/platform-services/platform-services.module';
 import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
 import { FinancialToolsModule } from './modules/financial-tools/financial-tools.module';
+import { RevenueShareModule } from './modules/revenue-share/revenue-share.module';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { FinancialToolsModule } from './modules/financial-tools/financial-tools.
     PlatformServicesModule,
     NeighborhoodModule,
     FinancialToolsModule,
+    RevenueShareModule,
   ],
   controllers: [AppController],
   providers: [AppService],
