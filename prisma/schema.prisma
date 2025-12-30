@@ -342,6 +342,7 @@ model User {
   searchAgents          SearchAgent[]
   favoriteProperties    FavoriteProperty[]
   browsingHistory       BrowsingHistory[]
+  recommendationFeedback RecommendationFeedback[]
 
   // Notifications (USER-020+)
   notifications         Notification[]
@@ -550,6 +551,7 @@ model Property {
   dynamicPricingRules    DynamicPricingRule[]
   favoritedBy            FavoriteProperty[]
   browsingHistory        BrowsingHistory[]
+  recommendationFeedback RecommendationFeedback[]
   negotiations           Negotiation[]        // (PROD-090)
   conversations          Conversation[]       // Direct property inquiries
   serviceRequests        ServiceRequest[]     // Service requests for this property
@@ -727,6 +729,20 @@ model BrowsingHistory {
   @@index([userId])
   @@index([propertyId])
   @@index([viewedAt])
+}
+
+// Recommendation Feedback (PROD-050)
+model RecommendationFeedback {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  isPositive Boolean  // true = thumbs up, false = thumbs down
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, propertyId])
+  @@index([userId])
 }
 
 // ============================================

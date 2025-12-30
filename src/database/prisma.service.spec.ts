@@ -86,19 +86,14 @@ describe('PrismaService', () => {
     it('should not throw error in development environment', async () => {
       setNodeEnv('development');
 
-      // Mock the models to prevent actual database operations
-      const mockModel = {
-        deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
-      };
-
-      // Replace service properties with mock
-      Object.defineProperty(service, 'user', {
-        value: mockModel,
-        writable: true,
-        configurable: true,
-      });
+      // Mock Reflect.ownKeys to return empty array (no models to clean)
+      const originalOwnKeys = Reflect.ownKeys;
+      jest.spyOn(Reflect, 'ownKeys').mockReturnValue([]);
 
       await expect(service.cleanDatabase()).resolves.not.toThrow();
+
+      // Restore
+      Reflect.ownKeys = originalOwnKeys;
     });
 
     it('should not throw error in test environment', async () => {
@@ -127,9 +122,16 @@ describe('PrismaService', () => {
         enumerable: true,
       });
 
+      // Mock Reflect.ownKeys to return only our test property
+      const originalOwnKeys = Reflect.ownKeys;
+      jest.spyOn(Reflect, 'ownKeys').mockReturnValue(['testModel']);
+
       await service.cleanDatabase();
 
       expect(mockDeleteMany).toHaveBeenCalled();
+
+      // Restore
+      Reflect.ownKeys = originalOwnKeys;
     });
 
     it('should skip properties without deleteMany method', async () => {
@@ -144,8 +146,15 @@ describe('PrismaService', () => {
         enumerable: true,
       });
 
+      // Mock Reflect.ownKeys to return only our test property
+      const originalOwnKeys = Reflect.ownKeys;
+      jest.spyOn(Reflect, 'ownKeys').mockReturnValue(['noDeleteModel']);
+
       // Should not throw
       await expect(service.cleanDatabase()).resolves.not.toThrow();
+
+      // Restore
+      Reflect.ownKeys = originalOwnKeys;
     });
 
     it('should skip private properties (starting with _)', async () => {
@@ -161,10 +170,17 @@ describe('PrismaService', () => {
         enumerable: true,
       });
 
+      // Mock Reflect.ownKeys to return only our test property
+      const originalOwnKeys = Reflect.ownKeys;
+      jest.spyOn(Reflect, 'ownKeys').mockReturnValue(['_privateModel']);
+
       await service.cleanDatabase();
 
       // Private models should be skipped
       expect(mockDeleteMany).not.toHaveBeenCalled();
+
+      // Restore
+      Reflect.ownKeys = originalOwnKeys;
     });
 
     it('should skip $ prefixed properties', async () => {

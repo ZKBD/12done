@@ -49,6 +49,11 @@ import {
   MediaService,
   OpenHouseService,
 } from './services';
+import {
+  BrowsingHistoryService,
+  TrackViewDto,
+  BrowsingHistoryResponseDto,
+} from '@/modules/search';
 import { JwtAuthGuard, OptionalJwtAuthGuard } from '@/modules/auth/guards';
 import { RolesGuard } from '@/common/guards';
 import { CurrentUser, CurrentUserData } from '@/common/decorators';
@@ -96,6 +101,7 @@ export class PropertiesController {
     private readonly pricingService: PricingService,
     private readonly mediaService: MediaService,
     private readonly openHouseService: OpenHouseService,
+    private readonly browsingHistoryService: BrowsingHistoryService,
   ) {}
 
   // ============ PROPERTY CRUD ============
@@ -165,6 +171,27 @@ export class PropertiesController {
     @CurrentUser() user?: CurrentUserData,
   ): Promise<PropertyResponseDto> {
     return this.propertiesService.findById(id, user?.id, user?.role as UserRole);
+  }
+
+  @Post(':id/view')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Track property view for recommendations (PROD-050)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'View tracked successfully',
+    type: BrowsingHistoryResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Property not found' })
+  async trackView(
+    @Param('id') propertyId: string,
+    @Body() dto: TrackViewDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<BrowsingHistoryResponseDto> {
+    return this.browsingHistoryService.trackView(user.id, propertyId, dto.duration);
   }
 
   @Patch(':id')

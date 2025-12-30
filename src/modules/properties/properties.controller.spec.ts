@@ -8,6 +8,7 @@ import {
   MediaService,
   OpenHouseService,
 } from './services';
+import { BrowsingHistoryService } from '@/modules/search';
 import { PropertyStatus, UserRole, ListingType } from '@prisma/client';
 
 describe('PropertiesController', () => {
@@ -144,6 +145,19 @@ describe('PropertiesController', () => {
             update: jest.fn(),
             delete: jest.fn(),
             getUpcomingOpenHouses: jest.fn(),
+          },
+        },
+        {
+          provide: BrowsingHistoryService,
+          useValue: {
+            trackView: jest.fn(),
+            updateViewDuration: jest.fn(),
+            getHistory: jest.fn(),
+            getRecentViews: jest.fn(),
+            getRecentPropertyIds: jest.fn(),
+            getViewedPropertiesWithStats: jest.fn(),
+            clearHistory: jest.fn(),
+            deleteEntry: jest.fn(),
           },
         },
       ],
