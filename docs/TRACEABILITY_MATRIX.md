@@ -2,7 +2,7 @@
 
 **Project:** 12done.com
 **Last Updated:** 2025-12-30
-**Version:** 1.8
+**Version:** 1.9
 
 This document traces requirements from the SRS to their implementing test cases and results. It must be updated whenever:
 - New requirements are added to the SRS
@@ -15,10 +15,10 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 1273 | 0 | 1273 | 100% |
+| Unit Tests | 1347 | 0 | 1347 | 100% |
 | E2E Tests | 287 | 0 | 287 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **1565** | **0** | **1565** | **100%** |
+| **Total** | **1639** | **0** | **1639** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -686,6 +686,90 @@ Note: E2E tests require Docker/database to run.
 | Transactions (Buyer) | Navigate to /dashboard/transactions | Summary cards show Total Spent; Table shows "Purchase" type; Status filter works; "View" links to negotiation |
 | Transactions (Seller) | Log in as seller → Navigate to transactions | Total Earnings shows revenue; "Sale" type displayed; Fee breakdown shown; Earnings/Payments tabs work |
 | Refund Flow | Click "View" on completed transaction → Click "Request Refund" → Enter reason → Submit | Refund modal opens; Reason required; Transaction status changes to "Refunded"; "Request Refund" button hidden after refund |
+
+### PROD-096: Split Payments
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-096.1 | `createSplitPayment > should create split payment for transaction` | split-payment.service.spec.ts | Verifies split payment can be created with multiple participants | ✅ |
+| PROD-096.2 | `createSplitPayment > should throw NotFoundException if transaction not found` | split-payment.service.spec.ts | Verifies transaction validation | ✅ |
+| PROD-096.3 | `createSplitPayment > should throw ForbiddenException if user not buyer` | split-payment.service.spec.ts | Verifies only buyer can initiate split payment | ✅ |
+| PROD-096.4 | `createSplitPayment > should throw BadRequestException if splits don't total 100%` | split-payment.service.spec.ts | Verifies percentage validation | ✅ |
+| PROD-096.5 | `createSplitPayment > should throw BadRequestException if transaction already has split` | split-payment.service.spec.ts | Verifies no duplicate split payments | ✅ |
+| PROD-096.6 | `createSplitPayment > should generate unique payment tokens for each participant` | split-payment.service.spec.ts | Verifies secure token generation | ✅ |
+| PROD-096.7 | `createSplitPayment > should send payment link emails to participants` | split-payment.service.spec.ts | Verifies email notification on creation | ✅ |
+| PROD-096.8 | `getSplitPayment > should return split payment by ID` | split-payment.service.spec.ts | Verifies retrieval functionality | ✅ |
+| PROD-096.9 | `getSplitPayment > should throw NotFoundException if not found` | split-payment.service.spec.ts | Verifies not found handling | ✅ |
+| PROD-096.10 | `getSplitPayment > should throw ForbiddenException if user not authorized` | split-payment.service.spec.ts | Verifies access control | ✅ |
+| PROD-096.11 | `getPaymentLinks > should return all payment links for split payment` | split-payment.service.spec.ts | Verifies payment link retrieval | ✅ |
+| PROD-096.12 | `getPaymentByToken > should return payment link by token` | split-payment.service.spec.ts | Verifies token-based lookup | ✅ |
+| PROD-096.13 | `getPaymentByToken > should throw NotFoundException for invalid token` | split-payment.service.spec.ts | Verifies token validation | ✅ |
+| PROD-096.14 | `processPayment > should process individual participant payment` | split-payment.service.spec.ts | Verifies partial payment processing | ✅ |
+| PROD-096.15 | `processPayment > should throw BadRequestException if already paid` | split-payment.service.spec.ts | Verifies idempotent payment handling | ✅ |
+| PROD-096.16 | `processPayment > should update payment link status to PAID` | split-payment.service.spec.ts | Verifies status tracking | ✅ |
+| PROD-096.17 | `completePayment > should complete split payment when all paid` | split-payment.service.spec.ts | Verifies automatic completion detection | ✅ |
+| PROD-096.18 | `completePayment > should not complete if payments pending` | split-payment.service.spec.ts | Verifies partial state handling | ✅ |
+| PROD-096.19 | `sendReminders > should send reminder emails to unpaid participants` | split-payment.service.spec.ts | Verifies reminder functionality | ✅ |
+| PROD-096.20 | `sendReminders > should not send reminders to paid participants` | split-payment.service.spec.ts | Verifies selective reminder logic | ✅ |
+| PROD-096.21 | `cancelSplitPayment > should cancel split payment` | split-payment.service.spec.ts | Verifies cancellation | ✅ |
+| PROD-096.22 | `cancelSplitPayment > should throw ForbiddenException if not initiator` | split-payment.service.spec.ts | Verifies only initiator can cancel | ✅ |
+| PROD-096.23 | `cancelSplitPayment > should throw BadRequestException if already completed` | split-payment.service.spec.ts | Verifies completed payments can't be cancelled | ✅ |
+| PROD-096.24 | `cancelSplitPayment > should refund already paid participants` | split-payment.service.spec.ts | Verifies refund on cancellation | ✅ |
+| PROD-096.25 | `getUserSplitPayments > should return user's split payments` | split-payment.service.spec.ts | Verifies user-specific listing | ✅ |
+| PROD-096.26 | `getUserSplitPayments > should paginate results` | split-payment.service.spec.ts | Verifies pagination support | ✅ |
+| PROD-096.27 | `getUserSplitPayments > should filter by status` | split-payment.service.spec.ts | Verifies status filtering | ✅ |
+
+### PROD-097: Escrow Services
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-097.1 | `createEscrow > should create escrow for transaction` | escrow.service.spec.ts | Verifies escrow creation with milestones | ✅ |
+| PROD-097.2 | `createEscrow > should throw NotFoundException if transaction not found` | escrow.service.spec.ts | Verifies transaction validation | ✅ |
+| PROD-097.3 | `createEscrow > should throw ForbiddenException if user not buyer or seller` | escrow.service.spec.ts | Verifies party authorization | ✅ |
+| PROD-097.4 | `createEscrow > should throw BadRequestException if transaction already has escrow` | escrow.service.spec.ts | Verifies no duplicate escrows | ✅ |
+| PROD-097.5 | `createEscrow > should throw BadRequestException if milestone amounts don't match` | escrow.service.spec.ts | Verifies milestone sum validation | ✅ |
+| PROD-097.6 | `createEscrow > should create escrow without milestones (threshold-based)` | escrow.service.spec.ts | Verifies threshold-based escrow | ✅ |
+| PROD-097.7 | `createEscrow > should send notification to both parties` | escrow.service.spec.ts | Verifies escrow creation notifications | ✅ |
+| PROD-097.8 | `getEscrow > should return escrow by ID` | escrow.service.spec.ts | Verifies escrow retrieval | ✅ |
+| PROD-097.9 | `getEscrow > should throw NotFoundException if not found` | escrow.service.spec.ts | Verifies not found handling | ✅ |
+| PROD-097.10 | `getEscrow > should throw ForbiddenException if user not authorized` | escrow.service.spec.ts | Verifies access control | ✅ |
+| PROD-097.11 | `getEscrow > should include milestones in response` | escrow.service.spec.ts | Verifies milestone data inclusion | ✅ |
+| PROD-097.12 | `fundEscrow > should fund escrow with partial amount` | escrow.service.spec.ts | Verifies partial funding | ✅ |
+| PROD-097.13 | `fundEscrow > should throw ForbiddenException if not buyer` | escrow.service.spec.ts | Verifies buyer-only funding | ✅ |
+| PROD-097.14 | `fundEscrow > should throw BadRequestException if already fully funded` | escrow.service.spec.ts | Verifies funding limit | ✅ |
+| PROD-097.15 | `fundEscrow > should throw BadRequestException if amount exceeds remaining` | escrow.service.spec.ts | Verifies overfunding prevention | ✅ |
+| PROD-097.16 | `fundEscrow > should update funded amount correctly` | escrow.service.spec.ts | Verifies amount tracking | ✅ |
+| PROD-097.17 | `completeFunding > should mark escrow as FUNDED when fully funded` | escrow.service.spec.ts | Verifies status transition | ✅ |
+| PROD-097.18 | `completeFunding > should not change status if partially funded` | escrow.service.spec.ts | Verifies partial funding state | ✅ |
+| PROD-097.19 | `completeFunding > should send notification on full funding` | escrow.service.spec.ts | Verifies funding completion notification | ✅ |
+| PROD-097.20 | `completeMilestone > should mark milestone as completed by seller` | escrow.service.spec.ts | Verifies milestone completion | ✅ |
+| PROD-097.21 | `completeMilestone > should throw ForbiddenException if not seller` | escrow.service.spec.ts | Verifies seller-only completion | ✅ |
+| PROD-097.22 | `completeMilestone > should throw BadRequestException if milestone already completed` | escrow.service.spec.ts | Verifies idempotent completion | ✅ |
+| PROD-097.23 | `completeMilestone > should throw BadRequestException if escrow not funded` | escrow.service.spec.ts | Verifies escrow state validation | ✅ |
+| PROD-097.24 | `completeMilestone > should allow evidence submission` | escrow.service.spec.ts | Verifies evidence attachment | ✅ |
+| PROD-097.25 | `completeMilestone > should send notification to buyer for approval` | escrow.service.spec.ts | Verifies approval notification | ✅ |
+| PROD-097.26 | `approveMilestoneRelease > should release funds to seller` | escrow.service.spec.ts | Verifies fund release | ✅ |
+| PROD-097.27 | `approveMilestoneRelease > should throw ForbiddenException if not buyer` | escrow.service.spec.ts | Verifies buyer-only approval | ✅ |
+| PROD-097.28 | `approveMilestoneRelease > should throw BadRequestException if not completed` | escrow.service.spec.ts | Verifies completion requirement | ✅ |
+| PROD-097.29 | `approveMilestoneRelease > should throw BadRequestException if already released` | escrow.service.spec.ts | Verifies no double release | ✅ |
+| PROD-097.30 | `approveMilestoneRelease > should update releasedAmount` | escrow.service.spec.ts | Verifies release tracking | ✅ |
+| PROD-097.31 | `approveMilestoneRelease > should allow approval notes` | escrow.service.spec.ts | Verifies notes attachment | ✅ |
+| PROD-097.32 | `approveMilestoneRelease > should complete escrow when all released` | escrow.service.spec.ts | Verifies automatic completion | ✅ |
+| PROD-097.33 | `raiseDispute > should create dispute on escrow` | escrow.service.spec.ts | Verifies dispute creation | ✅ |
+| PROD-097.34 | `raiseDispute > should throw ForbiddenException if not party` | escrow.service.spec.ts | Verifies party-only disputes | ✅ |
+| PROD-097.35 | `raiseDispute > should throw BadRequestException if escrow completed` | escrow.service.spec.ts | Verifies dispute timing | ✅ |
+| PROD-097.36 | `raiseDispute > should throw BadRequestException if dispute exists` | escrow.service.spec.ts | Verifies single active dispute | ✅ |
+| PROD-097.37 | `raiseDispute > should change escrow status to DISPUTED` | escrow.service.spec.ts | Verifies status transition | ✅ |
+| PROD-097.38 | `raiseDispute > should notify both parties and admin` | escrow.service.spec.ts | Verifies dispute notifications | ✅ |
+| PROD-097.39 | `resolveDispute > should resolve dispute with buyer refund` | escrow.service.spec.ts | Verifies buyer refund resolution | ✅ |
+| PROD-097.40 | `resolveDispute > should resolve dispute with seller release` | escrow.service.spec.ts | Verifies seller release resolution | ✅ |
+| PROD-097.41 | `resolveDispute > should resolve dispute with split resolution` | escrow.service.spec.ts | Verifies split fund resolution | ✅ |
+| PROD-097.42 | `resolveDispute > should throw ForbiddenException if not admin` | escrow.service.spec.ts | Verifies admin-only resolution | ✅ |
+| PROD-097.43 | `resolveDispute > should notify both parties of resolution` | escrow.service.spec.ts | Verifies resolution notifications | ✅ |
+| PROD-097.44 | `releaseFullEscrow > should release all funds at once` | escrow.service.spec.ts | Verifies full release (threshold-based) | ✅ |
+| PROD-097.45 | `cancelEscrow > should cancel unfunded escrow` | escrow.service.spec.ts | Verifies cancellation | ✅ |
+| PROD-097.46 | `cancelEscrow > should refund buyer if funds present` | escrow.service.spec.ts | Verifies refund on cancel | ✅ |
+| PROD-097.47 | `getDisputes > should return all disputes (admin)` | escrow.service.spec.ts | Verifies admin dispute listing | ✅ |
 
 ---
 

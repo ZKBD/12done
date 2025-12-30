@@ -987,6 +987,9 @@ model RentPayment {
   // Notes
   notes String?
 
+  // Split payment (PROD-096)
+  splitPayment SplitPayment?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1140,6 +1143,12 @@ model Transaction {
   failedAt   DateTime?
   refundedAt DateTime?
 
+  // Split payment (PROD-096)
+  splitPayment SplitPayment?
+
+  // Escrow (PROD-097)
+  escrow Escrow?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1147,6 +1156,232 @@ model Transaction {
   @@index([payerId])
   @@index([status])
   @@index([stripePaymentIntentId])
+}
+
+// ============================================
+// SPLIT PAYMENTS (PROD-096)
+// ============================================
+
+enum SplitPaymentStatus {
+  PENDING // Waiting for all participants
+  PARTIAL // Some payments received
+  COMPLETED // All payments received
+  CANCELLED // Split cancelled
+  EXPIRED // Payment deadline passed
+}
+
+enum ParticipantPaymentStatus {
+  PENDING // Not yet paid
+  PAID // Payment received
+  FAILED // Payment failed
+  REFUNDED // Payment refunded
+}
+
+model SplitPayment {
+  id String @id @default(uuid())
+
+  // Link to rent payment or transaction
+  rentPaymentId String? @unique
+  rentPayment   RentPayment? @relation(fields: [rentPaymentId], references: [id], onDelete: SetNull)
+
+  transactionId String? @unique
+  transaction   Transaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  // Split details (PROD-096.1)
+  totalAmount Decimal @db.Decimal(12, 2)
+  currency    String  @default("EUR")
+
+  // Status tracking (PROD-096.4)
+  status      SplitPaymentStatus @default(PENDING)
+  paidAmount  Decimal            @db.Decimal(12, 2) @default(0)
+  paidCount   Int                @default(0)
+
+  // Deadline
+  expiresAt DateTime?
+
+  // Created by
+  createdById String
+
+  // Participants
+  participants SplitPaymentParticipant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdById])
+}
+
+model SplitPaymentParticipant {
+  id String @id @default(uuid())
+
+  splitPaymentId String
+  splitPayment   SplitPayment @relation(fields: [splitPaymentId], references: [id], onDelete: Cascade)
+
+  // Participant info (PROD-096.2)
+  email     String
+  name      String?
+  userId    String? // If registered user
+
+  // Amount to pay (PROD-096.2)
+  amount   Decimal @db.Decimal(12, 2)
+  currency String  @default("EUR")
+
+  // Individual payment link (PROD-096.3)
+  paymentToken   String @unique @default(uuid())
+  paymentLinkUrl String?
+
+  // Stripe session for this participant
+  stripeSessionId String?
+
+  // Status (PROD-096.4)
+  status ParticipantPaymentStatus @default(PENDING)
+  paidAt DateTime?
+
+  // Reminder tracking
+  reminderSentAt DateTime?
+  reminderCount  Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([splitPaymentId])
+  @@index([email])
+  @@index([paymentToken])
+  @@index([status])
+}
+
+// ============================================
+// ESCROW SERVICES (PROD-097)
+// ============================================
+
+enum EscrowStatus {
+  PENDING // Created but not funded
+  FUNDED // Money deposited
+  PARTIAL_RELEASE // Some milestones released
+  RELEASED // All funds released
+  DISPUTED // Under dispute
+  REFUNDED // Funds returned to buyer
+  CANCELLED // Escrow cancelled
+}
+
+enum EscrowMilestoneStatus {
+  PENDING // Not yet completed
+  COMPLETED // Milestone achieved
+  APPROVED // Approved for release
+  RELEASED // Funds released
+  DISPUTED // Under dispute
+}
+
+model Escrow {
+  id String @id @default(uuid())
+
+  // Link to transaction (PROD-097.1)
+  transactionId String @unique
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  // Escrow amounts
+  totalAmount  Decimal @db.Decimal(12, 2)
+  heldAmount   Decimal @db.Decimal(12, 2) @default(0)
+  releasedAmount Decimal @db.Decimal(12, 2) @default(0)
+  currency     String  @default("EUR")
+
+  // Threshold (PROD-097.2)
+  // Only require escrow for transactions above this amount
+  thresholdAmount Decimal? @db.Decimal(12, 2)
+
+  // Status (PROD-097.3)
+  status EscrowStatus @default(PENDING)
+
+  // Provider reference (PROD-097.1)
+  providerName      String? // "Stripe", "Escrow.com", etc.
+  providerReference String?
+
+  // Parties
+  buyerId  String
+  sellerId String
+
+  // Timestamps
+  fundedAt   DateTime?
+  releasedAt DateTime?
+  disputedAt DateTime?
+
+  // Milestones
+  milestones EscrowMilestone[]
+
+  // Disputes
+  disputes EscrowDispute[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([buyerId])
+  @@index([sellerId])
+}
+
+model EscrowMilestone {
+  id String @id @default(uuid())
+
+  escrowId String
+  escrow   Escrow @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+
+  // Milestone details (PROD-097.4)
+  title       String
+  description String?
+  amount      Decimal @db.Decimal(12, 2)
+  currency    String  @default("EUR")
+
+  // Order for sequential release
+  orderIndex Int @default(0)
+
+  // Conditions for release (PROD-097.4)
+  conditions String? // JSON or text description
+
+  // Status
+  status EscrowMilestoneStatus @default(PENDING)
+
+  // Evidence and notes
+  evidence      String? // URL or description of completion evidence
+  approvalNotes String? // Notes from buyer when approving
+
+  // Approval tracking
+  completedAt    DateTime?
+  approvedAt     DateTime?
+  approvedById   String?
+  releasedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([escrowId])
+  @@index([status])
+}
+
+model EscrowDispute {
+  id String @id @default(uuid())
+
+  escrowId String
+  escrow   Escrow @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+
+  // Dispute details
+  raisedById String
+  reason     String
+  evidence   String? // URLs to evidence documents
+
+  // Status
+  status     String @default("OPEN") // OPEN, UNDER_REVIEW, RESOLVED, CLOSED
+  resolution String?
+
+  // Resolution
+  resolvedAt   DateTime?
+  resolvedById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([escrowId])
+  @@index([status])
 }
 
 // ============================================
