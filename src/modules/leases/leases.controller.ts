@@ -10,6 +10,7 @@ import {
   UseGuards,
   HttpStatus,
   HttpCode,
+  Ip,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -36,6 +37,8 @@ import {
   CreateRenewalOfferDto,
   DeclineRenewalDto,
   RenewalQueryDto,
+  LeaseSignatureStatusDto,
+  PaymentLinkDto,
 } from './dto';
 
 @ApiTags('leases')
@@ -393,6 +396,127 @@ export class LeasesController {
     @Body() dto: WaivePaymentDto,
   ): Promise<RentPaymentResponseDto> {
     return this.leasesService.waivePayment(leaseId, paymentId, user.id, dto);
+  }
+
+  /**
+   * Get payment link for tenant (PROD-106.3)
+   */
+  @Get(':leaseId/payments/:paymentId/pay-link')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get payment link (PROD-106.3)',
+    description: 'Get payment link for a specific rent payment (tenant only)',
+  })
+  @ApiParam({
+    name: 'leaseId',
+    description: 'Lease UUID',
+  })
+  @ApiParam({
+    name: 'paymentId',
+    description: 'Payment UUID',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Payment link details',
+    type: PaymentLinkDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Payment already completed or waived',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Payment not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Only tenant can access payment link',
+  })
+  async getPaymentLink(
+    @Param('leaseId') leaseId: string,
+    @Param('paymentId') paymentId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PaymentLinkDto> {
+    return this.leasesService.getPaymentLink(leaseId, paymentId, user.id);
+  }
+
+  // ============================================
+  // E-SIGNATURE ENDPOINTS (PROD-106.6)
+  // ============================================
+
+  /**
+   * Sign lease (PROD-106.6)
+   */
+  @Post(':id/sign')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Sign lease (PROD-106.6)',
+    description:
+      'E-sign a lease. Landlord must sign first, then tenant. Lease auto-activates when both sign.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Lease UUID',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lease signed successfully',
+    type: LeaseSignatureStatusDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Already signed or wrong signing order',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Lease not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Not authorized to sign this lease',
+  })
+  async signLease(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+    @Ip() ipAddress: string,
+  ): Promise<LeaseSignatureStatusDto> {
+    return this.leasesService.signLease(id, user.id, ipAddress);
+  }
+
+  /**
+   * Get signature status (PROD-106.6)
+   */
+  @Get(':id/signature-status')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get signature status (PROD-106.6)',
+    description: 'Get the current signature status of a lease',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Lease UUID',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Signature status',
+    type: LeaseSignatureStatusDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Lease not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Not authorized to view this lease',
+  })
+  async getSignatureStatus(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<LeaseSignatureStatusDto> {
+    return this.leasesService.getSignatureStatus(id, user.id);
   }
 
   // ============================================

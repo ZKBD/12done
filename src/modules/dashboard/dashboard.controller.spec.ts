@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
 import { ExpenseService } from './expense.service';
+import { TenantDashboardService } from './tenant-dashboard.service';
+import { TenantDocumentService } from './tenant-document.service';
 import { ExpenseCategoryEnum } from './dto';
 
 describe('DashboardController', () => {
@@ -54,12 +56,25 @@ describe('DashboardController', () => {
     delete: jest.fn(),
   };
 
+  const mockTenantDashboardService = {
+    getTenantDashboard: jest.fn(),
+  };
+
+  const mockTenantDocumentService = {
+    create: jest.fn(),
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    delete: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DashboardController],
       providers: [
         { provide: DashboardService, useValue: mockDashboardService },
         { provide: ExpenseService, useValue: mockExpenseService },
+        { provide: TenantDashboardService, useValue: mockTenantDashboardService },
+        { provide: TenantDocumentService, useValue: mockTenantDocumentService },
       ],
     }).compile();
 

@@ -22,6 +22,8 @@ import { JwtAuthGuard } from '@/modules/auth/guards';
 import { CurrentUser, CurrentUserData } from '@/common/decorators';
 import { DashboardService } from './dashboard.service';
 import { ExpenseService } from './expense.service';
+import { TenantDashboardService } from './tenant-dashboard.service';
+import { TenantDocumentService } from './tenant-document.service';
 import {
   DashboardQueryDto,
   LandlordDashboardResponseDto,
@@ -30,6 +32,12 @@ import {
   ExpenseQueryDto,
   ExpenseResponseDto,
   ExpenseListResponseDto,
+  TenantDashboardQueryDto,
+  TenantDashboardResponseDto,
+  CreateTenantDocumentDto,
+  TenantDocumentQueryDto,
+  TenantDocumentResponseDto,
+  TenantDocumentListResponseDto,
 } from './dto';
 
 @ApiTags('dashboard')
@@ -40,6 +48,8 @@ export class DashboardController {
   constructor(
     private readonly dashboardService: DashboardService,
     private readonly expenseService: ExpenseService,
+    private readonly tenantDashboardService: TenantDashboardService,
+    private readonly tenantDocumentService: TenantDocumentService,
   ) {}
 
   // ============================================
@@ -179,5 +189,119 @@ export class DashboardController {
     @CurrentUser() user: CurrentUserData,
   ): Promise<{ message: string }> {
     return this.expenseService.delete(id, user.id);
+  }
+
+  // ============================================
+  // TENANT DASHBOARD (PROD-106.1)
+  // ============================================
+
+  @Get('tenant')
+  @ApiOperation({
+    summary: 'Get tenant dashboard (PROD-106.1)',
+    description:
+      'Aggregated dashboard data for tenant including leases, payments, maintenance requests, and documents',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Dashboard data retrieved successfully',
+    type: TenantDashboardResponseDto,
+  })
+  async getTenantDashboard(
+    @CurrentUser() user: CurrentUserData,
+    @Query() query: TenantDashboardQueryDto,
+  ): Promise<TenantDashboardResponseDto> {
+    return this.tenantDashboardService.getTenantDashboard(user.id, query);
+  }
+
+  // ============================================
+  // TENANT DOCUMENTS (PROD-106.7)
+  // ============================================
+
+  @Post('tenant/documents')
+  @ApiOperation({
+    summary: 'Upload tenant document (PROD-106.7)',
+    description: 'Add a document reference to a lease',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Document created successfully',
+    type: TenantDocumentResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Lease not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Not authorized to add documents to this lease',
+  })
+  async createDocument(
+    @CurrentUser() user: CurrentUserData,
+    @Body() dto: CreateTenantDocumentDto,
+  ): Promise<TenantDocumentResponseDto> {
+    return this.tenantDocumentService.create(user.id, dto);
+  }
+
+  @Get('tenant/documents')
+  @ApiOperation({
+    summary: 'List tenant documents (PROD-106.7)',
+    description: 'List all documents accessible to the tenant with optional filtering',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'List of documents',
+    type: TenantDocumentListResponseDto,
+  })
+  async getDocuments(
+    @CurrentUser() user: CurrentUserData,
+    @Query() query: TenantDocumentQueryDto,
+  ): Promise<TenantDocumentListResponseDto> {
+    return this.tenantDocumentService.findAll(user.id, query);
+  }
+
+  @Get('tenant/documents/:id')
+  @ApiOperation({ summary: 'Get document by ID' })
+  @ApiParam({ name: 'id', description: 'Document UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Document details',
+    type: TenantDocumentResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Document not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Not authorized to view this document',
+  })
+  async getDocument(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<TenantDocumentResponseDto> {
+    return this.tenantDocumentService.findOne(id, user.id);
+  }
+
+  @Delete('tenant/documents/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete document' })
+  @ApiParam({ name: 'id', description: 'Document UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Document deleted successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Document not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Not authorized to delete this document',
+  })
+  async deleteDocument(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ message: string }> {
+    return this.tenantDocumentService.delete(id, user.id);
   }
 }

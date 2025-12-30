@@ -117,6 +117,11 @@ enum NotificationType {
   LEASE_RENEWAL_ACCEPTED
   LEASE_RENEWAL_DECLINED
   LEASE_RENEWAL_EXPIRED
+  // Tenant Portal (PROD-106)
+  LEASE_SIGNED_BY_LANDLORD
+  LEASE_SIGNED_BY_TENANT
+  LEASE_FULLY_EXECUTED
+  DOCUMENT_UPLOADED
 }
 
 // ============================================
@@ -816,11 +821,18 @@ model Lease {
   // Optional document
   documentUrl         String?
 
+  // E-Signature tracking (PROD-106.6)
+  landlordSignedAt    DateTime?         // When landlord signed
+  tenantSignedAt      DateTime?         // When tenant signed
+  landlordSignatureIp String?           // IP address for audit trail
+  tenantSignatureIp   String?           // IP address for audit trail
+
   // Relations
   rentPayments        RentPayment[]
   maintenanceRequests MaintenanceRequest[] // Maintenance requests (PROD-103)
   renewals            LeaseRenewal[]       // Lease renewals (PROD-105)
   renewedFromRenewal  LeaseRenewal?        @relation("RenewalNewLease") // Renewal that created this lease
+  documents           TenantDocument[]     // Tenant documents (PROD-106.7)
 
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
@@ -1436,4 +1448,45 @@ model Expense {
   @@index([propertyId])
   @@index([category])
   @@index([expenseDate])
+}
+
+// ============================================
+// TENANT DOCUMENTS (PROD-106.7)
+// ============================================
+
+enum TenantDocumentType {
+  LEASE_AGREEMENT       // Original lease document
+  SIGNED_LEASE          // Signed version of lease
+  PAYMENT_RECEIPT       // Rent payment receipts
+  MOVE_IN_CHECKLIST     // Move-in inspection
+  MOVE_OUT_CHECKLIST    // Move-out inspection
+  NOTICE                // Notices (rent increase, etc.)
+  OTHER                 // Miscellaneous documents
+}
+
+model TenantDocument {
+  id              String              @id @default(uuid())
+
+  // Associated lease
+  leaseId         String
+  lease           Lease               @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+
+  // Document details
+  type            TenantDocumentType
+  name            String              // Display name
+  description     String?
+  documentUrl     String              // External URL to document
+
+  // File metadata
+  fileSize        Int?                // Size in bytes
+  mimeType        String?             // application/pdf, image/jpeg, etc.
+
+  // Audit trail
+  uploadedById    String              // User who uploaded the document
+
+  createdAt       DateTime            @default(now())
+
+  @@index([leaseId])
+  @@index([type])
+  @@index([uploadedById])
 }

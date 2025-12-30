@@ -1351,6 +1351,100 @@ Note: E2E tests require Docker/database to run.
 
 ---
 
+## 7.13 Tenant Portal (PROD-106)
+
+### PROD-106.1: Tenant Dashboard (GET /dashboard/tenant)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-106.1.1 | `getTenantDashboard > should return aggregated dashboard data` | tenant-dashboard.service.spec.ts | Verifies tenant dashboard includes all required fields | ✅ |
+| PROD-106.1.2 | `getTenantDashboard > should handle empty data correctly` | tenant-dashboard.service.spec.ts | Verifies graceful handling of new tenant with no data | ✅ |
+| PROD-106.1.3 | `getTenantDashboard > should correctly map lease data to DTO` | tenant-dashboard.service.spec.ts | Verifies lease mapping with property and landlord info | ✅ |
+| PROD-106.1.4 | `getTenantDashboard > should correctly calculate total monthly rent from multiple leases` | tenant-dashboard.service.spec.ts | Verifies rent aggregation across multiple leases | ✅ |
+| PROD-106.1.5 | `GET /dashboard/tenant > should return aggregated tenant dashboard` | tenant-portal.e2e-spec.ts | E2E test of full tenant dashboard response | ✅ |
+| PROD-106.1.6 | `GET /dashboard/tenant > should require authentication` | tenant-portal.e2e-spec.ts | Verifies 401 for unauthenticated requests | ✅ |
+| PROD-106.1.7 | `GET /dashboard/tenant > should return empty dashboard for new tenant` | tenant-portal.e2e-spec.ts | E2E test of empty state handling | ✅ |
+
+### PROD-106.3: Payment Link (GET /leases/:id/payments/:paymentId/pay-link)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-106.3.1 | `getPaymentLink > should return payment link for tenant` | leases.service.spec.ts | Verifies payment link returned for lease tenant | ✅ |
+| PROD-106.3.2 | `getPaymentLink > should throw if payment not found` | leases.service.spec.ts | Verifies error for non-existent payment | ✅ |
+| PROD-106.3.3 | `getPaymentLink > should throw if payment does not belong to lease` | leases.service.spec.ts | Verifies payment-lease relationship validation | ✅ |
+| PROD-106.3.4 | `getPaymentLink > should throw if user is not lease participant` | leases.service.spec.ts | Verifies authorization check | ✅ |
+| PROD-106.3.5 | `getPaymentLink > should throw if payment already paid` | leases.service.spec.ts | Verifies paid payment rejection | ✅ |
+| PROD-106.3.6 | `getPaymentLink > should allow landlord to view payment link` | leases.service.spec.ts | Verifies landlord access to payment link | ✅ |
+| PROD-106.3.7 | `GET /leases/:id/payments/:paymentId/pay-link > should return payment link` | tenant-portal.e2e-spec.ts | E2E test of payment link endpoint | ✅ |
+| PROD-106.3.8 | `GET /leases/:id/payments/:paymentId/pay-link > should require authentication` | tenant-portal.e2e-spec.ts | Verifies 401 for unauthenticated | ✅ |
+| PROD-106.3.9 | `GET /leases/:id/payments/:paymentId/pay-link > should reject payment already paid` | tenant-portal.e2e-spec.ts | E2E test of paid payment rejection | ✅ |
+| PROD-106.3.10 | `GET /leases/:id/payments/:paymentId/pay-link > should reject non-participant` | tenant-portal.e2e-spec.ts | E2E test of authorization | ✅ |
+
+### PROD-106.6: E-Signature (POST /leases/:id/sign, GET /leases/:id/signature-status)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-106.6.1 | `signLease > should allow landlord to sign first (draft lease)` | leases.service.spec.ts | Verifies landlord can sign draft lease | ✅ |
+| PROD-106.6.2 | `signLease > should allow tenant to sign after landlord` | leases.service.spec.ts | Verifies tenant can sign after landlord | ✅ |
+| PROD-106.6.3 | `signLease > should auto-activate lease when both sign` | leases.service.spec.ts | Verifies lease status changes to ACTIVE on both signatures | ✅ |
+| PROD-106.6.4 | `signLease > should throw if tenant tries to sign first` | leases.service.spec.ts | Verifies landlord-first signing order | ✅ |
+| PROD-106.6.5 | `signLease > should throw if already signed` | leases.service.spec.ts | Verifies duplicate signature rejection | ✅ |
+| PROD-106.6.6 | `signLease > should throw for non-participant` | leases.service.spec.ts | Verifies authorization check | ✅ |
+| PROD-106.6.7 | `getSignatureStatus > should return correct status for unsigned lease` | leases.service.spec.ts | Verifies unsigned status reported | ✅ |
+| PROD-106.6.8 | `getSignatureStatus > should return correct status for landlord-signed lease` | leases.service.spec.ts | Verifies partial signature status | ✅ |
+| PROD-106.6.9 | `getSignatureStatus > should return correct status for fully executed lease` | leases.service.spec.ts | Verifies fully executed status | ✅ |
+| PROD-106.6.10 | `getSignatureStatus > should throw for non-participant` | leases.service.spec.ts | Verifies authorization check | ✅ |
+| PROD-106.6.11 | `POST /leases/:id/sign > landlord signs draft lease` | tenant-portal.e2e-spec.ts | E2E test of landlord signing | ✅ |
+| PROD-106.6.12 | `POST /leases/:id/sign > tenant signs after landlord` | tenant-portal.e2e-spec.ts | E2E test of tenant signing | ✅ |
+| PROD-106.6.13 | `POST /leases/:id/sign > lease activates when both sign` | tenant-portal.e2e-spec.ts | E2E test of auto-activation | ✅ |
+| PROD-106.6.14 | `POST /leases/:id/sign > tenant cannot sign first` | tenant-portal.e2e-spec.ts | E2E test of signing order | ✅ |
+| PROD-106.6.15 | `POST /leases/:id/sign > non-participant cannot sign` | tenant-portal.e2e-spec.ts | E2E test of authorization | ✅ |
+| PROD-106.6.16 | `GET /leases/:id/signature-status > returns signature status` | tenant-portal.e2e-spec.ts | E2E test of status endpoint | ✅ |
+| PROD-106.6.17 | `GET /leases/:id/signature-status > requires authentication` | tenant-portal.e2e-spec.ts | Verifies 401 for unauthenticated | ✅ |
+
+### PROD-106.7: Document Storage (CRUD /dashboard/tenant/documents)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-106.7.1 | Schema includes TenantDocumentType enum | prisma/schema.prisma | Verifies document types (LEASE_AGREEMENT, SIGNED_LEASE, etc.) | ✅ |
+| PROD-106.7.2 | Schema includes TenantDocument model | prisma/schema.prisma | Verifies model with lease, uploader relations | ✅ |
+| PROD-106.7.3 | `create > should create a document when user is tenant` | tenant-document.service.spec.ts | Verifies document creation by tenant | ✅ |
+| PROD-106.7.4 | `create > should create a document when user is landlord` | tenant-document.service.spec.ts | Verifies document creation by landlord | ✅ |
+| PROD-106.7.5 | `create > should throw NotFoundException when lease not found` | tenant-document.service.spec.ts | Verifies lease validation | ✅ |
+| PROD-106.7.6 | `create > should throw ForbiddenException when user has no access` | tenant-document.service.spec.ts | Verifies authorization | ✅ |
+| PROD-106.7.7 | `findAll > should return documents for a specific lease` | tenant-document.service.spec.ts | Verifies document listing by lease | ✅ |
+| PROD-106.7.8 | `findAll > should return documents filtered by type` | tenant-document.service.spec.ts | Verifies type filtering | ✅ |
+| PROD-106.7.9 | `findAll > should return all documents across user leases when no leaseId provided` | tenant-document.service.spec.ts | Verifies multi-lease document listing | ✅ |
+| PROD-106.7.10 | `findAll > should throw ForbiddenException when user has no access to lease` | tenant-document.service.spec.ts | Verifies authorization | ✅ |
+| PROD-106.7.11 | `findAll > should throw NotFoundException when lease not found` | tenant-document.service.spec.ts | Verifies lease validation | ✅ |
+| PROD-106.7.12 | `findOne > should return document when user is tenant` | tenant-document.service.spec.ts | Verifies get document by tenant | ✅ |
+| PROD-106.7.13 | `findOne > should return document when user is landlord` | tenant-document.service.spec.ts | Verifies get document by landlord | ✅ |
+| PROD-106.7.14 | `findOne > should throw NotFoundException when document not found` | tenant-document.service.spec.ts | Verifies error for missing document | ✅ |
+| PROD-106.7.15 | `findOne > should throw ForbiddenException when user has no access` | tenant-document.service.spec.ts | Verifies authorization | ✅ |
+| PROD-106.7.16 | `delete > should delete document when user is the uploader` | tenant-document.service.spec.ts | Verifies deletion by uploader | ✅ |
+| PROD-106.7.17 | `delete > should delete document when user is landlord` | tenant-document.service.spec.ts | Verifies landlord can delete documents | ✅ |
+| PROD-106.7.18 | `delete > should throw NotFoundException when document not found` | tenant-document.service.spec.ts | Verifies error for missing document | ✅ |
+| PROD-106.7.19 | `delete > should throw ForbiddenException when tenant tries to delete other user document` | tenant-document.service.spec.ts | Verifies authorization | ✅ |
+| PROD-106.7.20 | `POST /dashboard/tenant/documents > should create a document` | tenant-portal.e2e-spec.ts | E2E test of document creation | ✅ |
+| PROD-106.7.21 | `POST /dashboard/tenant/documents > should require authentication` | tenant-portal.e2e-spec.ts | Verifies 401 for unauthenticated | ✅ |
+| PROD-106.7.22 | `GET /dashboard/tenant/documents > should return documents` | tenant-portal.e2e-spec.ts | E2E test of document listing | ✅ |
+| PROD-106.7.23 | `GET /dashboard/tenant/documents > should filter by leaseId` | tenant-portal.e2e-spec.ts | E2E test of lease filter | ✅ |
+| PROD-106.7.24 | `GET /dashboard/tenant/documents/:id > should return document` | tenant-portal.e2e-spec.ts | E2E test of get document | ✅ |
+| PROD-106.7.25 | `GET /dashboard/tenant/documents/:id > should return 404 for non-existent` | tenant-portal.e2e-spec.ts | E2E test of not found | ✅ |
+| PROD-106.7.26 | `DELETE /dashboard/tenant/documents/:id > should delete document` | tenant-portal.e2e-spec.ts | E2E test of deletion | ✅ |
+
+### Test Summary for PROD-106
+
+| Test Type | Count | Status |
+|-----------|-------|--------|
+| TenantDashboardService Unit Tests | 4 | ✅ |
+| TenantDocumentService Unit Tests | 17 | ✅ |
+| LeasesService E-Signature Unit Tests | 16 | ✅ |
+| E2E Tests | 26 | ✅ |
+| **Total** | **63** | ✅ |
+
+---
+
 ## 8. E2E Test Coverage
 
 ### End-to-End Test Summary
@@ -1371,14 +1465,16 @@ Note: E2E tests require Docker/database to run.
 | **Messaging (Browser)** | messaging.spec.ts | 29 | UI interactions, real-time, accessibility, mobile responsive | ⏳ |
 | **Applications (Unit)** | applications.*.spec.ts | 24 | Application CRUD, status transitions, authorization | ⏳ |
 | **Applications (E2E)** | applications.e2e-spec.ts | 15 | Full rental application flow, owner review, withdrawal | ⏳ |
-| **Leases (Unit)** | leases.*.spec.ts | 44 | Lease CRUD, payments, rent reminders, cron jobs | ✅ |
+| **Leases (Unit)** | leases.*.spec.ts | 60 | Lease CRUD, payments, rent reminders, cron jobs, e-signature | ✅ |
 | **Leases (E2E)** | leases.e2e-spec.ts | 15 | Full lease lifecycle, payments, activation, termination | ✅ |
 | **Maintenance (Unit)** | maintenance.*.spec.ts | 49 | Maintenance CRUD, workflow transitions, authorization | ⏳ |
 | **Maintenance (E2E)** | maintenance.e2e-spec.ts | 18 | Full maintenance workflow, approval, completion | ⏳ |
 | **Lease Renewal (Unit)** | lease-renewal.service.spec.ts | 20 | Cron jobs, offer CRUD, status transitions, authorization | ⏳ |
 | **Lease Renewal (E2E)** | lease-renewal.e2e-spec.ts | 15 | Full renewal workflow, accept/decline, new lease generation | ⏳ |
-| **Dashboard (Unit)** | dashboard.*.spec.ts | 29 | Expense CRUD, dashboard aggregation, net income calculation | ✅ |
+| **Dashboard (Unit)** | dashboard.*.spec.ts | 50 | Expense CRUD, dashboard aggregation, net income calculation, tenant dashboard, documents | ✅ |
 | **Dashboard (E2E)** | dashboard.e2e-spec.ts | 24 | Full landlord dashboard, expenses CRUD, filtering, authorization | ✅ |
+| **Tenant Portal (Unit)** | tenant-*.spec.ts | 21 | Tenant dashboard aggregation, document CRUD, authorization | ✅ |
+| **Tenant Portal (E2E)** | tenant-portal.e2e-spec.ts | 26 | Tenant dashboard, e-signature flow, payment link, documents CRUD | ✅ |
 
 ---
 
@@ -1420,6 +1516,7 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | Browser Tests | CI Status | Notes |
 |------|------------|-----------|---------------|-----------|-------|
+| 2025-12-30 | ✅ 1050 passed | ✅ 257 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-106 Tenant Portal (37 unit + 26 E2E) |
 | 2025-12-29 | ✅ 1013 passed | ✅ 231 passed | ✅ 5 passed | ✅ Passing | Implemented PROD-100 Management Dashboard (29 unit + 24 E2E) |
 | 2025-12-29 | ✅ 984 passed | ✅ 207 passed | ✅ 5 passed | ✅ Passing | Added WebSocket gateway for real-time messaging (30 tests) |
 | 2025-12-29 | ✅ 954 passed | ✅ 207 passed | ✅ 5 passed | ✅ Passing | Added in-app messaging backend (49 tests) |
@@ -1456,12 +1553,12 @@ docker-compose exec app npm run test:cov
 
 | Category | Files | Test Cases (Approx) |
 |----------|-------|---------------------|
-| Service Unit Tests | 20 | ~514 |
+| Service Unit Tests | 22 | ~551 |
 | Controller Unit Tests | 7 | ~181 |
 | Gateway/Guard Tests | 2 | ~30 |
-| E2E Tests | 10 | ~269 |
+| E2E Tests | 11 | ~295 |
 | Browser Tests (Playwright) | 2 | 34 |
-| **Total** | **41** | **~1069** |
+| **Total** | **44** | **~1132** |
 
 ---
 
@@ -1482,7 +1579,8 @@ The following requirements do not yet have test coverage:
 | PROD-050 | AI Recommendations | Not yet implemented |
 | ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller); 47 E2E tests covering full API flow |
 | PROD-096-097 | Advanced Transaction Features | Not yet implemented |
-| PROD-100-108 | Property Management | Partial implementation; PROD-100, PROD-101, PROD-102, PROD-103, PROD-104, PROD-105 complete |
+| PROD-100-108 | Property Management | Partial implementation; PROD-100, PROD-101, PROD-102, PROD-103, PROD-104, PROD-105, PROD-106 complete |
+| ~~PROD-106~~ | ~~Tenant Portal~~ | ✅ **COMPLETE** - TenantDocument model, TenantDocumentType enum, e-signature fields on Lease, TenantDashboardService, TenantDocumentService, e-signature methods in LeasesService, 6 endpoints (tenant dashboard, document CRUD, sign lease, signature status, payment link); 37 unit tests (4 tenant-dashboard + 17 tenant-document + 16 e-signature); 26 E2E tests |
 | ~~PROD-100~~ | ~~Management Dashboard~~ | ✅ **COMPLETE** - Expense model, ExpenseCategory enum, DashboardModule (controller, services, DTOs), landlord dashboard aggregation, expense CRUD, net income calculation; 29 unit tests (15 expense + 8 dashboard + 6 controller); 24 E2E tests covering full dashboard flow |
 | ~~PROD-101~~ | ~~Rental Applications~~ | ✅ **COMPLETE** - RentalApplication model, ApplicationStatus enum, ApplicationsModule (controller, service, DTOs), notifications integration; 24 unit tests (18 service + 6 controller); 15 E2E tests covering application flow |
 | ~~PROD-102~~ | ~~Rent Reminders~~ | ✅ **COMPLETE** - Lease model, RentPayment model, LeaseStatus/RentPaymentStatus enums, LeasesModule with RentReminderService, cron jobs for 5-day reminders and overdue checks, email templates; 44 unit tests (25 service + 10 reminder + 9 controller); 15 E2E tests |
@@ -1529,6 +1627,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-29 | Claude | Implemented Lease Renewal Automation (PROD-105.1-105.9): LeaseRenewal model with LeaseRenewalStatus enum (PENDING, OFFERED, ACCEPTED, DECLINED, EXPIRED, CANCELLED), LeaseRenewalService with @Cron jobs (60-day check at 2 AM, offer expiration at 3 AM), 6 endpoints (GET pending renewals, GET/POST/DELETE renewal, POST accept/decline), 5 email templates, 5 NotificationType values, auto-generates new lease on accept; 20 unit tests; 15 E2E tests |
 | 2025-12-29 | Claude | Implemented Application Status Notifications (PROD-104.1-104.5): Email notifications for application lifecycle (received confirmation to applicant, congratulations on approval, empathetic rejection), 3 email templates (application-received.hbs, application-approved.hbs, application-rejected.hbs), MailService integration in ApplicationsService; 7 unit tests added |
 | 2025-12-29 | Claude | Implemented Management Dashboard (PROD-100.1-100.8): ExpenseCategory enum, Expense model with landlord/property relations, DashboardModule (DashboardController, DashboardService, ExpenseService), landlord dashboard aggregation (properties, income, expenses, maintenance), expense CRUD with filtering, net income calculation; 29 unit tests (15 expense + 8 dashboard + 6 controller); 24 E2E tests |
+| 2025-12-30 | Claude | Implemented Tenant Portal (PROD-106.1-106.7): TenantDocument model with TenantDocumentType enum, e-signature fields on Lease (landlordSignedAt/tenantSignedAt/IP), TenantDashboardService for aggregated tenant view, TenantDocumentService for document CRUD, e-signature methods in LeasesService (signLease, getSignatureStatus, getPaymentLink), 6 endpoints for tenant dashboard/documents/signing; 37 unit tests (4 tenant-dashboard + 17 tenant-document + 16 e-signature); 26 E2E tests |
 
 ---
 

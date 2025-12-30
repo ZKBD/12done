@@ -590,4 +590,267 @@ describe('LeasesService', () => {
       ).rejects.toThrow(BadRequestException);
     });
   });
+
+  // ============================================
+  // E-SIGNATURE TESTS (PROD-106.6)
+  // ============================================
+
+  describe('signLease', () => {
+    const ipAddress = '127.0.0.1';
+
+    it('should allow landlord to sign first', async () => {
+      const unsignedLease = {
+        ...mockLease,
+        landlordSignedAt: null,
+        tenantSignedAt: null,
+        property: mockProperty,
+        tenant: mockTenant,
+        landlord: mockLandlord,
+      };
+      mockPrismaService.lease.findUnique
+        .mockResolvedValueOnce(unsignedLease)
+        .mockResolvedValueOnce({
+          ...unsignedLease,
+          landlordSignedAt: new Date(),
+          landlordSignatureIp: ipAddress,
+        });
+      mockPrismaService.lease.update.mockResolvedValue({
+        ...unsignedLease,
+        landlordSignedAt: new Date(),
+      });
+
+      const result = await service.signLease(leaseId, landlordId, ipAddress);
+
+      expect(result.landlordSigned).toBe(true);
+      expect(result.tenantSigned).toBe(false);
+      expect(result.fullyExecuted).toBe(false);
+      expect(mockNotificationsService.create).toHaveBeenCalled();
+    });
+
+    it('should allow tenant to sign after landlord', async () => {
+      const landlordSignedLease = {
+        ...mockLease,
+        landlordSignedAt: new Date(),
+        tenantSignedAt: null,
+        property: mockProperty,
+        tenant: mockTenant,
+        landlord: mockLandlord,
+      };
+      mockPrismaService.lease.findUnique
+        .mockResolvedValueOnce(landlordSignedLease)
+        .mockResolvedValueOnce({
+          ...landlordSignedLease,
+          tenantSignedAt: new Date(),
+          status: 'ACTIVE',
+        });
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return callback({
+          lease: {
+            update: jest.fn().mockResolvedValue({
+              ...landlordSignedLease,
+              tenantSignedAt: new Date(),
+              status: 'ACTIVE',
+            }),
+          },
+          rentPayment: { createMany: jest.fn() },
+        });
+      });
+
+      const result = await service.signLease(leaseId, tenantId, ipAddress);
+
+      expect(result.landlordSigned).toBe(true);
+      expect(result.tenantSigned).toBe(true);
+      expect(result.fullyExecuted).toBe(true);
+      expect(result.leaseStatus).toBe('ACTIVE');
+    });
+
+    it('should throw ForbiddenException for unauthorized user', async () => {
+      mockPrismaService.lease.findUnique.mockResolvedValue({
+        ...mockLease,
+        property: mockProperty,
+        tenant: mockTenant,
+        landlord: mockLandlord,
+      });
+
+      await expect(
+        service.signLease(leaseId, 'random-user', ipAddress),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw BadRequestException if landlord already signed', async () => {
+      mockPrismaService.lease.findUnique.mockResolvedValue({
+        ...mockLease,
+        landlordSignedAt: new Date(),
+        property: mockProperty,
+        tenant: mockTenant,
+        landlord: mockLandlord,
+      });
+
+      await expect(
+        service.signLease(leaseId, landlordId, ipAddress),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if tenant tries to sign before landlord', async () => {
+      mockPrismaService.lease.findUnique.mockResolvedValue({
+        ...mockLease,
+        landlordSignedAt: null,
+        tenantSignedAt: null,
+        property: mockProperty,
+        tenant: mockTenant,
+        landlord: mockLandlord,
+      });
+
+      await expect(
+        service.signLease(leaseId, tenantId, ipAddress),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if tenant already signed', async () => {
+      mockPrismaService.lease.findUnique.mockResolvedValue({
+        ...mockLease,
+        landlordSignedAt: new Date(),
+        tenantSignedAt: new Date(),
+        property: mockProperty,
+        tenant: mockTenant,
+        landlord: mockLandlord,
+      });
+
+      await expect(
+        service.signLease(leaseId, tenantId, ipAddress),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw NotFoundException if lease not found', async () => {
+      mockPrismaService.lease.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.signLease(leaseId, landlordId, ipAddress),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('getSignatureStatus', () => {
+    it('should return signature status for tenant', async () => {
+      mockPrismaService.lease.findUnique.mockResolvedValue({
+        ...mockLease,
+        landlordSignedAt: new Date(),
+        tenantSignedAt: null,
+      });
+
+      const result = await service.getSignatureStatus(leaseId, tenantId);
+
+      expect(result.leaseId).toBe(leaseId);
+      expect(result.landlordSigned).toBe(true);
+      expect(result.tenantSigned).toBe(false);
+      expect(result.fullyExecuted).toBe(false);
+    });
+
+    it('should return signature status for landlord', async () => {
+      mockPrismaService.lease.findUnique.mockResolvedValue({
+        ...mockLease,
+        landlordSignedAt: new Date(),
+        tenantSignedAt: new Date(),
+        status: 'ACTIVE',
+      });
+
+      const result = await service.getSignatureStatus(leaseId, landlordId);
+
+      expect(result.landlordSigned).toBe(true);
+      expect(result.tenantSigned).toBe(true);
+      expect(result.fullyExecuted).toBe(true);
+      expect(result.leaseStatus).toBe('ACTIVE');
+    });
+
+    it('should throw NotFoundException if lease not found', async () => {
+      mockPrismaService.lease.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.getSignatureStatus(leaseId, tenantId),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException for unauthorized user', async () => {
+      mockPrismaService.lease.findUnique.mockResolvedValue(mockLease);
+
+      await expect(
+        service.getSignatureStatus(leaseId, 'random-user'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('getPaymentLink', () => {
+    it('should return payment link for tenant', async () => {
+      mockPrismaService.rentPayment.findUnique.mockResolvedValue({
+        ...mockPayment,
+        lease: {
+          ...mockLease,
+          tenantId,
+        },
+      });
+
+      const result = await service.getPaymentLink(leaseId, paymentId, tenantId);
+
+      expect(result.paymentId).toBe(paymentId);
+      expect(result.leaseId).toBe(leaseId);
+      expect(result.amount).toBe(1500);
+      expect(result.message).toContain('Online payment is not yet available');
+    });
+
+    it('should throw NotFoundException if payment not found', async () => {
+      mockPrismaService.rentPayment.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.getPaymentLink(leaseId, paymentId, tenantId),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException if payment belongs to different lease', async () => {
+      mockPrismaService.rentPayment.findUnique.mockResolvedValue({
+        ...mockPayment,
+        leaseId: 'different-lease',
+        lease: { ...mockLease, tenantId },
+      });
+
+      await expect(
+        service.getPaymentLink(leaseId, paymentId, tenantId),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw ForbiddenException if not tenant', async () => {
+      mockPrismaService.rentPayment.findUnique.mockResolvedValue({
+        ...mockPayment,
+        lease: { ...mockLease, tenantId },
+      });
+
+      await expect(
+        service.getPaymentLink(leaseId, paymentId, landlordId),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw BadRequestException if payment already paid', async () => {
+      mockPrismaService.rentPayment.findUnique.mockResolvedValue({
+        ...mockPayment,
+        status: 'PAID',
+        lease: { ...mockLease, tenantId },
+      });
+
+      await expect(
+        service.getPaymentLink(leaseId, paymentId, tenantId),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if payment waived', async () => {
+      mockPrismaService.rentPayment.findUnique.mockResolvedValue({
+        ...mockPayment,
+        status: 'WAIVED',
+        lease: { ...mockLease, tenantId },
+      });
+
+      await expect(
+        service.getPaymentLink(leaseId, paymentId, tenantId),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
 });
