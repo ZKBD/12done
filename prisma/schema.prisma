@@ -122,6 +122,8 @@ enum NotificationType {
   LEASE_SIGNED_BY_TENANT
   LEASE_FULLY_EXECUTED
   DOCUMENT_UPLOADED
+  // Messaging (PROD-200)
+  MESSAGE_RECEIVED
 }
 
 // ============================================

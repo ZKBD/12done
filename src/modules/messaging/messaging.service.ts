@@ -3,9 +3,14 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
-import { MessageType, Prisma } from '@prisma/client';
+import { MessageType, NotificationType, Prisma } from '@prisma/client';
 import { PrismaService } from '@/database';
+import { NotificationsService } from '@/modules/notifications';
+import { MailService } from '@/mail';
 import {
   CreateConversationDto,
   SendMessageDto,
@@ -18,10 +23,19 @@ import {
   MessageListResponseDto,
   UnreadCountResponseDto,
 } from './dto/messaging.dto';
+import type { MessagingGateway } from './messaging.gateway';
 
 @Injectable()
 export class MessagingService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(MessagingService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+    private mailService: MailService,
+    @Inject(forwardRef(() => 'MessagingGateway'))
+    private messagingGateway: MessagingGateway,
+  ) {}
 
   // ============================================
   // CONVERSATIONS
@@ -385,7 +399,112 @@ export class MessagingService {
       }),
     ]);
 
+    // Send notifications to other participants (async, don't block response)
+    this.sendMessageNotifications(userId, conversationId, message).catch((error) => {
+      this.logger.error('Failed to send message notifications', error);
+    });
+
     return this.mapMessageToResponse(message);
+  }
+
+  private async sendMessageNotifications(
+    senderId: string,
+    conversationId: string,
+    message: {
+      id: string;
+      content: string;
+      sender?: { id: string; firstName: string; lastName: string } | null;
+    },
+  ): Promise<void> {
+    // Get conversation with all participants and context
+    const conversation = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        participants: {
+          include: {
+            user: {
+              select: { id: true, email: true, firstName: true, lastName: true },
+            },
+          },
+        },
+        property: { select: { id: true, title: true } },
+      },
+    });
+
+    if (!conversation) return;
+
+    // Get sender info
+    const sender = await this.prisma.user.findUnique({
+      where: { id: senderId },
+      select: { firstName: true, lastName: true },
+    });
+    const senderName = sender
+      ? `${sender.firstName} ${sender.lastName}`
+      : 'Someone';
+
+    // Truncate message for preview (max 100 chars)
+    const messagePreview =
+      message.content.length > 100
+        ? message.content.substring(0, 97) + '...'
+        : message.content;
+
+    // Notify each participant except the sender
+    for (const participant of conversation.participants) {
+      if (participant.userId === senderId) continue;
+
+      const recipientUser = participant.user;
+
+      // Create in-app notification
+      const notification = await this.notificationsService.create(
+        recipientUser.id,
+        NotificationType.MESSAGE_RECEIVED,
+        'New Message',
+        `${senderName}: ${messagePreview}`,
+        {
+          conversationId,
+          messageId: message.id,
+          senderId,
+          senderName,
+          propertyId: conversation.propertyId,
+        },
+      );
+
+      // Emit real-time WebSocket notification event
+      try {
+        this.messagingGateway.emitToUser(recipientUser.id, 'notification', {
+          type: 'MESSAGE_RECEIVED',
+          notification: {
+            id: notification.id,
+            title: notification.title,
+            message: notification.message,
+            data: notification.data,
+            createdAt: notification.createdAt,
+          },
+          conversationId,
+          messageId: message.id,
+        });
+      } catch (error) {
+        this.logger.warn('Failed to emit WebSocket notification', error);
+      }
+
+      // Send email notification
+      try {
+        await this.mailService.sendNewMessageEmail(
+          recipientUser.email,
+          recipientUser.firstName,
+          senderName,
+          messagePreview,
+          conversationId,
+          conversation.property?.title,
+          conversation.subject || undefined,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to send email notification to ${recipientUser.email}`,
+          error,
+        );
+      }
+    }
   }
 
   async deleteMessage(

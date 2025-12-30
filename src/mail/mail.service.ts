@@ -593,4 +593,32 @@ export class MailService {
       },
     });
   }
+
+  // ============================================
+  // MESSAGING EMAILS (PROD-200)
+  // ============================================
+
+  async sendNewMessageEmail(
+    email: string,
+    firstName: string,
+    senderName: string,
+    messagePreview: string,
+    conversationId: string,
+    propertyTitle?: string,
+    conversationSubject?: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `New message from ${senderName} - 12done.com`,
+      template: 'new-message',
+      context: {
+        firstName,
+        senderName,
+        messagePreview,
+        propertyTitle,
+        conversationSubject,
+        conversationUrl: `${this.frontendUrl}/messages/${conversationId}`,
+      },
+    });
+  }
 }

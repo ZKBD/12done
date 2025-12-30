@@ -1,8 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessagingService } from './messaging.service';
 import { PrismaService } from '@/database';
+import { NotificationsService } from '@/modules/notifications';
+import { MailService } from '@/mail';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
-import { MessageType } from '@prisma/client';
+import { MessageType, NotificationType } from '@prisma/client';
 
 describe('MessagingService', () => {
   let service: MessagingService;
@@ -131,11 +133,35 @@ describe('MessagingService', () => {
     $transaction: jest.fn(),
   };
 
+  const mockNotificationsService = {
+    create: jest.fn().mockResolvedValue({
+      id: 'notif-123',
+      type: NotificationType.MESSAGE_RECEIVED,
+      title: 'New Message',
+      message: 'Test: Hello',
+      data: {},
+      isRead: false,
+      createdAt: new Date(),
+    }),
+  };
+
+  const mockMailService = {
+    sendNewMessageEmail: jest.fn().mockResolvedValue(undefined),
+  };
+
+  const mockMessagingGateway = {
+    emitToUser: jest.fn(),
+    emitToConversation: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MessagingService,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: NotificationsService, useValue: mockNotificationsService },
+        { provide: MailService, useValue: mockMailService },
+        { provide: 'MessagingGateway', useValue: mockMessagingGateway },
       ],
     }).compile();
 
@@ -441,6 +467,143 @@ describe('MessagingService', () => {
       expect(result.id).toBe(mockMessage.id);
       expect(result.content).toBe(mockMessage.content);
       expect(mockPrismaService.$transaction).toHaveBeenCalled();
+    });
+
+    it('should send notifications to other participants', async () => {
+      mockPrismaService.conversationParticipant.findUnique.mockResolvedValue(mockParticipant);
+      mockPrismaService.$transaction.mockResolvedValue([mockMessage, {}, {}]);
+
+      // Mock conversation fetch for notifications
+      mockPrismaService.conversation.findUnique.mockResolvedValue({
+        ...mockConversation,
+        participants: [
+          { userId: mockUser.id, user: mockUser },
+          { userId: mockRecipient.id, user: { ...mockRecipient, email: 'jane@example.com' } },
+        ],
+        property: null,
+      });
+
+      // Mock sender lookup
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
+      await service.sendMessage(mockUser.id, mockConversation.id, {
+        content: 'Hello',
+      });
+
+      // Wait for async notification processing
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify notification was created
+      expect(mockNotificationsService.create).toHaveBeenCalledWith(
+        mockRecipient.id,
+        NotificationType.MESSAGE_RECEIVED,
+        'New Message',
+        expect.stringContaining('Test User'),
+        expect.objectContaining({
+          conversationId: mockConversation.id,
+          messageId: mockMessage.id,
+        }),
+      );
+    });
+
+    it('should send email notification to other participants', async () => {
+      mockPrismaService.conversationParticipant.findUnique.mockResolvedValue(mockParticipant);
+      mockPrismaService.$transaction.mockResolvedValue([mockMessage, {}, {}]);
+
+      mockPrismaService.conversation.findUnique.mockResolvedValue({
+        ...mockConversation,
+        participants: [
+          { userId: mockUser.id, user: mockUser },
+          { userId: mockRecipient.id, user: { ...mockRecipient, email: 'jane@example.com' } },
+        ],
+        property: { id: 'prop-1', title: 'Nice Apartment' },
+      });
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
+      await service.sendMessage(mockUser.id, mockConversation.id, {
+        content: 'Hello',
+      });
+
+      // Wait for async notification processing
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify email was sent
+      expect(mockMailService.sendNewMessageEmail).toHaveBeenCalledWith(
+        'jane@example.com',
+        'Jane',
+        'Test User',
+        expect.any(String),
+        mockConversation.id,
+        'Nice Apartment',
+        'Test Subject', // mockConversation has subject: 'Test Subject'
+      );
+    });
+
+    it('should emit WebSocket notification event', async () => {
+      mockPrismaService.conversationParticipant.findUnique.mockResolvedValue(mockParticipant);
+      mockPrismaService.$transaction.mockResolvedValue([mockMessage, {}, {}]);
+
+      mockPrismaService.conversation.findUnique.mockResolvedValue({
+        ...mockConversation,
+        participants: [
+          { userId: mockUser.id, user: mockUser },
+          { userId: mockRecipient.id, user: { ...mockRecipient, email: 'jane@example.com' } },
+        ],
+        property: null,
+      });
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
+      await service.sendMessage(mockUser.id, mockConversation.id, {
+        content: 'Hello',
+      });
+
+      // Wait for async notification processing
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify WebSocket event was emitted
+      expect(mockMessagingGateway.emitToUser).toHaveBeenCalledWith(
+        mockRecipient.id,
+        'notification',
+        expect.objectContaining({
+          type: 'MESSAGE_RECEIVED',
+          conversationId: mockConversation.id,
+          messageId: mockMessage.id,
+        }),
+      );
+    });
+
+    it('should not notify the sender', async () => {
+      mockPrismaService.conversationParticipant.findUnique.mockResolvedValue(mockParticipant);
+      mockPrismaService.$transaction.mockResolvedValue([mockMessage, {}, {}]);
+
+      mockPrismaService.conversation.findUnique.mockResolvedValue({
+        ...mockConversation,
+        participants: [
+          { userId: mockUser.id, user: mockUser },
+          { userId: mockRecipient.id, user: { ...mockRecipient, email: 'jane@example.com' } },
+        ],
+        property: null,
+      });
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
+      await service.sendMessage(mockUser.id, mockConversation.id, {
+        content: 'Hello',
+      });
+
+      // Wait for async notification processing
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify sender was not notified
+      expect(mockNotificationsService.create).not.toHaveBeenCalledWith(
+        mockUser.id,
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 
