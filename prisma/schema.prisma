@@ -36,6 +36,20 @@ enum VerificationStatus {
   REJECTED
 }
 
+// ID Document Type (PROD-008.3)
+enum DocumentType {
+  PASSPORT
+  DRIVERS_LICENSE
+  NATIONAL_ID
+}
+
+// Background Check Type (PROD-009)
+enum BackgroundCheckType {
+  BASIC // Criminal records only
+  STANDARD // Criminal + employment
+  COMPREHENSIVE // Criminal + employment + credit
+}
+
 enum InvitationStatus {
   PENDING
   ACCEPTED
@@ -403,6 +417,10 @@ model User {
   customTours     CustomTour[]
   userNotes       UserNote[]
 
+  // Identity Verification (PROD-008)
+  verificationRequests VerificationRequest[]
+  backgroundChecks     BackgroundCheck[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -423,6 +441,70 @@ model SocialProfile {
 
   @@unique([userId, platform])
   @@index([userId])
+}
+
+// ============================================
+// IDENTITY VERIFICATION (PROD-008)
+// ============================================
+model VerificationRequest {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Document details (PROD-008.1, PROD-008.3)
+  documentType DocumentType
+  documentUrl  String // Secure S3 URL (PROD-008.4)
+  selfieUrl    String? // Optional selfie for liveness check
+
+  // Verification status
+  status VerificationStatus @default(PENDING)
+
+  // Admin review (PROD-008.5, PROD-008.6)
+  reviewedById String?
+  reviewedAt   DateTime?
+  rejectionReason String?
+
+  // Timestamps
+  submittedAt DateTime @default(now())
+  expiresAt   DateTime? // Document expiry date if provided
+
+  @@index([userId])
+  @@index([status])
+  @@index([submittedAt])
+}
+
+// ============================================
+// BACKGROUND CHECKS (PROD-009)
+// ============================================
+model BackgroundCheck {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Check details (PROD-009.1)
+  type      BackgroundCheckType
+  status    VerificationStatus @default(PENDING)
+  reportUrl String? // Secure URL to full report (PROD-009.4)
+
+  // Provider reference (PROD-009.3)
+  providerName      String? // e.g., "Checkr", "Sterling"
+  providerReference String? // External ID from provider
+
+  // Consent (PROD-009.5)
+  consentGivenAt DateTime?
+  consentIpAddress String?
+
+  // Results summary (stored securely)
+  resultSummary String? // High-level: "CLEAR", "REVIEW", "FLAGGED"
+
+  // Timestamps
+  requestedAt DateTime  @default(now())
+  completedAt DateTime?
+  expiresAt   DateTime? // Validity period
+
+  @@index([userId])
+  @@index([status])
+  @@index([requestedAt])
 }
 
 // Email Verification Token (PROD-001)

@@ -24,6 +24,7 @@ import { LeasesModule } from './modules/leases';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
 import { DashboardModule } from './modules/dashboard';
 import { TourGuideModule } from './modules/tour-guide';
+import { VerificationModule } from './modules/verification';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { TourGuideModule } from './modules/tour-guide';
     MaintenanceModule,
     DashboardModule,
     TourGuideModule,
+    VerificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

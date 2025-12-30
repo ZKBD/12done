@@ -2,7 +2,7 @@
 
 **Project:** 12done.com
 **Last Updated:** 2025-12-30
-**Version:** 1.7
+**Version:** 1.8
 
 This document traces requirements from the SRS to their implementing test cases and results. It must be updated whenever:
 - New requirements are added to the SRS
@@ -15,10 +15,10 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 1238 | 0 | 1238 | 100% |
+| Unit Tests | 1273 | 0 | 1273 | 100% |
 | E2E Tests | 287 | 0 | 287 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **1530** | **0** | **1530** | **100%** |
+| **Total** | **1565** | **0** | **1565** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -110,14 +110,43 @@ Note: E2E tests require Docker/database to run.
 | PROD-007.1 | `getInvitationNetwork > should return network data` | users.controller.spec.ts | Verifies upstream invitation chain is tracked | ✅ |
 | PROD-007.2 | `getInvitationNetwork > should call service with user info` | users.controller.spec.ts | Verifies network data includes direct invitees | ✅ |
 
-### PROD-008 to PROD-011: Verification Features
+### PROD-008: ID Verification
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-008 | N/A | N/A | ID verification - not yet implemented | 🚧 |
-| PROD-009 | N/A | N/A | Background checks - not yet implemented | 🚧 |
-| PROD-010 | N/A | N/A | Verified badges - not yet implemented | 🚧 |
-| PROD-011 | N/A | N/A | Biometric authentication - not yet implemented | 🚧 |
+| PROD-008.1 | `submitVerification > should submit verification request successfully` | verification.service.spec.ts | Verifies VerificationRequest model creation | ✅ |
+| PROD-008.2 | `submitVerification > POST /verification/identity` | verification.controller.spec.ts | Verifies ID document submission endpoint | ✅ |
+| PROD-008.3 | `submitVerification > documentType validation` | verification.service.spec.ts | Verifies PASSPORT, DRIVERS_LICENSE, NATIONAL_ID types | ✅ |
+| PROD-008.4 | `submitVerification > stores document URL` | verification.service.spec.ts | Verifies secure document URL storage | ✅ |
+| PROD-008.5 | `getPendingVerifications > returns paginated queue` | verification.service.spec.ts | Verifies admin pending verification queue | ✅ |
+| PROD-008.6 | `reviewVerification > approve/reject` | verification.service.spec.ts | Verifies admin can approve/reject | ✅ |
+| PROD-008.7 | `reviewVerification > updates user status` | verification.service.spec.ts | Verifies user isIdentityVerified flag update | ✅ |
+| PROD-008.8 | `reviewVerification > sends email notification` | verification.service.spec.ts | Verifies approval/rejection email sent | ✅ |
+
+### PROD-009: Background Checks
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-009.1 | `requestBackgroundCheck > creates BackgroundCheck model` | verification.service.spec.ts | Verifies BackgroundCheck creation with type | ✅ |
+| PROD-009.2 | `requestBackgroundCheck > POST /verification/background-check` | verification.controller.spec.ts | Verifies background check request endpoint | ✅ |
+| PROD-009.3 | `processBackgroundCheckWebhook > updates from provider` | verification.service.spec.ts | Verifies webhook processing from provider | ✅ |
+| PROD-009.4 | `getBackgroundChecks > returns user check history` | verification.service.spec.ts | Verifies secure report URL storage | ✅ |
+| PROD-009.5 | `requestBackgroundCheck > requires consent` | verification.service.spec.ts | Verifies consent flow validation | ✅ |
+
+### PROD-010: Verified Badges
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-010.1 | `User model > idVerificationStatus, backgroundCheckStatus` | prisma/schema.prisma | Verifies verification flags on User model | ✅ |
+| PROD-010.2 | `hasVerifiedBadge > returns true when verified` | verification.service.spec.ts | Verifies badge display logic | ✅ |
+| PROD-010.3 | `getVerifiedUsers > returns verified user IDs` | verification.service.spec.ts | Verifies filter by verified status | ✅ |
+| PROD-010.4 | `getVerificationStatus > includes badge info` | verification.service.spec.ts | Verifies badge tooltip data | ✅ |
+
+### PROD-011: Biometric Authentication
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-011 | N/A | N/A | Biometric authentication - client-side implementation (P2) | 🚧 |
 
 ---
 
@@ -1778,10 +1807,10 @@ The following requirements do not yet have test coverage:
 
 | Req ID | Title | Reason |
 |--------|-------|--------|
-| PROD-008 | ID Verification | Not yet implemented |
-| PROD-009 | Background Checks | Not yet implemented |
-| PROD-010 | Verified Badges | Not yet implemented |
-| PROD-011 | Biometric Authentication | Not yet implemented |
+| ~~PROD-008~~ | ~~ID Verification~~ | ✅ **COMPLETE** - VerificationRequest model, VerificationModule (service, controller, DTOs), 3 document types (PASSPORT, DRIVERS_LICENSE, NATIONAL_ID), admin queue, approval/rejection workflow, email notifications; 27 unit tests (21 service + 6 controller) |
+| ~~PROD-009~~ | ~~Background Checks~~ | ✅ **COMPLETE** - BackgroundCheck model, 3 check types (BASIC, STANDARD, COMPREHENSIVE), consent flow, webhook processing; integrated into VerificationModule |
+| ~~PROD-010~~ | ~~Verified Badges~~ | ✅ **COMPLETE** - hasVerifiedBadge logic, getVerifiedUsers filter, badge status in user verification response |
+| PROD-011 | Biometric Authentication | Client-side implementation (P2) |
 | ~~PROD-029~~ | ~~AI Description Generation~~ | ✅ **COMPLETE** - AiDescriptionService with 5 tone styles (LUXURY, FAMILY_FRIENDLY, INVESTMENT_FOCUSED, MODERN_PROFESSIONAL, COZY_WELCOMING), rule-based text generation with property context, 3 endpoints (generate, save, apply); 23 unit tests |
 | PROD-030 | Virtual Staging | Not yet implemented |
 | PROD-031 | Time-of-Day Photos | Not yet implemented |
