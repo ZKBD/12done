@@ -660,6 +660,10 @@ Note: E2E tests require Docker/database to run.
 | MSG-006.3 | `getMessages > should handle cursor-based pagination` | messaging.service.spec.ts | Verifies before cursor parameter | ✅ |
 | MSG-007.1 | `sendMessage > should throw ForbiddenException if user not participant` | messaging.service.spec.ts | Verifies send authorization | ✅ |
 | MSG-007.2 | `sendMessage > should create message and update conversation` | messaging.service.spec.ts | Verifies message creation and lastMessageAt update | ✅ |
+| MSG-007.3 | `sendMessage > should send notifications to other participants` | messaging.service.spec.ts | Verifies in-app notification created for recipients (PROD-200.7) | ✅ |
+| MSG-007.4 | `sendMessage > should send email notification to other participants` | messaging.service.spec.ts | Verifies email notification sent via MailService (PROD-200.7) | ✅ |
+| MSG-007.5 | `sendMessage > should emit WebSocket notification event` | messaging.service.spec.ts | Verifies real-time WebSocket notification for online users (PROD-200.7) | ✅ |
+| MSG-007.6 | `sendMessage > should not notify the sender` | messaging.service.spec.ts | Verifies sender is excluded from notifications | ✅ |
 | MSG-008.1 | `deleteMessage > should throw NotFoundException if message not found` | messaging.service.spec.ts | Verifies message validation | ✅ |
 | MSG-008.2 | `deleteMessage > should throw ForbiddenException if not message sender` | messaging.service.spec.ts | Verifies only sender can delete | ✅ |
 | MSG-008.3 | `deleteMessage > should delete message successfully` | messaging.service.spec.ts | Verifies message deletion | ✅ |
