@@ -6,18 +6,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/database/prisma.service';
 import { DescriptionTone, UserRole, ListingType } from '@prisma/client';
-
-export interface GenerateDescriptionDto {
-  tone?: DescriptionTone;
-}
-
-export interface AiDescriptionResponseDto {
-  propertyId: string;
-  description: string;
-  tone: DescriptionTone;
-  wordCount: number;
-  generatedAt: Date;
-}
+import {
+  GenerateDescriptionDto,
+  AiDescriptionResponseDto,
+} from '../dto/ai-description.dto';
 
 interface PropertyData {
   title: string;

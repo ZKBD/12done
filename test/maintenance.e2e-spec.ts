@@ -1095,12 +1095,12 @@ describe('MaintenanceController (e2e)', () => {
           .set('Authorization', `Bearer ${landlordToken}`)
           .expect(200);
 
-        const severityOrder = { CRITICAL: 0, URGENT: 1, WARNING: 2, INFO: 3 };
+        const severityOrder: Record<string, number> = { CRITICAL: 0, URGENT: 1, WARNING: 2, INFO: 3 };
         const alerts = response.body.alerts;
 
         for (let i = 1; i < alerts.length; i++) {
-          const prevOrder = severityOrder[alerts[i - 1].severity];
-          const currOrder = severityOrder[alerts[i].severity];
+          const prevOrder = severityOrder[alerts[i - 1].severity as string];
+          const currOrder = severityOrder[alerts[i].severity as string];
           expect(currOrder).toBeGreaterThanOrEqual(prevOrder);
         }
       });
