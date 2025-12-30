@@ -17,6 +17,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { MaintenanceService } from './maintenance.service';
+import { AiMaintenanceService } from './ai-maintenance.service';
 import { JwtAuthGuard } from '@/modules/auth/guards';
 import { CurrentUser, CurrentUserData } from '@/common/decorators';
 import {
@@ -29,12 +30,105 @@ import {
   MaintenanceQueryDto,
   MaintenanceRequestResponseDto,
   MaintenanceListResponseDto,
+  AnalyzeMaintenanceRequestDto,
+  GetAppointmentSuggestionsDto,
+  AiMaintenanceAnalysisResponseDto,
+  AiAppointmentSuggestionsResponseDto,
+  AiRequestSuggestionsResponseDto,
 } from './dto';
 
 @ApiTags('maintenance-requests')
 @Controller('maintenance-requests')
 export class MaintenanceController {
-  constructor(private readonly maintenanceService: MaintenanceService) {}
+  constructor(
+    private readonly maintenanceService: MaintenanceService,
+    private readonly aiMaintenanceService: AiMaintenanceService,
+  ) {}
+
+  // ============================================
+  // AI ANALYSIS ENDPOINTS (PROD-107)
+  // ============================================
+
+  /**
+   * Analyze maintenance request before submission (PROD-107.1, PROD-107.2, PROD-107.3)
+   */
+  @Post('analyze')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Analyze maintenance request (PROD-107.1, PROD-107.2, PROD-107.3)',
+    description:
+      'Get AI-powered analysis including category suggestion, priority scoring, and DIY solutions before submitting a request',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Analysis completed',
+    type: AiMaintenanceAnalysisResponseDto,
+  })
+  async analyzeRequest(
+    @Body() dto: AnalyzeMaintenanceRequestDto,
+  ): Promise<AiMaintenanceAnalysisResponseDto> {
+    return this.aiMaintenanceService.analyzeRequest(dto.title, dto.description);
+  }
+
+  /**
+   * Get AI suggestions for an existing maintenance request (PROD-107)
+   */
+  @Get(':id/suggestions')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get AI suggestions for request (PROD-107)',
+    description:
+      'Get AI-powered suggestions for an existing maintenance request including category, priority, solutions, and appointment recommendations',
+  })
+  @ApiParam({ name: 'id', description: 'Maintenance request UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'AI suggestions',
+    type: AiRequestSuggestionsResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Request not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Not authorized to view this request',
+  })
+  async getRequestSuggestions(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<AiRequestSuggestionsResponseDto> {
+    // First verify user has access to this request
+    await this.maintenanceService.findOne(id, user.id);
+    return this.aiMaintenanceService.getRequestSuggestions(id);
+  }
+
+  /**
+   * Get appointment suggestions (PROD-107.4)
+   */
+  @Post('appointment-suggestions')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get appointment suggestions (PROD-107.4)',
+    description:
+      'Get optimal appointment time slots based on service provider availability',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Appointment suggestions',
+    type: AiAppointmentSuggestionsResponseDto,
+  })
+  async getAppointmentSuggestions(
+    @Body() dto: GetAppointmentSuggestionsDto,
+  ): Promise<AiAppointmentSuggestionsResponseDto> {
+    return this.aiMaintenanceService.suggestAppointments(
+      dto.propertyId,
+      dto.type,
+    );
+  }
 
   // ============================================
   // CRUD ENDPOINTS

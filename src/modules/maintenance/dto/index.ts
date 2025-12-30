@@ -6,3 +6,4 @@ export * from './schedule-request.dto';
 export * from './complete-request.dto';
 export * from './maintenance-query.dto';
 export * from './maintenance-response.dto';
+export * from './ai-maintenance.dto';

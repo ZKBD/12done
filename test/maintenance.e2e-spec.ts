@@ -640,4 +640,248 @@ describe('MaintenanceController (e2e)', () => {
         .expect(400);
     });
   });
+
+  // ============================================
+  // AI MAINTENANCE ENDPOINTS (PROD-107)
+  // ============================================
+  describe('AI Maintenance Analysis (PROD-107)', () => {
+    describe('POST /maintenance-requests/analyze', () => {
+      it('should analyze a maintenance request and return category suggestion (PROD-107.1)', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/api/maintenance-requests/analyze')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            title: 'Leaking faucet in kitchen',
+            description:
+              'The kitchen faucet has been dripping constantly for the past two days. Water is pooling under the sink.',
+          })
+          .expect(201);
+
+        expect(response.body.category).toBeDefined();
+        expect(response.body.category.suggestedType).toBe(
+          MaintenanceRequestType.PLUMBING,
+        );
+        expect(response.body.category.typeConfidence).toBeGreaterThan(0);
+        expect(response.body.category.matchedKeywords).toContain('faucet');
+      });
+
+      it('should return priority assessment (PROD-107.2)', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/api/maintenance-requests/analyze')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            title: 'Gas leak emergency',
+            description:
+              'I smell gas in the kitchen. This is an emergency and needs immediate attention.',
+          })
+          .expect(201);
+
+        expect(response.body.priority).toBeDefined();
+        expect(response.body.priority.suggestedPriority).toBe(
+          MaintenancePriority.EMERGENCY,
+        );
+        expect(response.body.priority.urgencyFactors).toContain('emergency');
+        expect(response.body.priority.explanation).toBeDefined();
+      });
+
+      it('should return DIY solutions when applicable (PROD-107.3)', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/api/maintenance-requests/analyze')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            title: 'Clogged bathroom drain',
+            description:
+              'The bathroom sink drain is clogged and water drains very slowly.',
+          })
+          .expect(201);
+
+        expect(response.body.solutions).toBeDefined();
+        expect(response.body.solutions.isDiyPossible).toBe(true);
+        expect(response.body.solutions.diySteps).toBeDefined();
+        expect(response.body.solutions.diySteps.length).toBeGreaterThan(0);
+        expect(response.body.solutions.toolsNeeded).toBeDefined();
+        expect(response.body.solutions.whenToCallProfessional).toBeDefined();
+      });
+
+      it('should not recommend DIY for electrical issues', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/api/maintenance-requests/analyze')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            title: 'Electrical outlet sparking',
+            description:
+              'The outlet in the living room is sparking when I plug something in.',
+          })
+          .expect(201);
+
+        expect(response.body.solutions.isDiyPossible).toBe(false);
+        expect(response.body.solutions.whenToCallProfessional).toContain(
+          'electrician',
+        );
+      });
+
+      it('should include model version and timestamp', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/api/maintenance-requests/analyze')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            title: 'General maintenance',
+            description: 'Something needs to be fixed in my apartment.',
+          })
+          .expect(201);
+
+        expect(response.body.modelVersion).toBe('rule-based-v1');
+        expect(response.body.analyzedAt).toBeDefined();
+      });
+
+      it('should require authentication', async () => {
+        await request(app.getHttpServer())
+          .post('/api/maintenance-requests/analyze')
+          .send({
+            title: 'Test issue',
+            description: 'This is a test description that is long enough.',
+          })
+          .expect(401);
+      });
+
+      it('should validate input - title too short', async () => {
+        await request(app.getHttpServer())
+          .post('/api/maintenance-requests/analyze')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            title: 'Hi',
+            description: 'This is a valid description that is long enough.',
+          })
+          .expect(400);
+      });
+
+      it('should validate input - description too short', async () => {
+        await request(app.getHttpServer())
+          .post('/api/maintenance-requests/analyze')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            title: 'Valid title',
+            description: 'Short',
+          })
+          .expect(400);
+      });
+    });
+
+    describe('GET /maintenance-requests/:id/suggestions', () => {
+      it('should return AI suggestions for an existing request', async () => {
+        // First create a maintenance request
+        const createRes = await request(app.getHttpServer())
+          .post('/api/maintenance-requests')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            leaseId,
+            type: MaintenanceRequestType.HVAC,
+            title: 'AC not cooling',
+            description:
+              'The air conditioning is running but not producing cold air.',
+          })
+          .expect(201);
+
+        const response = await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/${createRes.body.id}/suggestions`)
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .expect(200);
+
+        expect(response.body.requestId).toBe(createRes.body.id);
+        expect(response.body.category).toBeDefined();
+        expect(response.body.priority).toBeDefined();
+        expect(response.body.solutions).toBeDefined();
+        expect(response.body.generatedAt).toBeDefined();
+      });
+
+      it('should return 404 for non-existent request', async () => {
+        await request(app.getHttpServer())
+          .get('/api/maintenance-requests/non-existent-id/suggestions')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .expect(404);
+      });
+
+      it('should require authentication', async () => {
+        await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/${maintenanceRequestId}/suggestions`)
+          .expect(401);
+      });
+
+      it('should deny access to unauthorized user', async () => {
+        // Create a request as tenant
+        const createRes = await request(app.getHttpServer())
+          .post('/api/maintenance-requests')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            leaseId,
+            type: MaintenanceRequestType.CLEANING,
+            title: 'Mold in bathroom',
+            description:
+              'There is mold growing on the bathroom ceiling tiles near the shower.',
+          })
+          .expect(201);
+
+        // Try to access as unauthorized user
+        await request(app.getHttpServer())
+          .get(`/api/maintenance-requests/${createRes.body.id}/suggestions`)
+          .set('Authorization', `Bearer ${otherUserToken}`)
+          .expect(403);
+      });
+    });
+
+    describe('POST /maintenance-requests/appointment-suggestions', () => {
+      it('should return appointment slot suggestions (PROD-107.4)', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/api/maintenance-requests/appointment-suggestions')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            propertyId,
+            type: MaintenanceRequestType.PLUMBING,
+          })
+          .expect(201);
+
+        expect(response.body.suggestedSlots).toBeDefined();
+        expect(Array.isArray(response.body.suggestedSlots)).toBe(true);
+        expect(response.body.totalAvailableProviders).toBeDefined();
+        expect(response.body.averageWaitDays).toBeDefined();
+        expect(response.body.recommendation).toBeDefined();
+        expect(response.body.generatedAt).toBeDefined();
+      });
+
+      it('should return default suggestions when no providers available', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/api/maintenance-requests/appointment-suggestions')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            propertyId,
+            type: MaintenanceRequestType.PEST_CONTROL,
+          })
+          .expect(201);
+
+        expect(response.body.suggestedSlots.length).toBeGreaterThan(0);
+        expect(response.body.recommendation).toBeDefined();
+      });
+
+      it('should require authentication', async () => {
+        await request(app.getHttpServer())
+          .post('/api/maintenance-requests/appointment-suggestions')
+          .send({
+            propertyId,
+            type: MaintenanceRequestType.PLUMBING,
+          })
+          .expect(401);
+      });
+
+      it('should validate property ID format', async () => {
+        await request(app.getHttpServer())
+          .post('/api/maintenance-requests/appointment-suggestions')
+          .set('Authorization', `Bearer ${tenantToken}`)
+          .send({
+            propertyId: 'not-a-uuid',
+            type: MaintenanceRequestType.PLUMBING,
+          })
+          .expect(400);
+      });
+    });
+  });
 });
