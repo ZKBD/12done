@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
+import { SplitPaymentService } from './split-payment.service';
+import { EscrowService } from './escrow.service';
 import { TransactionStatus } from '@prisma/client';
 
 describe('PaymentsController', () => {
@@ -63,6 +65,37 @@ describe('PaymentsController', () => {
             getStats: jest.fn().mockResolvedValue(mockStats),
             requestRefund: jest.fn().mockResolvedValue({ ...mockTransaction, status: 'REFUNDED' }),
             handleWebhook: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: SplitPaymentService,
+          useValue: {
+            createSplitPayment: jest.fn(),
+            getSplitPayment: jest.fn(),
+            getPaymentLinks: jest.fn(),
+            getPaymentByToken: jest.fn(),
+            processPayment: jest.fn(),
+            completePayment: jest.fn(),
+            sendReminders: jest.fn(),
+            cancelSplitPayment: jest.fn(),
+            getUserSplitPayments: jest.fn(),
+          },
+        },
+        {
+          provide: EscrowService,
+          useValue: {
+            createEscrow: jest.fn(),
+            getEscrow: jest.fn(),
+            getEscrowByTransaction: jest.fn(),
+            fundEscrow: jest.fn(),
+            completeFunding: jest.fn(),
+            completeMilestone: jest.fn(),
+            approveMilestoneRelease: jest.fn(),
+            releaseFullEscrow: jest.fn(),
+            raiseDispute: jest.fn(),
+            getDisputes: jest.fn(),
+            resolveDispute: jest.fn(),
+            cancelEscrow: jest.fn(),
           },
         },
       ],
