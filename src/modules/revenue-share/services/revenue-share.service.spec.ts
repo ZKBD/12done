@@ -6,9 +6,9 @@ import { RevenueShareStatus, PayoutStatus, UserStatus, Prisma } from '@prisma/cl
 
 describe('RevenueShareService', () => {
   let service: RevenueShareService;
-  let prisma: PrismaService;
+  // prisma is mocked via mockPrismaService
 
-  const mockPrismaService = {
+  const mockPrismaService: Record<string, unknown> = {
     platformConfiguration: {
       findFirst: jest.fn(),
       create: jest.fn(),

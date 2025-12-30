@@ -6,7 +6,7 @@ import { FinancialPropertyType, MarketTrend, Prisma } from '@prisma/client';
 
 describe('FinancialToolsService', () => {
   let service: FinancialToolsService;
-  let _prisma: PrismaService;
+  // PrismaService is mocked via mockPrismaService
 
   const mockPrismaService = {
     property: {
@@ -98,7 +98,6 @@ describe('FinancialToolsService', () => {
     }).compile();
 
     service = module.get<FinancialToolsService>(FinancialToolsService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     // Reset all mocks
     jest.clearAllMocks();
