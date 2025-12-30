@@ -6,7 +6,7 @@ import { TenantDocumentTypeEnum } from './dto';
 
 describe('TenantDocumentService', () => {
   let service: TenantDocumentService;
-  let _prisma: PrismaService;
+  // PrismaService is mocked via mockPrisma
 
   const mockPrisma = {
     lease: {
@@ -61,7 +61,6 @@ describe('TenantDocumentService', () => {
     }).compile();
 
     service = module.get<TenantDocumentService>(TenantDocumentService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });

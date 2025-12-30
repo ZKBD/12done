@@ -8,6 +8,9 @@ import {
   MediaService,
   OpenHouseService,
   AiDescriptionService,
+  VirtualStagingService,
+  TimeOfDayPhotosService,
+  MortgageCalculatorService,
 } from './services';
 import { BrowsingHistoryService } from '@/modules/search';
 import { PropertyStatus, UserRole, ListingType } from '@prisma/client';
@@ -168,6 +171,29 @@ describe('PropertiesController', () => {
             saveDescription: jest.fn(),
             applyDescription: jest.fn(),
             buildDescription: jest.fn(),
+          },
+        },
+        {
+          provide: VirtualStagingService,
+          useValue: {
+            stage: jest.fn(),
+            getStaged: jest.fn(),
+            deleteStaged: jest.fn(),
+          },
+        },
+        {
+          provide: TimeOfDayPhotosService,
+          useValue: {
+            upload: jest.fn(),
+            getByProperty: jest.fn(),
+            delete: jest.fn(),
+          },
+        },
+        {
+          provide: MortgageCalculatorService,
+          useValue: {
+            calculate: jest.fn(),
+            getPreQualification: jest.fn(),
           },
         },
       ],
