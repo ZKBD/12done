@@ -873,7 +873,11 @@ export class FinancialToolsService {
     }
 
     if (query.city) {
-      where.city = { in: [query.city, null] };
+      where.OR = [
+        ...(where.OR || []),
+        { city: query.city },
+        { city: null },
+      ];
     }
 
     const programs = await this.prisma.downPaymentProgram.findMany({
@@ -1188,7 +1192,7 @@ export class FinancialToolsService {
         vacancyRate,
         rentGrowthRate,
         expenseGrowthRate,
-        projections,
+        projections: projections as unknown as Prisma.InputJsonValue,
         totalProjectedIncome: new Prisma.Decimal(totalIncome),
         totalProjectedExpenses: new Prisma.Decimal(totalExpenses),
         totalProjectedCashFlow: new Prisma.Decimal(totalCashFlow),
@@ -1227,7 +1231,7 @@ export class FinancialToolsService {
       vacancyRate: p.vacancyRate,
       rentGrowthRate: p.rentGrowthRate,
       expenseGrowthRate: p.expenseGrowthRate,
-      projections: p.projections as MonthlyProjectionDto[],
+      projections: p.projections as unknown as MonthlyProjectionDto[],
       totalProjectedIncome: Number(p.totalProjectedIncome),
       totalProjectedExpenses: Number(p.totalProjectedExpenses),
       totalProjectedCashFlow: Number(p.totalProjectedCashFlow),
