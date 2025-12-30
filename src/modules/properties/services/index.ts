@@ -4,3 +4,5 @@ export * from './pricing.service';
 export * from './media.service';
 export * from './open-house.service';
 export * from './ai-description.service';
+export * from './virtual-staging.service';
+export * from './time-of-day-photos.service';

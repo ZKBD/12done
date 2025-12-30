@@ -8,6 +8,8 @@ import {
   MediaService,
   OpenHouseService,
   AiDescriptionService,
+  VirtualStagingService,
+  TimeOfDayPhotosService,
 } from './services';
 import { SearchModule } from '../search/search.module';
 
@@ -22,6 +24,8 @@ import { SearchModule } from '../search/search.module';
     MediaService,
     OpenHouseService,
     AiDescriptionService,
+    VirtualStagingService,
+    TimeOfDayPhotosService,
   ],
   exports: [PropertiesService],
 })

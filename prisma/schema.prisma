@@ -669,6 +669,65 @@ model Property {
   @@index([latitude, longitude])
 }
 
+// Room Type for Virtual Staging (PROD-030)
+enum RoomType {
+  LIVING_ROOM
+  BEDROOM
+  KITCHEN
+  BATHROOM
+  DINING_ROOM
+  OFFICE
+  BALCONY
+  GARAGE
+  HALLWAY
+  BASEMENT
+  ATTIC
+  OUTDOOR
+  OTHER
+}
+
+// Staging Style (PROD-030)
+enum StagingStyle {
+  MODERN
+  TRADITIONAL
+  MINIMALIST
+  SCANDINAVIAN
+  INDUSTRIAL
+  BOHEMIAN
+  COASTAL
+  FARMHOUSE
+  MID_CENTURY
+  CONTEMPORARY
+  RUSTIC
+  LUXURY
+}
+
+// Time of Day (PROD-031)
+enum TimeOfDay {
+  DAWN
+  MORNING
+  NOON
+  AFTERNOON
+  DUSK
+  NIGHT
+}
+
+// Season (PROD-031)
+enum Season {
+  SPRING
+  SUMMER
+  FALL
+  WINTER
+}
+
+// Staging Request Status (PROD-030)
+enum StagingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 // Property Media (PROD-028)
 model PropertyMedia {
   id           String   @id @default(uuid())
@@ -682,8 +741,51 @@ model PropertyMedia {
   isPrimary    Boolean  @default(false)
   createdAt    DateTime @default(now())
 
+  // Virtual Staging (PROD-030)
+  isVirtuallyStaged Boolean       @default(false)
+  roomType          RoomType?
+  stagingStyle      StagingStyle?
+  originalMediaId   String?       // Reference to original unstaged photo
+
+  // Time-of-Day Photos (PROD-031)
+  timeOfDay    TimeOfDay?
+  season       Season?
+  photoGroupId String?    // Group photos of same angle at different times/seasons
+
   @@index([propertyId])
   @@index([type])
+  @@index([isVirtuallyStaged])
+  @@index([photoGroupId])
+}
+
+// Virtual Staging Request (PROD-030)
+model VirtualStagingRequest {
+  id              String        @id @default(uuid())
+  propertyId      String
+  originalMediaId String        // The original PropertyMedia being staged
+  roomType        RoomType
+  style           StagingStyle
+  status          StagingStatus @default(PENDING)
+
+  // Result
+  stagedMediaId String? // The resulting staged PropertyMedia
+  stagedUrl     String? // URL of staged image (before creating PropertyMedia)
+
+  // Provider tracking
+  providerName      String? // "MockProvider", "REimagine", etc.
+  providerRequestId String? // External provider's request ID
+
+  // Error handling
+  errorMessage String?
+
+  // Timestamps
+  requestedById String
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+
+  @@index([propertyId])
+  @@index([status])
+  @@index([requestedById])
 }
 
 // Floor Plans (PROD-027)

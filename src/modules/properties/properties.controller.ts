@@ -40,7 +40,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
-import { PropertyStatus, UserRole, ListingType } from '@prisma/client';
+import { PropertyStatus, UserRole, ListingType, RoomType, StagingStyle, TimeOfDay, Season } from '@prisma/client';
 import { PropertiesService } from './properties.service';
 import {
   AvailabilityService,
@@ -49,6 +49,8 @@ import {
   MediaService,
   OpenHouseService,
   AiDescriptionService,
+  VirtualStagingService,
+  TimeOfDayPhotosService,
 } from './services';
 import {
   BrowsingHistoryService,
@@ -92,6 +94,12 @@ import {
   GenerateDescriptionDto,
   SaveDescriptionDto,
   AiDescriptionResponseDto,
+  CreateStagingRequestDto,
+  StagingRequestResponseDto,
+  StagedMediaResponseDto,
+  UpdateMediaTimeTagDto,
+  TimeTaggedMediaResponseDto,
+  PhotoGroupResponseDto,
 } from './dto';
 import { PropertyMediaResponseDto, FloorPlanResponseDto } from './dto/property-response.dto';
 
@@ -107,6 +115,8 @@ export class PropertiesController {
     private readonly openHouseService: OpenHouseService,
     private readonly browsingHistoryService: BrowsingHistoryService,
     private readonly aiDescriptionService: AiDescriptionService,
+    private readonly virtualStagingService: VirtualStagingService,
+    private readonly timeOfDayPhotosService: TimeOfDayPhotosService,
   ) {}
 
   // ============ PROPERTY CRUD ============
@@ -990,6 +1000,327 @@ export class PropertiesController {
   ): Promise<{ message: string }> {
     return this.aiDescriptionService.applyDescription(
       propertyId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  // ============ VIRTUAL STAGING (PROD-030) ============
+
+  @Post(':id/ai/staging')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Submit photo for virtual staging (PROD-030.1)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 201,
+    description: 'Staging request created',
+    type: StagingRequestResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - not property owner' })
+  @ApiResponse({ status: 404, description: 'Property or media not found' })
+  async createStagingRequest(
+    @Param('id') propertyId: string,
+    @Body() dto: CreateStagingRequestDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<StagingRequestResponseDto> {
+    return this.virtualStagingService.createStagingRequest(
+      propertyId,
+      user.id,
+      user.role as UserRole,
+      dto,
+    );
+  }
+
+  @Get(':id/ai/staging')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all staging requests for property' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of staging requests',
+    type: [StagingRequestResponseDto],
+  })
+  async getStagingRequests(
+    @Param('id') propertyId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<StagingRequestResponseDto[]> {
+    return this.virtualStagingService.getStagingRequests(
+      propertyId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Get(':id/ai/staging/:requestId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get staging request status' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'requestId', description: 'Staging request ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Staging request details',
+    type: StagingRequestResponseDto,
+  })
+  async getStagingRequest(
+    @Param('id') propertyId: string,
+    @Param('requestId') requestId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<StagingRequestResponseDto> {
+    return this.virtualStagingService.getStagingRequest(
+      propertyId,
+      requestId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Get(':id/ai/staging/media/staged')
+  @ApiOperation({ summary: 'Get all virtually staged media for property (PROD-030.6)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of staged media (marked with virtual staging badge)',
+    type: [StagedMediaResponseDto],
+  })
+  async getStagedMedia(
+    @Param('id') propertyId: string,
+  ): Promise<StagedMediaResponseDto[]> {
+    return this.virtualStagingService.getStagedMedia(propertyId);
+  }
+
+  @Get(':id/ai/staging/media/:mediaId/compare')
+  @ApiOperation({ summary: 'Compare original and staged images' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'mediaId', description: 'Staged media ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Original and staged image comparison',
+  })
+  async compareImages(
+    @Param('id') propertyId: string,
+    @Param('mediaId') mediaId: string,
+  ): Promise<{ original: StagedMediaResponseDto; staged: StagedMediaResponseDto }> {
+    return this.virtualStagingService.compareImages(propertyId, mediaId);
+  }
+
+  @Delete(':id/ai/staging/media/:mediaId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete staged media' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'mediaId', description: 'Staged media ID' })
+  @ApiResponse({ status: 200, description: 'Staged media deleted' })
+  async deleteStagedMedia(
+    @Param('id') propertyId: string,
+    @Param('mediaId') mediaId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ message: string }> {
+    return this.virtualStagingService.deleteStagedMedia(
+      propertyId,
+      mediaId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  // ============ TIME-OF-DAY PHOTOS (PROD-031) ============
+
+  @Patch(':id/media/:mediaId/time-tag')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Tag media with time of day and season (PROD-031.1, PROD-031.2)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'mediaId', description: 'Media ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Media tagged successfully',
+    type: TimeTaggedMediaResponseDto,
+  })
+  async tagMedia(
+    @Param('id') propertyId: string,
+    @Param('mediaId') mediaId: string,
+    @Body() dto: UpdateMediaTimeTagDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<TimeTaggedMediaResponseDto> {
+    return this.timeOfDayPhotosService.tagMedia(
+      propertyId,
+      mediaId,
+      user.id,
+      user.role as UserRole,
+      dto,
+    );
+  }
+
+  @Get(':id/media/time-tagged')
+  @ApiOperation({ summary: 'Get all time-tagged media for property' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of time-tagged media',
+    type: [TimeTaggedMediaResponseDto],
+  })
+  async getTimeTaggedMedia(
+    @Param('id') propertyId: string,
+  ): Promise<TimeTaggedMediaResponseDto[]> {
+    return this.timeOfDayPhotosService.getTimeTaggedMedia(propertyId);
+  }
+
+  @Get(':id/media/time-tagged/by-time/:timeOfDay')
+  @ApiOperation({ summary: 'Get media filtered by time of day' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'timeOfDay', enum: TimeOfDay, description: 'Time of day filter' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of media at specified time',
+    type: [TimeTaggedMediaResponseDto],
+  })
+  async getMediaByTimeOfDay(
+    @Param('id') propertyId: string,
+    @Param('timeOfDay') timeOfDay: TimeOfDay,
+  ): Promise<TimeTaggedMediaResponseDto[]> {
+    return this.timeOfDayPhotosService.getMediaByTimeOfDay(propertyId, timeOfDay);
+  }
+
+  @Get(':id/media/time-tagged/by-season/:season')
+  @ApiOperation({ summary: 'Get media filtered by season' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'season', enum: Season, description: 'Season filter' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of media at specified season',
+    type: [TimeTaggedMediaResponseDto],
+  })
+  async getMediaBySeason(
+    @Param('id') propertyId: string,
+    @Param('season') season: Season,
+  ): Promise<TimeTaggedMediaResponseDto[]> {
+    return this.timeOfDayPhotosService.getMediaBySeason(propertyId, season);
+  }
+
+  @Get(':id/media/photo-groups')
+  @ApiOperation({ summary: 'Get all photo groups for property (PROD-031.4)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of photo groups with their photos',
+    type: [PhotoGroupResponseDto],
+  })
+  async getPhotoGroups(
+    @Param('id') propertyId: string,
+  ): Promise<PhotoGroupResponseDto[]> {
+    return this.timeOfDayPhotosService.getPhotoGroups(propertyId);
+  }
+
+  @Post(':id/media/photo-groups')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a photo group (PROD-031.4)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 201,
+    description: 'Photo group created',
+  })
+  async createPhotoGroup(
+    @Param('id') propertyId: string,
+    @Body('name') name: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ groupId: string; name: string }> {
+    return this.timeOfDayPhotosService.createPhotoGroup(
+      propertyId,
+      user.id,
+      user.role as UserRole,
+      name,
+    );
+  }
+
+  @Get(':id/media/photo-groups/:groupId')
+  @ApiOperation({ summary: 'Get specific photo group' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'groupId', description: 'Photo group ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Photo group details',
+    type: PhotoGroupResponseDto,
+  })
+  async getPhotoGroup(
+    @Param('id') propertyId: string,
+    @Param('groupId') groupId: string,
+  ): Promise<PhotoGroupResponseDto> {
+    return this.timeOfDayPhotosService.getPhotoGroup(propertyId, groupId);
+  }
+
+  @Get(':id/media/photo-groups/:groupId/slider')
+  @ApiOperation({ summary: 'Get slider data for photo group (PROD-031.3)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'groupId', description: 'Photo group ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Slider data for time/season switching UI',
+  })
+  async getSliderData(
+    @Param('id') propertyId: string,
+    @Param('groupId') groupId: string,
+  ): Promise<{
+    groupId: string;
+    timeSlider: Record<TimeOfDay, TimeTaggedMediaResponseDto | null>;
+    seasonSlider: Record<Season, TimeTaggedMediaResponseDto | null>;
+  }> {
+    return this.timeOfDayPhotosService.getSliderData(propertyId, groupId);
+  }
+
+  @Post(':id/media/:mediaId/photo-group/:groupId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Add media to a photo group' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'mediaId', description: 'Media ID' })
+  @ApiParam({ name: 'groupId', description: 'Photo group ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Media added to group',
+    type: TimeTaggedMediaResponseDto,
+  })
+  async addToPhotoGroup(
+    @Param('id') propertyId: string,
+    @Param('mediaId') mediaId: string,
+    @Param('groupId') groupId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<TimeTaggedMediaResponseDto> {
+    return this.timeOfDayPhotosService.addToGroup(
+      propertyId,
+      mediaId,
+      groupId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  @Delete(':id/media/:mediaId/photo-group')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Remove media from photo group' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiParam({ name: 'mediaId', description: 'Media ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Media removed from group',
+    type: TimeTaggedMediaResponseDto,
+  })
+  async removeFromPhotoGroup(
+    @Param('id') propertyId: string,
+    @Param('mediaId') mediaId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<TimeTaggedMediaResponseDto> {
+    return this.timeOfDayPhotosService.removeFromGroup(
+      propertyId,
+      mediaId,
       user.id,
       user.role as UserRole,
     );

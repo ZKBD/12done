@@ -259,8 +259,59 @@ Note: E2E tests require Docker/database to run.
 | PROD-029.20 | `buildDescription > should include price in closing` | ai-description.service.spec.ts | Verifies formatted price in closing section | ✅ |
 | PROD-029.21 | `buildDescription > should handle property with minimal data` | ai-description.service.spec.ts | Verifies graceful handling of null/empty fields | ✅ |
 | PROD-029.22 | `buildDescription > should format historic buildings with character` | ai-description.service.spec.ts | Verifies historic buildings get "character" mention | ✅ |
-| PROD-030 | N/A | N/A | Virtual staging - not yet implemented | 🚧 |
-| PROD-031 | N/A | N/A | Time-of-day photos - not yet implemented | 🚧 |
+### PROD-030: Virtual Staging
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-030.1 | `createStagingRequest > should create staging request and process it` | virtual-staging.service.spec.ts | Verifies staging request creation with room type and style | ✅ |
+| PROD-030.2 | `createStagingRequest > should throw NotFoundException if property not found` | virtual-staging.service.spec.ts | Verifies property validation | ✅ |
+| PROD-030.3 | `createStagingRequest > should throw ForbiddenException if user not owner` | virtual-staging.service.spec.ts | Verifies only property owner can request staging | ✅ |
+| PROD-030.4 | `createStagingRequest > should allow admin to create staging request` | virtual-staging.service.spec.ts | Verifies admin bypass for staging requests | ✅ |
+| PROD-030.5 | `createStagingRequest > should throw NotFoundException if media not found` | virtual-staging.service.spec.ts | Verifies media validation | ✅ |
+| PROD-030.6 | `createStagingRequest > should throw BadRequestException if media does not belong to property` | virtual-staging.service.spec.ts | Verifies media-property relationship | ✅ |
+| PROD-030.7 | `createStagingRequest > should throw BadRequestException if media is not a photo` | virtual-staging.service.spec.ts | Verifies only photos can be staged | ✅ |
+| PROD-030.8 | `createStagingRequest > should throw BadRequestException if staging request already in progress` | virtual-staging.service.spec.ts | Prevents duplicate staging requests | ✅ |
+| PROD-030.9 | `getStagingRequest > should return staging request` | virtual-staging.service.spec.ts | Verifies fetching individual staging request | ✅ |
+| PROD-030.10 | `getStagingRequest > should throw NotFoundException if request not found` | virtual-staging.service.spec.ts | Verifies staging request validation | ✅ |
+| PROD-030.11 | `getStagingRequest > should throw ForbiddenException if user not authorized` | virtual-staging.service.spec.ts | Verifies authorization for viewing staging requests | ✅ |
+| PROD-030.12 | `getStagingRequests > should return all staging requests for property` | virtual-staging.service.spec.ts | Verifies listing all staging requests | ✅ |
+| PROD-030.13 | `getStagedMedia > should return all staged media for property` | virtual-staging.service.spec.ts | Verifies listing all staged images with badge | ✅ |
+| PROD-030.14 | `getStagedMedia > should throw NotFoundException if property not found` | virtual-staging.service.spec.ts | Verifies property validation for staged media | ✅ |
+| PROD-030.15 | `deleteStagedMedia > should delete staged media` | virtual-staging.service.spec.ts | Verifies staged image deletion | ✅ |
+| PROD-030.16 | `deleteStagedMedia > should throw BadRequestException if media is not staged` | virtual-staging.service.spec.ts | Verifies only staged media can be deleted via this endpoint | ✅ |
+| PROD-030.17 | `compareImages > should return original and staged images` | virtual-staging.service.spec.ts | Verifies before/after comparison endpoint | ✅ |
+| PROD-030.18 | `compareImages > should throw BadRequestException if media is not staged` | virtual-staging.service.spec.ts | Verifies comparison requires staged media | ✅ |
+| PROD-030.19 | `compareImages > should throw NotFoundException if original media not found` | virtual-staging.service.spec.ts | Verifies original media exists for comparison | ✅ |
+
+### PROD-031: Time-of-Day Photos
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-031.1 | `tagMedia > should tag media with time of day and season` | time-of-day-photos.service.spec.ts | Verifies time-of-day and season tagging | ✅ |
+| PROD-031.2 | `tagMedia > should throw NotFoundException if property not found` | time-of-day-photos.service.spec.ts | Verifies property validation for tagging | ✅ |
+| PROD-031.3 | `tagMedia > should throw ForbiddenException if user not owner` | time-of-day-photos.service.spec.ts | Verifies only owner can tag media | ✅ |
+| PROD-031.4 | `tagMedia > should allow admin to tag media` | time-of-day-photos.service.spec.ts | Verifies admin bypass for tagging | ✅ |
+| PROD-031.5 | `tagMedia > should throw NotFoundException if media not found` | time-of-day-photos.service.spec.ts | Verifies media validation for tagging | ✅ |
+| PROD-031.6 | `tagMedia > should throw NotFoundException if media belongs to different property` | time-of-day-photos.service.spec.ts | Verifies media-property relationship | ✅ |
+| PROD-031.7 | `createPhotoGroup > should create a photo group` | time-of-day-photos.service.spec.ts | Verifies photo group creation for angle linking | ✅ |
+| PROD-031.8 | `createPhotoGroup > should throw NotFoundException if property not found` | time-of-day-photos.service.spec.ts | Verifies property validation for group creation | ✅ |
+| PROD-031.9 | `createPhotoGroup > should throw ForbiddenException if user not owner` | time-of-day-photos.service.spec.ts | Verifies only owner can create groups | ✅ |
+| PROD-031.10 | `addToGroup > should add media to a photo group` | time-of-day-photos.service.spec.ts | Verifies adding media to photo groups | ✅ |
+| PROD-031.11 | `addToGroup > should throw NotFoundException if media not found` | time-of-day-photos.service.spec.ts | Verifies media validation for group operations | ✅ |
+| PROD-031.12 | `removeFromGroup > should remove media from a photo group` | time-of-day-photos.service.spec.ts | Verifies removing media from groups | ✅ |
+| PROD-031.13 | `getPhotoGroups > should return all photo groups for property` | time-of-day-photos.service.spec.ts | Verifies listing all photo groups | ✅ |
+| PROD-031.14 | `getPhotoGroups > should throw NotFoundException if property not found` | time-of-day-photos.service.spec.ts | Verifies property validation for group listing | ✅ |
+| PROD-031.15 | `getPhotoGroup > should return a specific photo group` | time-of-day-photos.service.spec.ts | Verifies fetching individual photo group | ✅ |
+| PROD-031.16 | `getPhotoGroup > should throw NotFoundException if group is empty` | time-of-day-photos.service.spec.ts | Verifies empty group handling | ✅ |
+| PROD-031.17 | `getTimeTaggedMedia > should return all time-tagged media` | time-of-day-photos.service.spec.ts | Verifies listing all tagged media | ✅ |
+| PROD-031.18 | `getTimeTaggedMedia > should throw NotFoundException if property not found` | time-of-day-photos.service.spec.ts | Verifies property validation | ✅ |
+| PROD-031.19 | `getMediaByTimeOfDay > should return media filtered by time of day` | time-of-day-photos.service.spec.ts | Verifies filtering by time (DAWN, NOON, etc.) | ✅ |
+| PROD-031.20 | `getMediaByTimeOfDay > should throw NotFoundException if property not found` | time-of-day-photos.service.spec.ts | Verifies property validation for time filter | ✅ |
+| PROD-031.21 | `getMediaBySeason > should return media filtered by season` | time-of-day-photos.service.spec.ts | Verifies filtering by season (SPRING, SUMMER, etc.) | ✅ |
+| PROD-031.22 | `getSliderData > should return slider data organized by time and season` | time-of-day-photos.service.spec.ts | Verifies slider UI data structure for comparison | ✅ |
+| PROD-031.23 | `bulkTagMedia > should bulk tag multiple media items` | time-of-day-photos.service.spec.ts | Verifies batch tagging operations | ✅ |
+| PROD-031.24 | `bulkTagMedia > should skip invalid media items` | time-of-day-photos.service.spec.ts | Verifies graceful handling of invalid items | ✅ |
+| PROD-031.25 | `bulkTagMedia > should throw ForbiddenException if user not owner` | time-of-day-photos.service.spec.ts | Verifies authorization for bulk operations | ✅ |
 
 ---
 
@@ -1838,6 +1889,7 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | Browser Tests | CI Status | Notes |
 |------|------------|-----------|---------------|-----------|-------|
+| 2025-12-30 | ✅ 1130 passed | ✅ 279 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-030-031 Virtual Staging & Time-of-Day Photos (44 unit tests) |
 | 2025-12-30 | ✅ 1086 passed | ✅ 279 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-108 Predictive Maintenance (36 unit + 22 E2E) |
 | 2025-12-30 | ✅ 1050 passed | ✅ 257 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-106 Tenant Portal (37 unit + 26 E2E) |
 | 2025-12-29 | ✅ 1013 passed | ✅ 231 passed | ✅ 5 passed | ✅ Passing | Implemented PROD-100 Management Dashboard (29 unit + 24 E2E) |
@@ -1896,8 +1948,8 @@ The following requirements do not yet have test coverage:
 | ~~PROD-010~~ | ~~Verified Badges~~ | ✅ **COMPLETE** - hasVerifiedBadge logic, getVerifiedUsers filter, badge status in user verification response |
 | PROD-011 | Biometric Authentication | Client-side implementation (P2) |
 | ~~PROD-029~~ | ~~AI Description Generation~~ | ✅ **COMPLETE** - AiDescriptionService with 5 tone styles (LUXURY, FAMILY_FRIENDLY, INVESTMENT_FOCUSED, MODERN_PROFESSIONAL, COZY_WELCOMING), rule-based text generation with property context, 3 endpoints (generate, save, apply); 23 unit tests |
-| PROD-030 | Virtual Staging | Not yet implemented |
-| PROD-031 | Time-of-Day Photos | Not yet implemented |
+| ~~PROD-030~~ | ~~Virtual Staging~~ | ✅ **COMPLETE** - VirtualStagingService with room type (13 options) and style (12 options) parameters, mock AI provider integration, staging status tracking, before/after comparison, endpoints (POST /ai/staging, GET requests, DELETE staged, compare); 19 unit tests |
+| ~~PROD-031~~ | ~~Time-of-Day Photos~~ | ✅ **COMPLETE** - TimeOfDayPhotosService with time-of-day (6 options) and season (4 options) tagging, photo groups for same-angle linking, slider data API, filter by time/season, bulk tagging; 25 unit tests |
 | PROD-044-047 | Advanced Search Features (Voice, Visual, AR, Lifestyle) | Phase 4 features |
 | ~~PROD-050~~ | ~~AI Recommendations~~ | ✅ **COMPLETE** - BrowsingHistoryService (view tracking, history retrieval), RecommendationsService (preference extraction from favorites/search agents, similarity calculation, scoring algorithm with 40% preference + 40% similarity + 20% popularity weights, explanation generation), RecommendationFeedback model, 4 endpoints (GET /recommendations, GET /recommendations/preferences, GET /recommendations/similar/:propertyId, POST /recommendations/:propertyId/feedback); 30 browsing history tests; 31 recommendation tests |
 | ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller); 47 E2E tests covering full API flow |
