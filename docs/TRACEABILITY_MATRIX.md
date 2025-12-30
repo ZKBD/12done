@@ -2,7 +2,7 @@
 
 **Project:** 12done.com
 **Last Updated:** 2025-12-30
-**Version:** 1.9
+**Version:** 2.0
 
 This document traces requirements from the SRS to their implementing test cases and results. It must be updated whenever:
 - New requirements are added to the SRS
@@ -15,10 +15,10 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 1347 | 0 | 1347 | 100% |
+| Unit Tests | 1392 | 0 | 1392 | 100% |
 | E2E Tests | 287 | 0 | 287 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **1639** | **0** | **1639** | **100%** |
+| **Total** | **1684** | **0** | **1684** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -614,6 +614,108 @@ Note: E2E tests require Docker/database to run.
 | PROD-150-158.2 | `getPropertyNeighborhoodProfile > should throw if property not found` | neighborhood.service.spec.ts | Verifies property validation | ✅ |
 | PROD-150-158.3 | `getPropertyNeighborhoodProfile > should throw if no coordinates` | neighborhood.service.spec.ts | Verifies location requirement | ✅ |
 | PROD-150-158.4 | `getPropertyNeighborhoodProfile > should include all data types` | neighborhood.service.spec.ts | Verifies comprehensive data | ✅ |
+
+---
+
+## Financial Tools (PROD-160 to PROD-169)
+
+### PROD-160: AI Property Valuation
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-160.1 | `getPropertyValuation > should generate new valuation for property` | financial-tools.service.spec.ts | Verifies AI-powered valuation generation | ⏳ |
+| PROD-160.2 | `getPropertyValuation > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | Verifies property validation | ⏳ |
+| PROD-160.3 | `getPropertyValuation > should return cached valuation if recent` | financial-tools.service.spec.ts | Verifies 24-hour cache behavior | ⏳ |
+| PROD-160.4 | `getPropertyValuation > should use specified valuation method` | financial-tools.service.spec.ts | Verifies COMPARABLE/INCOME/COST methods | ⏳ |
+
+### PROD-161: Price Analytics
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-161.1 | `getPriceHistory > should return price history for property` | financial-tools.service.spec.ts | Verifies price history retrieval | ⏳ |
+| PROD-161.2 | `getPriceHistory > should create initial history entry if none exists` | financial-tools.service.spec.ts | Verifies automatic first entry creation | ⏳ |
+| PROD-161.3 | `getPriceHistory > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | Verifies property validation | ⏳ |
+| PROD-161.4 | `getPriceHistory > should filter by date range` | financial-tools.service.spec.ts | Verifies date filtering | ⏳ |
+
+### PROD-162: Investment Calculators
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-162.1 | `calculateRoi > should calculate ROI metrics correctly` | financial-tools.service.spec.ts | Verifies ROI calculation accuracy | ⏳ |
+| PROD-162.2 | `calculateRoi > should handle zero down payment` | financial-tools.service.spec.ts | Verifies default down payment handling | ⏳ |
+| PROD-162.3 | `calculateRoi > should apply vacancy rate to income` | financial-tools.service.spec.ts | Verifies vacancy rate application | ⏳ |
+| PROD-162.4 | `calculateMortgage > should calculate mortgage payment correctly` | financial-tools.service.spec.ts | Verifies mortgage calculation | ⏳ |
+| PROD-162.5 | `calculateMortgage > should include PMI when specified` | financial-tools.service.spec.ts | Verifies PMI inclusion | ⏳ |
+| PROD-162.6 | `calculateMortgage > should include escrow amounts` | financial-tools.service.spec.ts | Verifies escrow calculation | ⏳ |
+| PROD-162.7 | `calculateMortgage > should handle zero interest rate` | financial-tools.service.spec.ts | Verifies edge case handling | ⏳ |
+| PROD-162.8 | `calculateMortgage > should generate amortization summary by year` | financial-tools.service.spec.ts | Verifies amortization schedule | ⏳ |
+
+### PROD-163: Rental Yield Calculator
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-163.1 | `calculateRentalYield > should calculate gross and net yield` | financial-tools.service.spec.ts | Verifies yield calculation | ⏳ |
+| PROD-163.2 | `calculateRentalYield > should throw error for zero purchase price` | financial-tools.service.spec.ts | Verifies input validation | ⏳ |
+| PROD-163.3 | `calculateRentalYield > should handle zero expenses` | financial-tools.service.spec.ts | Verifies expense handling | ⏳ |
+
+### PROD-164: Depreciation Calculator
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-164.1 | `calculateDepreciation > should calculate residential depreciation (27.5 years)` | financial-tools.service.spec.ts | Verifies residential depreciation | ⏳ |
+| PROD-164.2 | `calculateDepreciation > should calculate commercial depreciation (39 years)` | financial-tools.service.spec.ts | Verifies commercial depreciation | ⏳ |
+| PROD-164.3 | `calculateDepreciation > should include improvement costs in basis` | financial-tools.service.spec.ts | Verifies improvement cost handling | ⏳ |
+| PROD-164.4 | `calculateDepreciation > should use default land value of 20%` | financial-tools.service.spec.ts | Verifies default land value | ⏳ |
+
+### PROD-165: Portfolio Tracker
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-165.1 | `createPortfolio > should create new portfolio` | financial-tools.service.spec.ts | Verifies portfolio creation | ⏳ |
+| PROD-165.2 | `getPortfolios > should return user portfolios` | financial-tools.service.spec.ts | Verifies portfolio listing | ⏳ |
+| PROD-165.3 | `getPortfolioById > should return portfolio with metrics` | financial-tools.service.spec.ts | Verifies portfolio retrieval | ⏳ |
+| PROD-165.4 | `getPortfolioById > should throw NotFoundException for non-existent portfolio` | financial-tools.service.spec.ts | Verifies portfolio validation | ⏳ |
+| PROD-165.5 | `deletePortfolio > should delete portfolio` | financial-tools.service.spec.ts | Verifies portfolio deletion | ⏳ |
+| PROD-165.6 | `deletePortfolio > should throw NotFoundException for non-existent portfolio` | financial-tools.service.spec.ts | Verifies deletion validation | ⏳ |
+| PROD-165.7 | `addPropertyToPortfolio > should add property to portfolio` | financial-tools.service.spec.ts | Verifies property addition | ⏳ |
+| PROD-165.8 | `addPropertyToPortfolio > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | Verifies property validation | ⏳ |
+| PROD-165.9 | `addPropertyToPortfolio > should throw BadRequestException if property already in portfolio` | financial-tools.service.spec.ts | Verifies duplicate prevention | ⏳ |
+| PROD-165.10 | `removePropertyFromPortfolio > should remove property from portfolio` | financial-tools.service.spec.ts | Verifies property removal | ⏳ |
+| PROD-165.11 | `removePropertyFromPortfolio > should throw NotFoundException if property not in portfolio` | financial-tools.service.spec.ts | Verifies removal validation | ⏳ |
+
+### PROD-166: Loan Comparison
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-166.1 | `compareLoanOptions > should compare multiple loan options` | financial-tools.service.spec.ts | Verifies multi-loan comparison | ⏳ |
+| PROD-166.2 | `compareLoanOptions > should rank by total cost` | financial-tools.service.spec.ts | Verifies cost-based ranking | ⏳ |
+| PROD-166.3 | `compareLoanOptions > should calculate effective rate` | financial-tools.service.spec.ts | Verifies APR calculation | ⏳ |
+
+### PROD-167: Down Payment Assistance
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-167.1 | `findDownPaymentPrograms > should return matching programs` | financial-tools.service.spec.ts | Verifies program search | ⏳ |
+| PROD-167.2 | `findDownPaymentPrograms > should mark ineligible based on income` | financial-tools.service.spec.ts | Verifies income eligibility | ⏳ |
+| PROD-167.3 | `findDownPaymentPrograms > should mark ineligible for non-first-time buyers` | financial-tools.service.spec.ts | Verifies first-time buyer check | ⏳ |
+
+### PROD-168: Tax Reporting
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-168.1 | `generateTaxReport > should generate tax report for year` | financial-tools.service.spec.ts | Verifies report generation | ⏳ |
+| PROD-168.2 | `generateTaxReport > should return existing report if already generated` | financial-tools.service.spec.ts | Verifies report caching | ⏳ |
+| PROD-168.3 | `getTaxReports > should return user tax reports` | financial-tools.service.spec.ts | Verifies report listing | ⏳ |
+
+### PROD-169: Cash Flow Projection
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-169.1 | `createCashFlowProjection > should create cash flow projection` | financial-tools.service.spec.ts | Verifies projection creation | ⏳ |
+| PROD-169.2 | `createCashFlowProjection > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | Verifies property validation | ⏳ |
+| PROD-169.3 | `createCashFlowProjection > should apply vacancy rate to income` | financial-tools.service.spec.ts | Verifies vacancy rate | ⏳ |
+| PROD-169.4 | `createCashFlowProjection > should apply growth rates over time` | financial-tools.service.spec.ts | Verifies growth rate application | ⏳ |
+| PROD-169.5 | `getCashFlowProjections > should return projections for property` | financial-tools.service.spec.ts | Verifies projection retrieval | ⏳ |
 
 ---
 

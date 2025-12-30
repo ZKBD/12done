@@ -426,6 +426,10 @@ model User {
   mortgageProvider  MortgageProvider?
   providerInquiries ProviderInquiry[]
 
+  // Financial Tools (PROD-160-169)
+  investmentPortfolios InvestmentPortfolio[]
+  taxReports           TaxReport[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -662,6 +666,12 @@ model Property {
   maintenanceRequests    MaintenanceRequest[] // Maintenance requests (PROD-103)
   expenses               Expense[] // Landlord expenses (PROD-100.4)
   providerInquiries      ProviderInquiry[] // Platform provider inquiries (PROD-082)
+
+  // Financial Tools (PROD-160-169)
+  valuations          PropertyValuation[]
+  priceHistory        PriceHistory[]
+  portfolioEntries    PortfolioProperty[]
+  cashFlowProjections CashFlowProjection[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2229,6 +2239,26 @@ enum RiskLevel {
   EXTREME
 }
 
+// ============================================
+// FINANCIAL TOOLS (PROD-160 to PROD-169)
+// ============================================
+
+// Property Type for Financial Calculations (PROD-164)
+enum FinancialPropertyType {
+  RESIDENTIAL_SINGLE
+  RESIDENTIAL_MULTI
+  COMMERCIAL
+  INDUSTRIAL
+  MIXED_USE
+}
+
+// Market Trend (PROD-161)
+enum MarketTrend {
+  UP
+  DOWN
+  STABLE
+}
+
 // Insurance Provider (PROD-081.1)
 model InsuranceProvider {
   id String @id @default(uuid())
@@ -2654,4 +2684,256 @@ model FutureDevelopment {
   @@index([projectType])
   @@index([status])
   @@index([expiresAt])
+}
+
+// ============================================
+// FINANCIAL TOOLS (PROD-160 to PROD-169)
+// ============================================
+
+// Property Valuation (PROD-160)
+model PropertyValuation {
+  id         String @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Valuation Results
+  estimatedValue   Decimal @db.Decimal(14, 2)
+  confidenceLow    Decimal @db.Decimal(14, 2)
+  confidenceHigh   Decimal @db.Decimal(14, 2)
+  confidenceLevel  Float   // 0-100 percentage
+
+  // Inputs Used
+  comparableSales  Json? // Array of { address, price, sqm, date }
+  marketData       Json? // { trend, avgPricePerSqm, inventory }
+  propertyDetails  Json? // { size, bedrooms, condition, features }
+
+  // Valuation Metadata
+  valuationMethod  String  @default("COMPARABLE") // COMPARABLE, INCOME, COST
+  modelVersion     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
+  @@index([createdAt])
+}
+
+// Price History (PROD-161)
+model PriceHistory {
+  id         String @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Price Data
+  price       Decimal   @db.Decimal(14, 2)
+  pricePerSqm Decimal?  @db.Decimal(10, 2)
+  eventType   String    // "LISTED", "REDUCED", "INCREASED", "SOLD", "RENTED"
+  eventDate   DateTime
+
+  // Market Context
+  daysOnMarket Int?
+  marketTrend  MarketTrend?
+
+  createdAt DateTime @default(now())
+
+  @@index([propertyId])
+  @@index([eventDate])
+}
+
+// Investment Portfolio (PROD-165)
+model InvestmentPortfolio {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+
+  // Portfolio Metrics (cached, updated periodically)
+  totalValue       Decimal? @db.Decimal(14, 2)
+  totalEquity      Decimal? @db.Decimal(14, 2)
+  totalIncome      Decimal? @db.Decimal(14, 2) // Annual rental income
+  totalExpenses    Decimal? @db.Decimal(14, 2) // Annual expenses
+  cashFlow         Decimal? @db.Decimal(14, 2) // Net cash flow
+  overallRoi       Float?   // Percentage
+  cashOnCash       Float?   // Percentage
+
+  // Properties in portfolio
+  properties PortfolioProperty[]
+
+  lastCalculatedAt DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Portfolio Property Link (PROD-165.2)
+model PortfolioProperty {
+  id          String @id @default(uuid())
+  portfolioId String
+  portfolio   InvestmentPortfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Purchase Details
+  purchasePrice    Decimal  @db.Decimal(14, 2)
+  purchaseDate     DateTime
+  closingCosts     Decimal? @db.Decimal(12, 2)
+  renovationCosts  Decimal? @db.Decimal(12, 2)
+
+  // Financing
+  downPayment      Decimal? @db.Decimal(12, 2)
+  loanAmount       Decimal? @db.Decimal(14, 2)
+  interestRate     Float?
+  loanTermYears    Int?
+  monthlyPayment   Decimal? @db.Decimal(10, 2)
+
+  // Income
+  monthlyRent      Decimal? @db.Decimal(10, 2)
+  occupancyRate    Float?   @default(95) // Percentage
+  otherIncome      Decimal? @db.Decimal(10, 2) // Parking, laundry, etc.
+
+  // Expenses
+  propertyTax      Decimal? @db.Decimal(10, 2) // Annual
+  insurance        Decimal? @db.Decimal(10, 2) // Annual
+  maintenance      Decimal? @db.Decimal(10, 2) // Annual estimate
+  utilities        Decimal? @db.Decimal(10, 2) // Annual if landlord pays
+  hoaFees          Decimal? @db.Decimal(10, 2) // Annual
+  managementFee    Float?   // Percentage of rent
+  otherExpenses    Decimal? @db.Decimal(10, 2)
+
+  // Current Value
+  currentValue     Decimal? @db.Decimal(14, 2)
+  valueDate        DateTime?
+
+  // Depreciation (PROD-164)
+  depreciationType      FinancialPropertyType?
+  depreciationYears     Int?      @default(27) // 27.5 for residential, 39 for commercial
+  depreciationStartDate DateTime?
+  landValue             Decimal?  @db.Decimal(14, 2) // Land is not depreciated
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([portfolioId, propertyId])
+  @@index([portfolioId])
+  @@index([propertyId])
+}
+
+// Down Payment Assistance Programs (PROD-167)
+model DownPaymentProgram {
+  id String @id @default(uuid())
+
+  // Program Info
+  name            String
+  description     String?
+  programType     String // "GRANT", "LOAN", "DEFERRED_LOAN", "TAX_CREDIT"
+
+  // Eligibility
+  state           String? // US state or "FEDERAL"
+  county          String?
+  city            String?
+  maxIncome       Decimal? @db.Decimal(12, 2) // Max household income
+  maxPurchasePrice Decimal? @db.Decimal(14, 2)
+  firstTimeBuyer  Boolean  @default(true)
+  minCreditScore  Int?
+
+  // Benefits
+  maxAmount       Decimal? @db.Decimal(12, 2)
+  percentageOfPrice Float? // Alternative to fixed amount
+
+  // Application
+  applicationUrl  String?
+  contactInfo     String?
+  deadline        DateTime?
+
+  // Status
+  isActive        Boolean @default(true)
+  lastVerified    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([state])
+  @@index([isActive])
+}
+
+// Tax Report (PROD-168)
+model TaxReport {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Report Period
+  taxYear   Int
+  startDate DateTime
+  endDate   DateTime
+
+  // Income Summary
+  rentalIncome     Decimal @db.Decimal(14, 2) @default(0)
+  otherIncome      Decimal @db.Decimal(12, 2) @default(0)
+  totalIncome      Decimal @db.Decimal(14, 2) @default(0)
+
+  // Expense Summary
+  mortgageInterest Decimal @db.Decimal(12, 2) @default(0)
+  propertyTaxes    Decimal @db.Decimal(12, 2) @default(0)
+  insurance        Decimal @db.Decimal(12, 2) @default(0)
+  repairs          Decimal @db.Decimal(12, 2) @default(0)
+  maintenance      Decimal @db.Decimal(12, 2) @default(0)
+  utilities        Decimal @db.Decimal(12, 2) @default(0)
+  management       Decimal @db.Decimal(12, 2) @default(0)
+  professional     Decimal @db.Decimal(12, 2) @default(0) // Legal, accounting
+  depreciation     Decimal @db.Decimal(12, 2) @default(0)
+  otherExpenses    Decimal @db.Decimal(12, 2) @default(0)
+  totalExpenses    Decimal @db.Decimal(14, 2) @default(0)
+
+  // Net
+  netIncome        Decimal @db.Decimal(14, 2) @default(0)
+
+  // Property Breakdown
+  propertyDetails  Json? // Array of per-property income/expenses
+
+  // Report metadata
+  status           String @default("DRAFT") // DRAFT, FINAL
+  notes            String?
+  exportedAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, taxYear])
+  @@index([userId])
+  @@index([taxYear])
+}
+
+// Cash Flow Projection (PROD-169)
+model CashFlowProjection {
+  id         String @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Projection Settings
+  projectionMonths Int @default(12)
+  vacancyRate      Float @default(5) // Percentage
+  rentGrowthRate   Float @default(2) // Annual percentage
+  expenseGrowthRate Float @default(3) // Annual percentage
+
+  // Monthly Projections
+  projections Json // Array of { month, income, expenses, netCashFlow }
+
+  // Summary
+  totalProjectedIncome   Decimal @db.Decimal(14, 2)
+  totalProjectedExpenses Decimal @db.Decimal(14, 2)
+  totalProjectedCashFlow Decimal @db.Decimal(14, 2)
+  averageMonthlyCashFlow Decimal @db.Decimal(12, 2)
+
+  // Based on
+  baseMonthlyRent    Decimal @db.Decimal(10, 2)
+  baseMonthlyExpense Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
 }

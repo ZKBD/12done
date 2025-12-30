@@ -27,6 +27,7 @@ import { TourGuideModule } from './modules/tour-guide';
 import { VerificationModule } from './modules/verification';
 import { PlatformServicesModule } from './modules/platform-services/platform-services.module';
 import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
+import { FinancialToolsModule } from './modules/financial-tools/financial-tools.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
     VerificationModule,
     PlatformServicesModule,
     NeighborhoodModule,
+    FinancialToolsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
