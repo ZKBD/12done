@@ -2,7 +2,7 @@
 
 **Project:** 12done.com
 **Last Updated:** 2025-12-30
-**Version:** 1.6
+**Version:** 1.7
 
 This document traces requirements from the SRS to their implementing test cases and results. It must be updated whenever:
 - New requirements are added to the SRS
@@ -15,10 +15,10 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 1234 | 0 | 1234 | 100% |
+| Unit Tests | 1238 | 0 | 1238 | 100% |
 | E2E Tests | 287 | 0 | 287 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **1526** | **0** | **1526** | **100%** |
+| **Total** | **1530** | **0** | **1530** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -208,7 +208,28 @@ Note: E2E tests require Docker/database to run.
 | PROD-028.2 | `getMedia > returns media list` | media.service.spec.ts | Verifies media retrieval | ✅ |
 | PROD-028.3 | `reorderMedia > updates sort order` | media.service.spec.ts | Verifies media reordering | ✅ |
 | PROD-028.4 | `setPrimaryMedia > sets primary image` | media.service.spec.ts | Verifies primary media setting | ✅ |
-| PROD-029 | N/A | N/A | AI description generation - not yet implemented | 🚧 |
+| PROD-029.1 | `generateDescription > should generate description with default tone` | ai-description.service.spec.ts | Verifies description generation with default MODERN_PROFESSIONAL tone | ✅ |
+| PROD-029.2 | `generateDescription > should generate description with specified tone` | ai-description.service.spec.ts | Verifies description uses requested tone style | ✅ |
+| PROD-029.3 | `generateDescription > should throw NotFoundException if property not found` | ai-description.service.spec.ts | Verifies error handling for missing property | ✅ |
+| PROD-029.4 | `generateDescription > should throw ForbiddenException if not owner` | ai-description.service.spec.ts | Verifies only owner can generate descriptions | ✅ |
+| PROD-029.5 | `generateDescription > should allow admin to generate description` | ai-description.service.spec.ts | Verifies admin bypass for ownership check | ✅ |
+| PROD-029.6 | `saveDescription > should save description to property` | ai-description.service.spec.ts | Verifies description is saved to aiGeneratedDescription field | ✅ |
+| PROD-029.7 | `saveDescription > should throw NotFoundException if property not found` | ai-description.service.spec.ts | Verifies error handling for missing property | ✅ |
+| PROD-029.8 | `saveDescription > should throw ForbiddenException if not owner` | ai-description.service.spec.ts | Verifies only owner can save descriptions | ✅ |
+| PROD-029.9 | `applyDescription > should apply AI description to main description` | ai-description.service.spec.ts | Verifies description is copied to main description field | ✅ |
+| PROD-029.10 | `applyDescription > should throw NotFoundException if no AI description exists` | ai-description.service.spec.ts | Verifies error when no AI description to apply | ✅ |
+| PROD-029.11 | `applyDescription > should throw ForbiddenException if not owner` | ai-description.service.spec.ts | Verifies only owner can apply descriptions | ✅ |
+| PROD-029.12 | `buildDescription > should generate LUXURY tone description` | ai-description.service.spec.ts | Verifies luxury tone uses words like "exceptional", "prestigious" | ✅ |
+| PROD-029.13 | `buildDescription > should generate FAMILY_FRIENDLY tone description` | ai-description.service.spec.ts | Verifies family tone uses words like "family", "home" | ✅ |
+| PROD-029.14 | `buildDescription > should generate INVESTMENT_FOCUSED tone description` | ai-description.service.spec.ts | Verifies investment tone uses "investment", "ROI" | ✅ |
+| PROD-029.15 | `buildDescription > should generate MODERN_PROFESSIONAL tone description` | ai-description.service.spec.ts | Verifies modern tone uses "contemporary", "functionality" | ✅ |
+| PROD-029.16 | `buildDescription > should generate COZY_WELCOMING tone description` | ai-description.service.spec.ts | Verifies cozy tone uses "charming", "comfort" | ✅ |
+| PROD-029.17 | `buildDescription > should include bedroom count` | ai-description.service.spec.ts | Verifies bedroom count appears in description | ✅ |
+| PROD-029.18 | `buildDescription > should include square meters` | ai-description.service.spec.ts | Verifies square meters with m² unit in description | ✅ |
+| PROD-029.19 | `buildDescription > should include pet-friendly feature` | ai-description.service.spec.ts | Verifies pet-friendly is mentioned when applicable | ✅ |
+| PROD-029.20 | `buildDescription > should include price in closing` | ai-description.service.spec.ts | Verifies formatted price in closing section | ✅ |
+| PROD-029.21 | `buildDescription > should handle property with minimal data` | ai-description.service.spec.ts | Verifies graceful handling of null/empty fields | ✅ |
+| PROD-029.22 | `buildDescription > should format historic buildings with character` | ai-description.service.spec.ts | Verifies historic buildings get "character" mention | ✅ |
 | PROD-030 | N/A | N/A | Virtual staging - not yet implemented | 🚧 |
 | PROD-031 | N/A | N/A | Time-of-day photos - not yet implemented | 🚧 |
 
@@ -1761,7 +1782,7 @@ The following requirements do not yet have test coverage:
 | PROD-009 | Background Checks | Not yet implemented |
 | PROD-010 | Verified Badges | Not yet implemented |
 | PROD-011 | Biometric Authentication | Not yet implemented |
-| PROD-029 | AI Description Generation | Not yet implemented |
+| ~~PROD-029~~ | ~~AI Description Generation~~ | ✅ **COMPLETE** - AiDescriptionService with 5 tone styles (LUXURY, FAMILY_FRIENDLY, INVESTMENT_FOCUSED, MODERN_PROFESSIONAL, COZY_WELCOMING), rule-based text generation with property context, 3 endpoints (generate, save, apply); 23 unit tests |
 | PROD-030 | Virtual Staging | Not yet implemented |
 | PROD-031 | Time-of-Day Photos | Not yet implemented |
 | PROD-044-047 | Advanced Search Features (Voice, Visual, AR, Lifestyle) | Phase 4 features |

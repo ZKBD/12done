@@ -7,3 +7,4 @@ export * from './inspection.dto';
 export * from './pricing.dto';
 export * from './media.dto';
 export * from './open-house.dto';
+export * from './ai-description.dto';

@@ -7,6 +7,7 @@ import {
   PricingService,
   MediaService,
   OpenHouseService,
+  AiDescriptionService,
 } from './services';
 import { BrowsingHistoryService } from '@/modules/search';
 import { PropertyStatus, UserRole, ListingType } from '@prisma/client';
@@ -158,6 +159,15 @@ describe('PropertiesController', () => {
             getViewedPropertiesWithStats: jest.fn(),
             clearHistory: jest.fn(),
             deleteEntry: jest.fn(),
+          },
+        },
+        {
+          provide: AiDescriptionService,
+          useValue: {
+            generateDescription: jest.fn(),
+            saveDescription: jest.fn(),
+            applyDescription: jest.fn(),
+            buildDescription: jest.fn(),
           },
         },
       ],

@@ -74,6 +74,15 @@ enum EnergyEfficiencyRating {
   NOT_RATED
 }
 
+// AI Description Generation (PROD-029)
+enum DescriptionTone {
+  LUXURY
+  FAMILY_FRIENDLY
+  INVESTMENT_FOCUSED
+  MODERN_PROFESSIONAL
+  COZY_WELCOMING
+}
+
 enum NotificationType {
   EMAIL_VERIFICATION
   WELCOME
@@ -508,7 +517,7 @@ model Property {
   title                  String
   description            String?
   aiGeneratedDescription String? // (PROD-029)
-  descriptionTone        String? // luxury, family-friendly, investment-focused
+  descriptionTone        DescriptionTone? // (PROD-029)
 
   // Listing Types (PROD-022) - Multi-choice stored as array
   listingTypes ListingType[]

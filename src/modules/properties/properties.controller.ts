@@ -48,6 +48,7 @@ import {
   PricingService,
   MediaService,
   OpenHouseService,
+  AiDescriptionService,
 } from './services';
 import {
   BrowsingHistoryService,
@@ -88,6 +89,9 @@ import {
   OpenHouseResponseDto,
   OpenHouseQueryDto,
   MediaType,
+  GenerateDescriptionDto,
+  SaveDescriptionDto,
+  AiDescriptionResponseDto,
 } from './dto';
 import { PropertyMediaResponseDto, FloorPlanResponseDto } from './dto/property-response.dto';
 
@@ -102,6 +106,7 @@ export class PropertiesController {
     private readonly mediaService: MediaService,
     private readonly openHouseService: OpenHouseService,
     private readonly browsingHistoryService: BrowsingHistoryService,
+    private readonly aiDescriptionService: AiDescriptionService,
   ) {}
 
   // ============ PROPERTY CRUD ============
@@ -911,6 +916,80 @@ export class PropertiesController {
     return this.openHouseService.delete(
       propertyId,
       eventId,
+      user.id,
+      user.role as UserRole,
+    );
+  }
+
+  // ============ AI DESCRIPTION (PROD-029) ============
+
+  @Post(':id/ai/description')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate AI description for property (PROD-029.1)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'AI-generated description',
+    type: AiDescriptionResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - not property owner' })
+  @ApiResponse({ status: 404, description: 'Property not found' })
+  async generateDescription(
+    @Param('id') propertyId: string,
+    @Body() dto: GenerateDescriptionDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<AiDescriptionResponseDto> {
+    return this.aiDescriptionService.generateDescription(
+      propertyId,
+      user.id,
+      user.role as UserRole,
+      dto,
+    );
+  }
+
+  @Post(':id/ai/description/save')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Save AI-generated description (PROD-029.6)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Description saved',
+  })
+  async saveDescription(
+    @Param('id') propertyId: string,
+    @Body() dto: SaveDescriptionDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ message: string }> {
+    return this.aiDescriptionService.saveDescription(
+      propertyId,
+      user.id,
+      user.role as UserRole,
+      dto.description,
+      dto.tone,
+    );
+  }
+
+  @Post(':id/ai/description/apply')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Apply saved AI description as main description (PROD-029.5)' })
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Description applied to property',
+  })
+  async applyDescription(
+    @Param('id') propertyId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ message: string }> {
+    return this.aiDescriptionService.applyDescription(
+      propertyId,
       user.id,
       user.role as UserRole,
     );
