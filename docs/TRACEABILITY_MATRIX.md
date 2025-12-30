@@ -1,8 +1,8 @@
 # Requirements Traceability Matrix
 
 **Project:** 12done.com
-**Last Updated:** 2025-12-29
-**Version:** 1.5
+**Last Updated:** 2025-12-30
+**Version:** 1.6
 
 This document traces requirements from the SRS to their implementing test cases and results. It must be updated whenever:
 - New requirements are added to the SRS
@@ -11,14 +11,14 @@ This document traces requirements from the SRS to their implementing test cases 
 
 ---
 
-## Test Run Summary (2025-12-29)
+## Test Run Summary (2025-12-30)
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 1128 | 0 | 1128 | 100% |
+| Unit Tests | 1234 | 0 | 1234 | 100% |
 | E2E Tests | 287 | 0 | 287 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **1420** | **0** | **1420** | **100%** |
+| **Total** | **1526** | **0** | **1526** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -1459,7 +1459,181 @@ Note: E2E tests require Docker/database to run.
 
 ---
 
-## 8. E2E Test Coverage
+## 8. AI Tour Guide (PROD-120 to PROD-133)
+
+### Overview
+
+The AI Tour Guide module provides location-based tour narration with voice styles, POI detection, custom tours, saved places, and user notes. All 106 unit tests pass.
+
+### PROD-120: Location-Based Service
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-120.1 | `getNearbyPois > should return mock POIs when no API key is configured` | poi.service.spec.ts | Verifies POI detection returns nearby points of interest | ✅ |
+| PROD-120.2 | `getNearbyPois > should include distance in results` | poi.service.spec.ts | Verifies distance calculation for each POI | ✅ |
+| PROD-120.3 | `calculateDistance > should calculate distance between two points` | poi.service.spec.ts | Verifies Haversine formula for distance | ✅ |
+| PROD-120.4 | `calculateDistance > should return 0 for same point` | poi.service.spec.ts | Verifies edge case for same location | ✅ |
+| PROD-120.5 | `calculateDistance > should calculate roughly correct distance` | poi.service.spec.ts | Verifies ~1km distance calculation accuracy | ✅ |
+
+### PROD-121: POI Detection
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-121.1 | `getNearbyPois > should filter mock POIs by type` | poi.service.spec.ts | Verifies POI type filtering (restaurants, museums, etc.) | ✅ |
+| PROD-121.2 | `getNearbyPois > should respect the limit parameter` | poi.service.spec.ts | Verifies result limiting | ✅ |
+| PROD-121.3 | `mapGoogleTypesToPoiType > should map restaurant type correctly` | poi.service.spec.ts | Verifies Google type mapping | ✅ |
+| PROD-121.4 | `mapGoogleTypesToPoiType > should map park type correctly` | poi.service.spec.ts | Verifies park type mapping | ✅ |
+| PROD-121.5 | `mapGoogleTypesToPoiType > should map museum type correctly` | poi.service.spec.ts | Verifies museum type mapping | ✅ |
+| PROD-121.6 | `mapGoogleTypesToPoiType > should map landmark type correctly` | poi.service.spec.ts | Verifies landmark type mapping | ✅ |
+| PROD-121.7 | `mapGoogleTypesToPoiType > should return OTHER for unknown types` | poi.service.spec.ts | Verifies fallback for unknown types | ✅ |
+| PROD-121.8 | `mapGoogleTypesToPoiType > should prioritize first matching type` | poi.service.spec.ts | Verifies type priority order | ✅ |
+
+### PROD-122: POI Coverage
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-122.1 | `getPoiDetails > should return mock POI details when no API key is configured` | poi.service.spec.ts | Verifies detailed POI info retrieval | ✅ |
+| PROD-122.2 | `getPoiDetails > should include opening hours in details` | poi.service.spec.ts | Verifies opening hours data | ✅ |
+
+### PROD-123: Voice Information / PROD-127: Voice Styles
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-123.1 | `generateNarration > should generate narration for a POI` | narration.service.spec.ts | Verifies narration generation | ✅ |
+| PROD-123.2 | `generateNarration > should throw NotFoundException for non-existent POI` | narration.service.spec.ts | Verifies error handling | ✅ |
+| PROD-123.3 | `generateNarration > should calculate estimated speaking duration` | narration.service.spec.ts | Verifies duration calculation | ✅ |
+| PROD-123.4 | `generateNarration > should include interests in response` | narration.service.spec.ts | Verifies interest-based content | ✅ |
+| PROD-127.1 | `buildNarration > should use FRIENDLY voice style template` | narration.service.spec.ts | Verifies FRIENDLY voice narration | ✅ |
+| PROD-127.2 | `buildNarration > should use HISTORICAL voice style template` | narration.service.spec.ts | Verifies HISTORICAL voice narration | ✅ |
+| PROD-127.3 | `buildNarration > should use PROFESSIONAL voice style template` | narration.service.spec.ts | Verifies PROFESSIONAL voice narration | ✅ |
+| PROD-127.4 | `buildNarration > should include rating information` | narration.service.spec.ts | Verifies rating in narration | ✅ |
+| PROD-127.5 | `buildNarration > should include open/closed status` | narration.service.spec.ts | Verifies open status in narration | ✅ |
+| PROD-127.6 | `buildNarration > should handle closed status` | narration.service.spec.ts | Verifies closed status in narration | ✅ |
+| PROD-127.7 | `buildNarration > should include interest-specific content` | narration.service.spec.ts | Verifies interest-based content inclusion | ✅ |
+
+### PROD-124: Audio Navigation
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-124.1 | `generateNavigationNarration > should generate navigation instruction in FRIENDLY style` | narration.service.spec.ts | Verifies navigation narration | ✅ |
+| PROD-124.2 | `generateNavigationNarration > should convert to kilometers for long distances` | narration.service.spec.ts | Verifies km conversion for 1000m+ | ✅ |
+| PROD-124.3 | `generateNavigationNarration > should use HISTORICAL style template` | narration.service.spec.ts | Verifies historical nav style | ✅ |
+| PROD-124.4 | `generateNavigationNarration > should use PROFESSIONAL style template` | narration.service.spec.ts | Verifies professional nav style | ✅ |
+| PROD-124.5 | `generateArrivalNarration > should generate arrival narration in FRIENDLY style` | narration.service.spec.ts | Verifies arrival narration | ✅ |
+| PROD-124.6 | `generateArrivalNarration > should generate arrival narration in HISTORICAL style` | narration.service.spec.ts | Verifies historical arrival | ✅ |
+| PROD-124.7 | `generateArrivalNarration > should generate arrival narration in PROFESSIONAL style` | narration.service.spec.ts | Verifies professional arrival | ✅ |
+
+### PROD-125: Preferences / Follow Me Mode
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-125.1 | `getPreferences > should return existing preferences` | preferences.service.spec.ts | Verifies preferences retrieval | ✅ |
+| PROD-125.2 | `getPreferences > should create default preferences if none exist` | preferences.service.spec.ts | Verifies default creation | ✅ |
+| PROD-125.3 | `updatePreferences > should update existing preferences` | preferences.service.spec.ts | Verifies preferences update | ✅ |
+| PROD-125.4 | `updatePreferences > should create preferences if updating non-existent` | preferences.service.spec.ts | Verifies upsert behavior | ✅ |
+| PROD-125.5 | `updatePreferences > should update multiple fields at once` | preferences.service.spec.ts | Verifies batch update | ✅ |
+| PROD-125.6 | `getVoiceStyle > should return voice style` | preferences.service.spec.ts | Verifies voice style getter | ✅ |
+| PROD-125.7 | `getLanguage > should return language` | preferences.service.spec.ts | Verifies language getter | ✅ |
+| PROD-125.8 | `getInterests > should return interests array` | preferences.service.spec.ts | Verifies interests getter | ✅ |
+
+### PROD-130: Saved Places
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-130.1 | `savePlace > should save a new place` | saved-places.service.spec.ts | Verifies place saving | ✅ |
+| PROD-130.2 | `savePlace > should throw ConflictException if place already saved` | saved-places.service.spec.ts | Verifies duplicate prevention | ✅ |
+| PROD-130.3 | `getSavedPlaces > should return user saved places` | saved-places.service.spec.ts | Verifies saved places list | ✅ |
+| PROD-130.4 | `getSavedPlaces > should filter by type` | saved-places.service.spec.ts | Verifies type filtering | ✅ |
+| PROD-130.5 | `getSavedPlaces > should apply limit and offset` | saved-places.service.spec.ts | Verifies pagination | ✅ |
+| PROD-130.6 | `getSavedPlace > should return a saved place by ID` | saved-places.service.spec.ts | Verifies single place retrieval | ✅ |
+| PROD-130.7 | `getSavedPlace > should throw NotFoundException if not found` | saved-places.service.spec.ts | Verifies error handling | ✅ |
+| PROD-130.8 | `isPlaceSaved > should return true if place is saved` | saved-places.service.spec.ts | Verifies saved check | ✅ |
+| PROD-130.9 | `isPlaceSaved > should return false if place is not saved` | saved-places.service.spec.ts | Verifies not saved check | ✅ |
+| PROD-130.10 | `updateSavedPlace > should update notes` | saved-places.service.spec.ts | Verifies note update | ✅ |
+| PROD-130.11 | `updateSavedPlace > should throw NotFoundException if not found` | saved-places.service.spec.ts | Verifies error handling | ✅ |
+| PROD-130.12 | `removeSavedPlace > should remove a saved place` | saved-places.service.spec.ts | Verifies place removal | ✅ |
+| PROD-130.13 | `removeSavedPlace > should throw NotFoundException if not found` | saved-places.service.spec.ts | Verifies error handling | ✅ |
+| PROD-130.14 | `getSavedPlacesCount > should return count of saved places` | saved-places.service.spec.ts | Verifies count | ✅ |
+
+### PROD-131: Custom Tours
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-131.1 | `createTour > should create a new tour with stops` | tours.service.spec.ts | Verifies tour creation | ✅ |
+| PROD-131.2 | `createTour > should throw BadRequestException for empty stops` | tours.service.spec.ts | Verifies validation | ✅ |
+| PROD-131.3 | `getUserTours > should return user tours` | tours.service.spec.ts | Verifies tour listing | ✅ |
+| PROD-131.4 | `getUserTours > should apply limit and offset` | tours.service.spec.ts | Verifies pagination | ✅ |
+| PROD-131.5 | `getPublicTours > should return public tours` | tours.service.spec.ts | Verifies public tour access | ✅ |
+| PROD-131.6 | `getTour > should return a tour by ID` | tours.service.spec.ts | Verifies tour retrieval | ✅ |
+| PROD-131.7 | `getTour > should throw NotFoundException if tour not found` | tours.service.spec.ts | Verifies error handling | ✅ |
+| PROD-131.8 | `getTour > should throw ForbiddenException for private tour accessed by non-owner` | tours.service.spec.ts | Verifies authorization | ✅ |
+| PROD-131.9 | `getTour > should allow access to public tours by non-owner` | tours.service.spec.ts | Verifies public access | ✅ |
+| PROD-131.10 | `updateTour > should update tour details` | tours.service.spec.ts | Verifies tour update | ✅ |
+| PROD-131.11 | `updateTour > should throw ForbiddenException if not owner` | tours.service.spec.ts | Verifies authorization | ✅ |
+| PROD-131.12 | `addStop > should add a stop to tour` | tours.service.spec.ts | Verifies stop addition | ✅ |
+| PROD-131.13 | `addStop > should throw ForbiddenException if not owner` | tours.service.spec.ts | Verifies authorization | ✅ |
+| PROD-131.14 | `removeStop > should remove a stop from tour` | tours.service.spec.ts | Verifies stop removal | ✅ |
+| PROD-131.15 | `removeStop > should throw NotFoundException if stop not in tour` | tours.service.spec.ts | Verifies error handling | ✅ |
+| PROD-131.16 | `reorderStops > should reorder tour stops` | tours.service.spec.ts | Verifies stop reordering | ✅ |
+| PROD-131.17 | `reorderStops > should throw BadRequestException for invalid stop ID` | tours.service.spec.ts | Verifies validation | ✅ |
+| PROD-131.18 | `deleteTour > should delete a tour` | tours.service.spec.ts | Verifies tour deletion | ✅ |
+| PROD-131.19 | `deleteTour > should throw ForbiddenException if not owner` | tours.service.spec.ts | Verifies authorization | ✅ |
+
+### PROD-132: User Notes
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-132.1 | `createNote > should create a new note` | notes.service.spec.ts | Verifies note creation | ✅ |
+| PROD-132.2 | `createNote > should create note with photos` | notes.service.spec.ts | Verifies photo attachment | ✅ |
+| PROD-132.3 | `getUserNotes > should return user notes` | notes.service.spec.ts | Verifies note listing | ✅ |
+| PROD-132.4 | `getUserNotes > should filter by placeId` | notes.service.spec.ts | Verifies place filtering | ✅ |
+| PROD-132.5 | `getUserNotes > should apply limit and offset` | notes.service.spec.ts | Verifies pagination | ✅ |
+| PROD-132.6 | `getNotesForPlace > should return notes for a specific place` | notes.service.spec.ts | Verifies place-specific notes | ✅ |
+| PROD-132.7 | `getNotesForPlace > should return empty array if no notes for place` | notes.service.spec.ts | Verifies empty result | ✅ |
+| PROD-132.8 | `getNote > should return a note by ID` | notes.service.spec.ts | Verifies note retrieval | ✅ |
+| PROD-132.9 | `getNote > should throw NotFoundException if note not found` | notes.service.spec.ts | Verifies error handling | ✅ |
+| PROD-132.10 | `getNote > should throw ForbiddenException if note owned by different user` | notes.service.spec.ts | Verifies authorization | ✅ |
+| PROD-132.11 | `updateNote > should update note text` | notes.service.spec.ts | Verifies text update | ✅ |
+| PROD-132.12 | `updateNote > should throw NotFoundException if note not found` | notes.service.spec.ts | Verifies error handling | ✅ |
+| PROD-132.13 | `updateNote > should throw ForbiddenException if not owner` | notes.service.spec.ts | Verifies authorization | ✅ |
+| PROD-132.14 | `updateNote > should update photos` | notes.service.spec.ts | Verifies photo update | ✅ |
+| PROD-132.15 | `addPhotosToNote > should add photos to existing note` | notes.service.spec.ts | Verifies photo addition | ✅ |
+| PROD-132.16 | `addPhotosToNote > should throw NotFoundException if note not found` | notes.service.spec.ts | Verifies error handling | ✅ |
+| PROD-132.17 | `addPhotosToNote > should throw ForbiddenException if not owner` | notes.service.spec.ts | Verifies authorization | ✅ |
+| PROD-132.18 | `addPhotosToNote > should limit photos to maximum of 10` | notes.service.spec.ts | Verifies photo limit | ✅ |
+| PROD-132.19 | `removePhotoFromNote > should remove a photo from note` | notes.service.spec.ts | Verifies photo removal | ✅ |
+| PROD-132.20 | `removePhotoFromNote > should throw NotFoundException if note not found` | notes.service.spec.ts | Verifies error handling | ✅ |
+| PROD-132.21 | `removePhotoFromNote > should throw ForbiddenException if not owner` | notes.service.spec.ts | Verifies authorization | ✅ |
+| PROD-132.22 | `deleteNote > should delete a note` | notes.service.spec.ts | Verifies note deletion | ✅ |
+| PROD-132.23 | `deleteNote > should throw NotFoundException if note not found` | notes.service.spec.ts | Verifies error handling | ✅ |
+| PROD-132.24 | `deleteNote > should throw ForbiddenException if not owner` | notes.service.spec.ts | Verifies authorization | ✅ |
+| PROD-132.25 | `getNotesCount > should return count of user notes` | notes.service.spec.ts | Verifies note count | ✅ |
+| PROD-132.26 | `getPlaceNotesCount > should return count of notes for a specific place` | notes.service.spec.ts | Verifies place note count | ✅ |
+
+### Test Summary for PROD-120-133 (AI Tour Guide)
+
+| Test Type | Count | Status |
+|-----------|-------|--------|
+| PoiService Unit Tests | 14 | ✅ |
+| NarrationService Unit Tests | 21 | ✅ |
+| PreferencesService Unit Tests | 10 | ✅ |
+| SavedPlacesService Unit Tests | 16 | ✅ |
+| ToursService Unit Tests | 21 | ✅ |
+| NotesService Unit Tests | 28 | ✅ |
+| **Total** | **106** | ✅ |
+
+### Features Not Yet Implemented
+
+| Req ID | Title | Status |
+|--------|-------|--------|
+| PROD-126 | AR Integration | Phase 3 |
+| PROD-128 | Ambient Sounds | Phase 3 |
+| PROD-129 | Offline Mode | Phase 3 |
+| PROD-133 | Interest Queries | Partially covered by narration interests |
+
+---
+
+## 9. E2E Test Coverage
 
 ### End-to-End Test Summary
 
@@ -1492,7 +1666,7 @@ Note: E2E tests require Docker/database to run.
 
 ---
 
-## 9. Test Execution Summary
+## 10. Test Execution Summary
 
 ### CI/CD Status
 
@@ -1577,7 +1751,7 @@ docker-compose exec app npm run test:cov
 
 ---
 
-## 10. Requirements Without Tests
+## 11. Requirements Without Tests
 
 The following requirements do not yet have test coverage:
 
@@ -1604,7 +1778,7 @@ The following requirements do not yet have test coverage:
 | ~~PROD-105~~ | ~~Lease Renewal Automation~~ | ✅ **COMPLETE** - LeaseRenewal model, LeaseRenewalStatus enum, LeaseRenewalService with cron jobs (60-day check, expiration), 6 endpoints (pending list, get/create/accept/decline/cancel), 5 email templates, auto-generates new lease on accept; 20 unit tests; 15 E2E tests |
 | ~~PROD-107~~ | ~~AI Maintenance Assistant~~ | ✅ **COMPLETE** - AiMaintenanceService with keyword-based categorization (PROD-107.1), priority scoring (PROD-107.2), DIY solutions with step-by-step instructions (PROD-107.3), appointment scheduling based on provider availability (PROD-107.4); 3 endpoints (analyze, suggestions, appointment-suggestions); 28 unit tests; 14 E2E tests |
 | ~~PROD-108~~ | ~~Predictive Maintenance~~ | ✅ **COMPLETE** - PredictiveMaintenanceService with historical data analysis (PROD-108.1), failure prediction with risk scoring (PROD-108.2), proactive alerts with weekly cron job (PROD-108.3), HVAC-specific predictions (PROD-108.4); 5 endpoints (history, property predictions, portfolio predictions, alerts, HVAC); 36 unit tests; 22 E2E tests |
-| PROD-120-133 | AI Tour Guide | Not yet implemented |
+| ~~PROD-120-133~~ | ~~AI Tour Guide~~ | ✅ **COMPLETE** - TourGuideModule with 6 services (PoiService for Google Places API, NarrationService with 3 voice styles, PreferencesService, SavedPlacesService, ToursService with custom routes, NotesService with photos); Prisma models (TourPreferences, SavedPlace, CustomTour, TourStop, UserNote); 20+ API endpoints; 106 unit tests |
 | ~~PROD-200-205~~ | ~~Communication~~ | ✅ **COMPLETE** - Backend, WebSocket, Frontend UI, E2E tests, Playwright tests, offline support, virtualization |
 
 ---
@@ -1647,6 +1821,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-30 | Claude | Implemented Tenant Portal (PROD-106.1-106.7): TenantDocument model with TenantDocumentType enum, e-signature fields on Lease (landlordSignedAt/tenantSignedAt/IP), TenantDashboardService for aggregated tenant view, TenantDocumentService for document CRUD, e-signature methods in LeasesService (signLease, getSignatureStatus, getPaymentLink), 6 endpoints for tenant dashboard/documents/signing; 37 unit tests (4 tenant-dashboard + 17 tenant-document + 16 e-signature); 26 E2E tests |
 | 2025-12-30 | Claude | Implemented AI Maintenance Assistant (PROD-107.1-107.4): AiMaintenanceService with keyword-based categorization, priority scoring with urgency indicators, DIY solutions database with step-by-step instructions and tool lists, appointment scheduling based on provider weekly availability; 3 endpoints (POST /analyze, GET /:id/suggestions, POST /appointment-suggestions); 28 unit tests; 14 E2E tests |
 | 2025-12-30 | Claude | Implemented Predictive Maintenance (PROD-108.1-108.4): PredictiveMaintenanceService with historical data analysis (aggregated stats by maintenance type), failure prediction with risk scoring (age multipliers, frequency analysis, seasonal adjustments), proactive alerts with weekly cron job (Monday 8 AM), HVAC-specific predictions (lifespan tracking, health status, seasonal risk); 5 endpoints (GET /history/:propertyId, GET /predictions/property/:propertyId, GET /predictions/portfolio, GET /alerts, GET /hvac/:propertyId); 36 unit tests; 22 E2E tests; Moved ScheduleModule.forRoot() to app.module.ts |
+| 2025-12-30 | Claude | Implemented AI Tour Guide (PROD-120-133): Prisma models (VoiceStyle/InterestCategory/PoiType enums, TourPreferences, SavedPlace, CustomTour, TourStop, UserNote), TourGuideModule with 6 services (PoiService for Google Places API integration with mock fallback, NarrationService with 3 voice styles and interest-based content, PreferencesService for user settings, SavedPlacesService for bookmarks, ToursService for custom routes with stops/reordering, NotesService for POI notes with photos), 20+ API endpoints at /tour-guide/*; 106 unit tests (14 poi + 21 narration + 10 preferences + 16 saved-places + 21 tours + 28 notes); Total tests now 1526 |
 
 ---
 

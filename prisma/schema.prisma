@@ -17,14 +17,14 @@ datasource db {
 
 enum UserRole {
   USER
-  AGENT  // Real estate agent (PROD-026)
+  AGENT // Real estate agent (PROD-026)
   ADMIN
 }
 
 enum UserStatus {
   PENDING_VERIFICATION // Email not verified yet
-  PENDING_PROFILE      // Email verified, profile incomplete
-  ACTIVE               // Fully registered
+  PENDING_PROFILE // Email verified, profile incomplete
+  ACTIVE // Fully registered
   SUSPENDED
   DELETED
 }
@@ -131,34 +131,34 @@ enum NotificationType {
 // ============================================
 
 enum NegotiationType {
-  BUY       // Purchasing property
-  RENT      // Renting property (short or long term)
+  BUY // Purchasing property
+  RENT // Renting property (short or long term)
 }
 
 enum NegotiationStatus {
-  ACTIVE      // Negotiation is ongoing
-  ACCEPTED    // Final offer accepted
-  REJECTED    // Negotiation rejected/cancelled
-  COMPLETED   // Transaction completed
-  EXPIRED     // Negotiation timed out
+  ACTIVE // Negotiation is ongoing
+  ACCEPTED // Final offer accepted
+  REJECTED // Negotiation rejected/cancelled
+  COMPLETED // Transaction completed
+  EXPIRED // Negotiation timed out
 }
 
 enum OfferStatus {
-  PENDING     // Awaiting response
-  ACCEPTED    // Offer accepted
-  REJECTED    // Offer rejected
-  COUNTERED   // Counter-offer made
-  EXPIRED     // Offer expired
-  WITHDRAWN   // Offer withdrawn by maker
+  PENDING // Awaiting response
+  ACCEPTED // Offer accepted
+  REJECTED // Offer rejected
+  COUNTERED // Counter-offer made
+  EXPIRED // Offer expired
+  WITHDRAWN // Offer withdrawn by maker
 }
 
 enum TransactionStatus {
-  PENDING         // Payment not yet initiated
-  PROCESSING      // Payment in progress
-  COMPLETED       // Payment successful
-  FAILED          // Payment failed
-  REFUNDED        // Payment refunded
-  CANCELLED       // Transaction cancelled
+  PENDING // Payment not yet initiated
+  PROCESSING // Payment in progress
+  COMPLETED // Payment successful
+  FAILED // Payment failed
+  REFUNDED // Payment refunded
+  CANCELLED // Transaction cancelled
 }
 
 // ============================================
@@ -166,8 +166,8 @@ enum TransactionStatus {
 // ============================================
 
 enum MessageType {
-  TEXT    // Regular user message
-  SYSTEM  // System-generated message (e.g., "Offer accepted")
+  TEXT // Regular user message
+  SYSTEM // System-generated message (e.g., "Offer accepted")
 }
 
 // ============================================
@@ -183,20 +183,20 @@ enum ServiceType {
 }
 
 enum ServiceProviderStatus {
-  PENDING     // Application submitted, awaiting review
-  APPROVED    // Approved by admin
-  REJECTED    // Rejected by admin
-  SUSPENDED   // Temporarily suspended
-  INACTIVE    // Provider chose to deactivate
+  PENDING // Application submitted, awaiting review
+  APPROVED // Approved by admin
+  REJECTED // Rejected by admin
+  SUSPENDED // Temporarily suspended
+  INACTIVE // Provider chose to deactivate
 }
 
 enum ServiceRequestStatus {
-  PENDING       // Request sent, awaiting provider response
-  ACCEPTED      // Provider accepted the job
-  REJECTED      // Provider declined
-  IN_PROGRESS   // Job is being performed
-  COMPLETED     // Job completed
-  CANCELLED     // Request cancelled
+  PENDING // Request sent, awaiting provider response
+  ACCEPTED // Provider accepted the job
+  REJECTED // Provider declined
+  IN_PROGRESS // Job is being performed
+  COMPLETED // Job completed
+  CANCELLED // Request cancelled
 }
 
 // ============================================
@@ -204,11 +204,11 @@ enum ServiceRequestStatus {
 // ============================================
 
 enum ApplicationStatus {
-  PENDING       // Application submitted, awaiting review
-  UNDER_REVIEW  // Owner is reviewing the application
-  APPROVED      // Application approved
-  REJECTED      // Application rejected
-  WITHDRAWN     // Applicant withdrew the application
+  PENDING // Application submitted, awaiting review
+  UNDER_REVIEW // Owner is reviewing the application
+  APPROVED // Application approved
+  REJECTED // Application rejected
+  WITHDRAWN // Applicant withdrew the application
 }
 
 // ============================================
@@ -216,17 +216,17 @@ enum ApplicationStatus {
 // ============================================
 
 enum LeaseStatus {
-  DRAFT         // Lease created but not yet active
-  ACTIVE        // Currently active lease
-  EXPIRED       // Lease has ended naturally
-  TERMINATED    // Lease was terminated early
+  DRAFT // Lease created but not yet active
+  ACTIVE // Currently active lease
+  EXPIRED // Lease has ended naturally
+  TERMINATED // Lease was terminated early
 }
 
 enum RentPaymentStatus {
-  PENDING       // Payment is expected
-  PAID          // Payment received
-  OVERDUE       // Payment is past due date
-  WAIVED        // Payment was waived by landlord
+  PENDING // Payment is expected
+  PAID // Payment received
+  OVERDUE // Payment is past due date
+  WAIVED // Payment was waived by landlord
 }
 
 // ============================================
@@ -234,12 +234,12 @@ enum RentPaymentStatus {
 // ============================================
 
 enum LeaseRenewalStatus {
-  PENDING       // 60-day window opened, awaiting landlord action
-  OFFERED       // Landlord created offer, awaiting tenant response
-  ACCEPTED      // Tenant accepted, new lease generated
-  DECLINED      // Tenant declined the offer
-  EXPIRED       // Offer expired without response
-  CANCELLED     // Landlord cancelled the offer
+  PENDING // 60-day window opened, awaiting landlord action
+  OFFERED // Landlord created offer, awaiting tenant response
+  ACCEPTED // Tenant accepted, new lease generated
+  DECLINED // Tenant declined the offer
+  EXPIRED // Offer expired without response
+  CANCELLED // Landlord cancelled the offer
 }
 
 // ============================================
@@ -259,15 +259,15 @@ enum MaintenanceRequestType {
 }
 
 enum MaintenanceRequestStatus {
-  SUBMITTED      // Tenant submitted, awaiting landlord review
-  APPROVED       // Landlord approved, ready for assignment
-  REJECTED       // Landlord rejected with reason
-  ASSIGNED       // Provider assigned, awaiting scheduling
-  SCHEDULED      // Date/time confirmed
-  IN_PROGRESS    // Work started
-  COMPLETED      // Work finished, awaiting confirmation
-  CONFIRMED      // Both parties confirmed completion
-  CANCELLED      // Request cancelled
+  SUBMITTED // Tenant submitted, awaiting landlord review
+  APPROVED // Landlord approved, ready for assignment
+  REJECTED // Landlord rejected with reason
+  ASSIGNED // Provider assigned, awaiting scheduling
+  SCHEDULED // Date/time confirmed
+  IN_PROGRESS // Work started
+  COMPLETED // Work finished, awaiting confirmation
+  CONFIRMED // Both parties confirmed completion
+  CANCELLED // Request cancelled
 }
 
 enum MaintenancePriority {
@@ -282,17 +282,17 @@ enum MaintenancePriority {
 // ============================================
 
 enum ExpenseCategory {
-  MAINTENANCE        // Repairs and upkeep
-  INSURANCE          // Property insurance
-  TAXES              // Property taxes
-  UTILITIES          // Utilities paid by landlord
-  MORTGAGE           // Mortgage payments
-  MANAGEMENT_FEES    // Property management fees
-  LEGAL              // Legal expenses
-  ADVERTISING        // Marketing and advertising
-  SUPPLIES           // Supplies and materials
-  TRAVEL             // Travel expenses for property visits
-  OTHER              // Miscellaneous
+  MAINTENANCE // Repairs and upkeep
+  INSURANCE // Property insurance
+  TAXES // Property taxes
+  UTILITIES // Utilities paid by landlord
+  MORTGAGE // Mortgage payments
+  MANAGEMENT_FEES // Property management fees
+  LEGAL // Legal expenses
+  ADVERTISING // Marketing and advertising
+  SUPPLIES // Supplies and materials
+  TRAVEL // Travel expenses for property visits
+  OTHER // Miscellaneous
 }
 
 // ============================================
@@ -300,52 +300,52 @@ enum ExpenseCategory {
 // ============================================
 
 model User {
-  id                    String              @id @default(uuid())
-  email                 String              @unique
-  passwordHash          String
-  firstName             String
-  lastName              String
-  phone                 String?             // International format (PROD-002)
-  address               String?             // (PROD-002)
-  postalCode            String?             // (PROD-002)
-  city                  String?             // (PROD-002)
-  country               String?             // ISO 3166-1 alpha-2 (PROD-002)
-  role                  UserRole            @default(USER) // (PROD-004)
-  status                UserStatus          @default(PENDING_VERIFICATION)
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  phone        String? // International format (PROD-002)
+  address      String? // (PROD-002)
+  postalCode   String? // (PROD-002)
+  city         String? // (PROD-002)
+  country      String? // ISO 3166-1 alpha-2 (PROD-002)
+  role         UserRole   @default(USER) // (PROD-004)
+  status       UserStatus @default(PENDING_VERIFICATION)
 
   // Email verification (PROD-001)
-  emailVerified         Boolean             @default(false)
-  emailVerifiedAt       DateTime?
+  emailVerified   Boolean   @default(false)
+  emailVerifiedAt DateTime?
 
   // ID Verification (PROD-008, PROD-010)
-  idVerificationStatus  VerificationStatus  @default(NOT_STARTED)
-  idVerifiedAt          DateTime?
+  idVerificationStatus VerificationStatus @default(NOT_STARTED)
+  idVerifiedAt         DateTime?
 
   // Background Check (PROD-009)
-  backgroundCheckStatus VerificationStatus  @default(NOT_STARTED)
+  backgroundCheckStatus VerificationStatus @default(NOT_STARTED)
   backgroundCheckAt     DateTime?
 
   // Social Media Profiles (PROD-005)
-  socialProfiles        SocialProfile[]
+  socialProfiles SocialProfile[]
 
   // Invitation System (PROD-006, PROD-007)
-  invitedById           String?
-  invitedBy             User?               @relation("InvitedBy", fields: [invitedById], references: [id])
-  invitees              User[]              @relation("InvitedBy")
-  sentInvitations       Invitation[]        @relation("SentInvitations")
-  receivedInvitation    Invitation?         @relation("ReceivedInvitation")
+  invitedById        String?
+  invitedBy          User?        @relation("InvitedBy", fields: [invitedById], references: [id])
+  invitees           User[]       @relation("InvitedBy")
+  sentInvitations    Invitation[] @relation("SentInvitations")
+  receivedInvitation Invitation?  @relation("ReceivedInvitation")
 
   // Properties (PROD-020+)
-  properties            Property[]
+  properties Property[]
 
   // Search & Favorites (PROD-040+)
-  searchAgents          SearchAgent[]
-  favoriteProperties    FavoriteProperty[]
-  browsingHistory       BrowsingHistory[]
+  searchAgents           SearchAgent[]
+  favoriteProperties     FavoriteProperty[]
+  browsingHistory        BrowsingHistory[]
   recommendationFeedback RecommendationFeedback[]
 
   // Notifications (USER-020+)
-  notifications         Notification[]
+  notifications Notification[]
 
   // Auth Tokens
   emailVerificationTokens EmailVerificationToken[]
@@ -353,43 +353,49 @@ model User {
   refreshTokens           RefreshToken[]
 
   // Inspection bookings
-  bookedInspections     InspectionSlot[]
+  bookedInspections InspectionSlot[]
 
   // Negotiations & Transactions (PROD-090+)
-  buyerNegotiations     Negotiation[]       @relation("BuyerNegotiations")
-  sellerNegotiations    Negotiation[]       @relation("SellerNegotiations")
-  madeOffers            Offer[]
-  transactions          Transaction[]
+  buyerNegotiations  Negotiation[] @relation("BuyerNegotiations")
+  sellerNegotiations Negotiation[] @relation("SellerNegotiations")
+  madeOffers         Offer[]
+  transactions       Transaction[]
 
   // Messaging
   conversationParticipants ConversationParticipant[]
   messagesSent             Message[]
 
   // Service Providers (PROD-060+)
-  serviceProviderProfiles  ServiceProvider[]
-  serviceRequests          ServiceRequest[]
-  providerReviews          ProviderReview[]
+  serviceProviderProfiles ServiceProvider[]
+  serviceRequests         ServiceRequest[]
+  providerReviews         ProviderReview[]
 
   // Rental Applications (PROD-101)
-  rentalApplications       RentalApplication[]
+  rentalApplications RentalApplication[]
 
   // Leases (PROD-102)
-  tenantLeases             Lease[]             @relation("TenantLeases")
-  landlordLeases           Lease[]             @relation("LandlordLeases")
+  tenantLeases   Lease[] @relation("TenantLeases")
+  landlordLeases Lease[] @relation("LandlordLeases")
 
   // Maintenance Requests (PROD-103)
   tenantMaintenanceRequests   MaintenanceRequest[] @relation("TenantMaintenanceRequests")
   landlordMaintenanceRequests MaintenanceRequest[] @relation("LandlordMaintenanceRequests")
 
   // Lease Renewals (PROD-105)
-  landlordLeaseRenewals       LeaseRenewal[]       @relation("LandlordLeaseRenewals")
-  tenantLeaseRenewals         LeaseRenewal[]       @relation("TenantLeaseRenewals")
+  landlordLeaseRenewals LeaseRenewal[] @relation("LandlordLeaseRenewals")
+  tenantLeaseRenewals   LeaseRenewal[] @relation("TenantLeaseRenewals")
 
   // Landlord Expenses (PROD-100.4)
-  expenses                    Expense[]            @relation("LandlordExpenses")
+  expenses Expense[] @relation("LandlordExpenses")
 
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
+  // AI Tour Guide (PROD-120+)
+  tourPreferences TourPreferences?
+  savedPlaces     SavedPlace[]
+  customTours     CustomTour[]
+  userNotes       UserNote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([email])
   @@index([invitedById])
@@ -402,7 +408,7 @@ model SocialProfile {
   id         String   @id @default(uuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  platform   String   // facebook, instagram, linkedin, twitter, etc.
+  platform   String // facebook, instagram, linkedin, twitter, etc.
   profileUrl String
   createdAt  DateTime @default(now())
 
@@ -457,23 +463,23 @@ model RefreshToken {
 // ============================================
 
 model Invitation {
-  id               String           @id @default(uuid())
-  email            String
-  inviterId        String
-  inviter          User             @relation("SentInvitations", fields: [inviterId], references: [id])
-  status           InvitationStatus @default(PENDING)
-  token            String           @unique
+  id        String           @id @default(uuid())
+  email     String
+  inviterId String
+  inviter   User             @relation("SentInvitations", fields: [inviterId], references: [id])
+  status    InvitationStatus @default(PENDING)
+  token     String           @unique
 
   // Track if invitation converted to user
-  acceptedUserId   String?          @unique
-  acceptedUser     User?            @relation("ReceivedInvitation", fields: [acceptedUserId], references: [id])
+  acceptedUserId String? @unique
+  acceptedUser   User?   @relation("ReceivedInvitation", fields: [acceptedUserId], references: [id])
 
   // Kick-back eligibility tracking (PROD-006)
-  kickbackEligible Boolean          @default(true)
+  kickbackEligible Boolean @default(true)
 
-  expiresAt        DateTime
-  acceptedAt       DateTime?
-  createdAt        DateTime         @default(now())
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
 
   @@index([email])
   @@index([token])
@@ -486,82 +492,82 @@ model Invitation {
 // ============================================
 
 model Property {
-  id                     String                 @id @default(uuid())
-  ownerId                String
-  owner                  User                   @relation(fields: [ownerId], references: [id])
+  id      String @id @default(uuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
 
   // Location (PROD-020)
-  address                String
-  postalCode             String
-  city                   String
-  country                String                 // ISO 3166-1 alpha-2
-  latitude               Float?
-  longitude              Float?
+  address    String
+  postalCode String
+  city       String
+  country    String // ISO 3166-1 alpha-2
+  latitude   Float?
+  longitude  Float?
 
   // Basic Info (PROD-021)
   title                  String
   description            String?
-  aiGeneratedDescription String?                // (PROD-029)
-  descriptionTone        String?                // luxury, family-friendly, investment-focused
+  aiGeneratedDescription String? // (PROD-029)
+  descriptionTone        String? // luxury, family-friendly, investment-focused
 
   // Listing Types (PROD-022) - Multi-choice stored as array
-  listingTypes           ListingType[]
+  listingTypes ListingType[]
 
   // Pricing (PROD-021, PROD-023)
-  basePrice              Decimal                @db.Decimal(12, 2)
-  currency               String                 @default("EUR")
-  priceNegotiable        Boolean                @default(false)
-  negotiabilityRange     Decimal?               @db.Decimal(5, 2) // Percentage, e.g., 10.00 = 10%
-  dynamicPricingEnabled  Boolean                @default(false)
+  basePrice             Decimal  @db.Decimal(12, 2)
+  currency              String   @default("EUR")
+  priceNegotiable       Boolean  @default(false)
+  negotiabilityRange    Decimal? @db.Decimal(5, 2) // Percentage, e.g., 10.00 = 10%
+  dynamicPricingEnabled Boolean  @default(false)
 
   // Dimensions & Characteristics (PROD-021, PROD-027)
-  squareMeters           Float?
-  lotSize                Float?                 // (PROD-042)
-  bedrooms               Int?
-  bathrooms              Int?
-  floors                 Int?
-  yearBuilt              Int?                   // (PROD-042)
+  squareMeters Float?
+  lotSize      Float? // (PROD-042)
+  bedrooms     Int?
+  bathrooms    Int?
+  floors       Int?
+  yearBuilt    Int? // (PROD-042)
 
   // Property Details (PROD-027)
-  energyEfficiency       EnergyEfficiencyRating @default(NOT_RATED)
-  energyCertificateUrl   String?
-  hoaFees                Decimal?               @db.Decimal(10, 2)
-  hoaInfo                String?
-  propertyTaxHistory     Json?                  // Array of {year, amount}
-  utilitiesCostHistory   Json?                  // Array of {month, electricity, gas, water}
+  energyEfficiency     EnergyEfficiencyRating @default(NOT_RATED)
+  energyCertificateUrl String?
+  hoaFees              Decimal?               @db.Decimal(10, 2)
+  hoaInfo              String?
+  propertyTaxHistory   Json? // Array of {year, amount}
+  utilitiesCostHistory Json? // Array of {month, electricity, gas, water}
 
   // Features (PROD-042)
-  petFriendly            Boolean                @default(false)
-  newlyBuilt             Boolean                @default(false)
-  accessible             Boolean                @default(false)
+  petFriendly Boolean @default(false)
+  newlyBuilt  Boolean @default(false)
+  accessible  Boolean @default(false)
 
   // No Agents Tag (PROD-026)
-  noAgents               Boolean                @default(false)
+  noAgents Boolean @default(false)
 
   // Status
-  status                 PropertyStatus         @default(DRAFT)
-  publishedAt            DateTime?
+  status      PropertyStatus @default(DRAFT)
+  publishedAt DateTime?
 
   // Relations
   media                  PropertyMedia[]
   floorPlans             FloorPlan[]
   availabilitySlots      AvailabilitySlot[]
   inspectionSlots        InspectionSlot[]
-  openHouseEvents        OpenHouseEvent[]     // (PROD-048)
+  openHouseEvents        OpenHouseEvent[] // (PROD-048)
   dynamicPricingRules    DynamicPricingRule[]
   favoritedBy            FavoriteProperty[]
   browsingHistory        BrowsingHistory[]
   recommendationFeedback RecommendationFeedback[]
-  negotiations           Negotiation[]        // (PROD-090)
-  conversations          Conversation[]       // Direct property inquiries
-  serviceRequests        ServiceRequest[]     // Service requests for this property
-  rentalApplications     RentalApplication[]  // Rental applications (PROD-101)
-  leases                 Lease[]              // Leases (PROD-102)
+  negotiations           Negotiation[] // (PROD-090)
+  conversations          Conversation[] // Direct property inquiries
+  serviceRequests        ServiceRequest[] // Service requests for this property
+  rentalApplications     RentalApplication[] // Rental applications (PROD-101)
+  leases                 Lease[] // Leases (PROD-102)
   maintenanceRequests    MaintenanceRequest[] // Maintenance requests (PROD-103)
-  expenses               Expense[]            // Landlord expenses (PROD-100.4)
+  expenses               Expense[] // Landlord expenses (PROD-100.4)
 
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime               @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([ownerId])
   @@index([city])
@@ -577,7 +583,7 @@ model PropertyMedia {
   id           String   @id @default(uuid())
   propertyId   String
   property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  type         String   // photo, video, tour_360, tour_3d
+  type         String // photo, video, tour_360, tour_3d
   url          String
   thumbnailUrl String?
   caption      String?
@@ -594,7 +600,7 @@ model FloorPlan {
   id         String   @id @default(uuid())
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  name       String   // "Ground Floor", "First Floor", etc.
+  name       String // "Ground Floor", "First Floor", etc.
   imageUrl   String
   sortOrder  Int      @default(0)
   createdAt  DateTime @default(now())
@@ -625,8 +631,8 @@ model InspectionSlot {
   propertyId String
   property   Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   date       DateTime
-  startTime  String    // "09:00"
-  endTime    String    // "09:30"
+  startTime  String // "09:00"
+  endTime    String // "09:30"
   isBooked   Boolean   @default(false)
   bookedById String?
   bookedBy   User?     @relation(fields: [bookedById], references: [id])
@@ -640,17 +646,17 @@ model InspectionSlot {
 
 // Open House Events (PROD-048)
 model OpenHouseEvent {
-  id          String   @id @default(uuid())
-  propertyId  String
-  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  date        DateTime // The date of the open house
-  startTime   String   // "10:00"
-  endTime     String   // "14:00"
-  description String?  // Optional details like "Refreshments provided"
-  isPublic    Boolean  @default(true) // Whether visible to all users
-  maxAttendees Int?    // Optional capacity limit
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  propertyId   String
+  property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  date         DateTime // The date of the open house
+  startTime    String // "10:00"
+  endTime      String // "14:00"
+  description  String? // Optional details like "Refreshments provided"
+  isPublic     Boolean  @default(true) // Whether visible to all users
+  maxAttendees Int? // Optional capacity limit
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([propertyId])
   @@index([date])
@@ -661,10 +667,10 @@ model DynamicPricingRule {
   id              String    @id @default(uuid())
   propertyId      String
   property        Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  name            String    // "Summer Season", "Holiday Premium", "Weekend Rate"
+  name            String // "Summer Season", "Holiday Premium", "Weekend Rate"
   startDate       DateTime?
   endDate         DateTime?
-  dayOfWeek       Int?      // 0-6 (Sunday-Saturday) for recurring weekly rules
+  dayOfWeek       Int? // 0-6 (Sunday-Saturday) for recurring weekly rules
   priceMultiplier Decimal   @db.Decimal(4, 2) // 1.20 = 20% increase, 0.80 = 20% discount
   isActive        Boolean   @default(true)
   priority        Int       @default(0) // Higher priority rules applied first
@@ -680,23 +686,23 @@ model DynamicPricingRule {
 
 // Search Agent (PROD-040, PROD-041)
 model SearchAgent {
-  id                  String    @id @default(uuid())
-  userId              String
-  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name                String
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name   String
 
   // Search Criteria (PROD-040, PROD-042) - Flexible JSON structure
   // Example: { listingTypes: ["FOR_SALE"], country: "HU", minPrice: 100000, maxPrice: 500000, ... }
-  criteria            Json
+  criteria Json
 
   // Notifications (PROD-041)
-  emailNotifications  Boolean   @default(true)
-  inAppNotifications  Boolean   @default(true)
+  emailNotifications Boolean @default(true)
+  inAppNotifications Boolean @default(true)
 
-  isActive            Boolean   @default(true)
-  lastTriggeredAt     DateTime?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  isActive        Boolean   @default(true)
+  lastTriggeredAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([userId])
   @@index([isActive])
@@ -724,7 +730,7 @@ model BrowsingHistory {
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   viewedAt   DateTime @default(now())
-  duration   Int?     // Seconds spent viewing
+  duration   Int? // Seconds spent viewing
 
   @@index([userId])
   @@index([propertyId])
@@ -738,7 +744,7 @@ model RecommendationFeedback {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  isPositive Boolean  // true = thumbs up, false = thumbs down
+  isPositive Boolean // true = thumbs up, false = thumbs down
   createdAt  DateTime @default(now())
 
   @@unique([userId, propertyId])
@@ -751,49 +757,49 @@ model RecommendationFeedback {
 
 // Rental Application (PROD-101.2 to PROD-101.6)
 model RentalApplication {
-  id                  String            @id @default(uuid())
+  id String @id @default(uuid())
 
   // Applicant (user applying for the property)
-  applicantId         String
-  applicant           User              @relation(fields: [applicantId], references: [id])
+  applicantId String
+  applicant   User   @relation(fields: [applicantId], references: [id])
 
   // Property being applied for
-  propertyId          String
-  property            Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   // Application status (PROD-101.5)
-  status              ApplicationStatus @default(PENDING)
+  status ApplicationStatus @default(PENDING)
 
   // Employment Information (PROD-101.6)
-  employmentStatus    String?           // "employed", "self-employed", "unemployed", "retired", "student"
-  employer            String?
-  jobTitle            String?
-  monthlyIncome       Decimal?          @db.Decimal(12, 2)
-  incomeCurrency      String            @default("EUR")
-  employmentDuration  String?           // e.g., "2 years", "6 months"
+  employmentStatus   String? // "employed", "self-employed", "unemployed", "retired", "student"
+  employer           String?
+  jobTitle           String?
+  monthlyIncome      Decimal? @db.Decimal(12, 2)
+  incomeCurrency     String   @default("EUR")
+  employmentDuration String? // e.g., "2 years", "6 months"
 
   // References (PROD-101.6)
   // JSON array: [{ name, relationship, phone, email }]
-  references          Json?
+  references Json?
 
   // Rental Details
-  desiredMoveInDate   DateTime?
-  desiredLeaseTerm    Int?              // Months
-  numberOfOccupants   Int?
-  hasPets             Boolean           @default(false)
-  petDetails          String?
-  additionalNotes     String?
+  desiredMoveInDate DateTime?
+  desiredLeaseTerm  Int? // Months
+  numberOfOccupants Int?
+  hasPets           Boolean   @default(false)
+  petDetails        String?
+  additionalNotes   String?
 
   // Supporting Documents
   // JSON array: [{ type, url, name }] - e.g., pay stubs, ID, etc.
-  documents           Json?
+  documents Json?
 
   // Owner Response
-  ownerNotes          String?
-  reviewedAt          DateTime?
+  ownerNotes String?
+  reviewedAt DateTime?
 
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // One application per user per property
   @@unique([applicantId, propertyId])
@@ -808,52 +814,52 @@ model RentalApplication {
 
 // Lease Agreement (PROD-102.1)
 model Lease {
-  id                  String            @id @default(uuid())
+  id String @id @default(uuid())
 
   // Property being leased
-  propertyId          String
-  property            Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   // Tenant (renter)
-  tenantId            String
-  tenant              User              @relation("TenantLeases", fields: [tenantId], references: [id])
+  tenantId String
+  tenant   User   @relation("TenantLeases", fields: [tenantId], references: [id])
 
   // Landlord (property owner)
-  landlordId          String
-  landlord            User              @relation("LandlordLeases", fields: [landlordId], references: [id])
+  landlordId String
+  landlord   User   @relation("LandlordLeases", fields: [landlordId], references: [id])
 
   // Lease terms
-  startDate           DateTime
-  endDate             DateTime
-  rentAmount          Decimal           @db.Decimal(12, 2)
-  currency            String            @default("EUR")
-  dueDay              Int               // 1-28 day of month when rent is due
+  startDate  DateTime
+  endDate    DateTime
+  rentAmount Decimal  @db.Decimal(12, 2)
+  currency   String   @default("EUR")
+  dueDay     Int // 1-28 day of month when rent is due
 
   // Security deposit
-  securityDeposit     Decimal?          @db.Decimal(12, 2)
-  securityDepositPaid Boolean           @default(false)
+  securityDeposit     Decimal? @db.Decimal(12, 2)
+  securityDepositPaid Boolean  @default(false)
 
   // Status
-  status              LeaseStatus       @default(DRAFT)
+  status LeaseStatus @default(DRAFT)
 
   // Optional document
-  documentUrl         String?
+  documentUrl String?
 
   // E-Signature tracking (PROD-106.6)
-  landlordSignedAt    DateTime?         // When landlord signed
-  tenantSignedAt      DateTime?         // When tenant signed
-  landlordSignatureIp String?           // IP address for audit trail
-  tenantSignatureIp   String?           // IP address for audit trail
+  landlordSignedAt    DateTime? // When landlord signed
+  tenantSignedAt      DateTime? // When tenant signed
+  landlordSignatureIp String? // IP address for audit trail
+  tenantSignatureIp   String? // IP address for audit trail
 
   // Relations
   rentPayments        RentPayment[]
   maintenanceRequests MaintenanceRequest[] // Maintenance requests (PROD-103)
-  renewals            LeaseRenewal[]       // Lease renewals (PROD-105)
+  renewals            LeaseRenewal[] // Lease renewals (PROD-105)
   renewedFromRenewal  LeaseRenewal?        @relation("RenewalNewLease") // Renewal that created this lease
-  documents           TenantDocument[]     // Tenant documents (PROD-106.7)
+  documents           TenantDocument[] // Tenant documents (PROD-106.7)
 
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([propertyId])
   @@index([tenantId])
@@ -863,37 +869,37 @@ model Lease {
 
 // Rent Payment Tracking (PROD-102.2 to PROD-102.6)
 model RentPayment {
-  id                  String            @id @default(uuid())
+  id String @id @default(uuid())
 
   // Associated lease
-  leaseId             String
-  lease               Lease             @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  leaseId String
+  lease   Lease  @relation(fields: [leaseId], references: [id], onDelete: Cascade)
 
   // Payment details
-  dueDate             DateTime
-  amount              Decimal           @db.Decimal(12, 2)
-  currency            String            @default("EUR")
+  dueDate  DateTime
+  amount   Decimal  @db.Decimal(12, 2)
+  currency String   @default("EUR")
 
   // Status
-  status              RentPaymentStatus @default(PENDING)
+  status RentPaymentStatus @default(PENDING)
 
   // Payment info (when paid)
-  paidAt              DateTime?
-  paidAmount          Decimal?          @db.Decimal(12, 2)
-  paymentMethod       String?           // "bank_transfer", "cash", "card", etc.
-  transactionRef      String?           // External reference number
+  paidAt         DateTime?
+  paidAmount     Decimal?  @db.Decimal(12, 2)
+  paymentMethod  String? // "bank_transfer", "cash", "card", etc.
+  transactionRef String? // External reference number
 
   // Notification tracking
-  reminderSentAt      DateTime?         // When 5-day reminder was sent
-  overdueSentAt       DateTime?         // When overdue notification was sent
+  reminderSentAt DateTime? // When 5-day reminder was sent
+  overdueSentAt  DateTime? // When overdue notification was sent
 
   // Notes
-  notes               String?
+  notes String?
 
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([leaseId, dueDate])          // One payment per due date per lease
+  @@unique([leaseId, dueDate]) // One payment per due date per lease
   @@index([leaseId])
   @@index([dueDate])
   @@index([status])
@@ -910,7 +916,7 @@ model Notification {
   type      NotificationType
   title     String
   message   String
-  data      Json?            // Additional context (propertyId, invitationId, etc.)
+  data      Json? // Additional context (propertyId, invitationId, etc.)
   isRead    Boolean          @default(false)
   readAt    DateTime?
   createdAt DateTime         @default(now())
@@ -929,8 +935,8 @@ model Country {
   code        String  @id // ISO 3166-1 alpha-2
   name        String
   nativeName  String? // Name in local language
-  phonePrefix String  // "+1", "+44", "+36", etc.
-  currency    String  // ISO 4217 currency code
+  phonePrefix String // "+1", "+44", "+36", etc.
+  currency    String // ISO 4217 currency code
   isActive    Boolean @default(true)
 
   @@index([isActive])
@@ -942,34 +948,34 @@ model Country {
 
 // Negotiation (PROD-090)
 model Negotiation {
-  id           String            @id @default(uuid())
-  propertyId   String
-  property     Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   // Parties
-  buyerId      String            // The interested party (buyer/renter)
-  buyer        User              @relation("BuyerNegotiations", fields: [buyerId], references: [id])
-  sellerId     String            // The property owner
-  seller       User              @relation("SellerNegotiations", fields: [sellerId], references: [id])
+  buyerId  String // The interested party (buyer/renter)
+  buyer    User   @relation("BuyerNegotiations", fields: [buyerId], references: [id])
+  sellerId String // The property owner
+  seller   User   @relation("SellerNegotiations", fields: [sellerId], references: [id])
 
   // Negotiation details
-  type         NegotiationType   // BUY or RENT
-  status       NegotiationStatus @default(ACTIVE)
+  type   NegotiationType // BUY or RENT
+  status NegotiationStatus @default(ACTIVE)
 
   // For rentals
-  startDate    DateTime?         // Rental start date
-  endDate      DateTime?         // Rental end date
+  startDate DateTime? // Rental start date
+  endDate   DateTime? // Rental end date
 
   // Message/notes
-  initialMessage String?         // Initial message from buyer
+  initialMessage String? // Initial message from buyer
 
   // Relations
   offers       Offer[]
   transaction  Transaction?
   conversation Conversation?
 
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([propertyId])
   @@index([buyerId])
@@ -985,27 +991,27 @@ model Offer {
   negotiation   Negotiation @relation(fields: [negotiationId], references: [id], onDelete: Cascade)
 
   // Who made this offer
-  madeById      String
-  madeBy        User        @relation(fields: [madeById], references: [id])
+  madeById String
+  madeBy   User   @relation(fields: [madeById], references: [id])
 
   // Offer details
-  amount        Decimal     @db.Decimal(12, 2)
-  currency      String      @default("EUR")
+  amount   Decimal @db.Decimal(12, 2)
+  currency String  @default("EUR")
 
   // Terms (flexible JSON for additional conditions)
-  terms         Json?       // { "moveInDate": "2024-01-15", "includesFurniture": true, ... }
-  message       String?     // Message accompanying the offer
+  terms   Json? // { "moveInDate": "2024-01-15", "includesFurniture": true, ... }
+  message String? // Message accompanying the offer
 
   // Status tracking
-  status        OfferStatus @default(PENDING)
-  expiresAt     DateTime?   // Optional expiry for the offer
-  respondedAt   DateTime?   // When seller/buyer responded
+  status      OfferStatus @default(PENDING)
+  expiresAt   DateTime? // Optional expiry for the offer
+  respondedAt DateTime? // When seller/buyer responded
 
   // Counter-offer reference
-  counterToId   String?     // If this is a counter-offer, reference to original offer
+  counterToId String? // If this is a counter-offer, reference to original offer
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([negotiationId])
   @@index([madeById])
@@ -1014,37 +1020,37 @@ model Offer {
 
 // Transaction (PROD-093, PROD-095)
 model Transaction {
-  id              String            @id @default(uuid())
-  negotiationId   String            @unique
-  negotiation     Negotiation       @relation(fields: [negotiationId], references: [id])
+  id            String      @id @default(uuid())
+  negotiationId String      @unique
+  negotiation   Negotiation @relation(fields: [negotiationId], references: [id])
 
   // Payment details
-  amount          Decimal           @db.Decimal(12, 2)
-  currency        String            @default("EUR")
+  amount   Decimal @db.Decimal(12, 2)
+  currency String  @default("EUR")
 
   // Fee breakdown (PROD-095)
-  platformFee     Decimal           @db.Decimal(10, 2) // Platform's fee
-  platformFeeRate Decimal           @db.Decimal(5, 4)  // e.g., 0.0250 = 2.5%
-  sellerAmount    Decimal           @db.Decimal(12, 2) // Amount seller receives
+  platformFee     Decimal @db.Decimal(10, 2) // Platform's fee
+  platformFeeRate Decimal @db.Decimal(5, 4) // e.g., 0.0250 = 2.5%
+  sellerAmount    Decimal @db.Decimal(12, 2) // Amount seller receives
 
   // Stripe integration (PROD-094)
-  stripePaymentIntentId String?     @unique
+  stripePaymentIntentId String? @unique
   stripeSessionId       String?
 
   // Status
-  status          TransactionStatus @default(PENDING)
+  status TransactionStatus @default(PENDING)
 
   // Payer info
-  payerId         String
-  payer           User              @relation(fields: [payerId], references: [id])
+  payerId String
+  payer   User   @relation(fields: [payerId], references: [id])
 
   // Timestamps
-  paidAt          DateTime?
-  failedAt        DateTime?
-  refundedAt      DateTime?
+  paidAt     DateTime?
+  failedAt   DateTime?
+  refundedAt DateTime?
 
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([negotiationId])
   @@index([payerId])
@@ -1058,26 +1064,26 @@ model Transaction {
 
 // Conversation - can be linked to a negotiation or property, or standalone
 model Conversation {
-  id              String    @id @default(uuid())
+  id String @id @default(uuid())
 
   // Optional link to negotiation for contextual conversations
-  negotiationId   String?   @unique
-  negotiation     Negotiation? @relation(fields: [negotiationId], references: [id], onDelete: SetNull)
+  negotiationId String?      @unique
+  negotiation   Negotiation? @relation(fields: [negotiationId], references: [id], onDelete: SetNull)
 
   // Optional link to property for direct property inquiries
-  propertyId      String?
-  property        Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
   // Conversation metadata
-  subject         String?
-  lastMessageAt   DateTime?
+  subject       String?
+  lastMessageAt DateTime?
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  messages        Message[]
-  participants    ConversationParticipant[]
+  messages     Message[]
+  participants ConversationParticipant[]
 
   @@index([negotiationId])
   @@index([propertyId])
@@ -1086,18 +1092,18 @@ model Conversation {
 
 // Tracks participants in a conversation with read status
 model ConversationParticipant {
-  id              String       @id @default(uuid())
-  conversationId  String
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  userId          String
-  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  lastReadAt      DateTime?
-  unreadCount     Int          @default(0)
-  isArchived      Boolean      @default(false)
-  isMuted         Boolean      @default(false)
+  lastReadAt  DateTime?
+  unreadCount Int       @default(0)
+  isArchived  Boolean   @default(false)
+  isMuted     Boolean   @default(false)
 
-  createdAt       DateTime     @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([conversationId, userId])
   @@index([conversationId])
@@ -1106,21 +1112,21 @@ model ConversationParticipant {
 
 // Individual message in a conversation
 model Message {
-  id              String       @id @default(uuid())
-  conversationId  String
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
-  senderId        String
-  sender          User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
-  type            MessageType  @default(TEXT)
-  content         String
+  type    MessageType @default(TEXT)
+  content String
 
-  isEdited        Boolean      @default(false)
-  editedAt        DateTime?
+  isEdited Boolean   @default(false)
+  editedAt DateTime?
 
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([conversationId])
   @@index([senderId])
@@ -1133,58 +1139,58 @@ model Message {
 
 // Service Provider Profile (PROD-060, PROD-061)
 model ServiceProvider {
-  id                  String                @id @default(uuid())
-  userId              String
-  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Service type (PROD-060.2)
-  serviceType         ServiceType
+  serviceType ServiceType
 
   // Application status (PROD-060.6)
-  status              ServiceProviderStatus @default(PENDING)
+  status ServiceProviderStatus @default(PENDING)
 
   // Profile details (PROD-061.3) - flexible JSON structure per service type
   // Example: { "yearsExperience": 5, "specializations": ["residential", "commercial"], "hourlyRate": 50 }
-  serviceDetails      Json?
+  serviceDetails Json?
 
   // Service area coverage (PROD-061.5)
   // Stored as JSON: { "city": "Budapest", "radius": 25, "country": "HU" }
-  serviceArea         Json?
+  serviceArea Json?
 
   // Supporting documents (PROD-060.5)
   // Array of { "type": "license", "url": "...", "name": "..." }
-  documents           Json?
+  documents Json?
 
   // Profile completeness (PROD-061.4)
-  profileCompleteness Int                   @default(0) // 0-100 percentage
+  profileCompleteness Int @default(0) // 0-100 percentage
 
   // Biography and qualifications
-  bio                 String?
-  qualifications      String?
-  experience          String?
+  bio            String?
+  qualifications String?
+  experience     String?
 
   // Verification
-  isVerified          Boolean               @default(false)
-  verifiedAt          DateTime?
+  isVerified Boolean   @default(false)
+  verifiedAt DateTime?
 
   // Admin notes (for approval/rejection)
-  adminNotes          String?
-  reviewedAt          DateTime?
-  reviewedById        String?
+  adminNotes   String?
+  reviewedAt   DateTime?
+  reviewedById String?
 
   // Relations
-  availability        ProviderAvailability[]
+  availability           ProviderAvailability[]
   availabilityExceptions AvailabilityException[]
-  receivedRequests    ServiceRequest[]      @relation("ProviderRequests")
-  reviews             ProviderReview[]
+  receivedRequests       ServiceRequest[]        @relation("ProviderRequests")
+  reviews                ProviderReview[]
   maintenanceAssignments MaintenanceRequest[] // Maintenance assignments (PROD-103)
 
   // Aggregated rating (PROD-068.6)
-  averageRating       Float                 @default(0)
-  totalReviews        Int                   @default(0)
+  averageRating Float @default(0)
+  totalReviews  Int   @default(0)
 
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, serviceType]) // One profile per service type per user (PROD-061.2)
   @@index([userId])
@@ -1195,17 +1201,17 @@ model ServiceProvider {
 
 // Provider Weekly Availability (PROD-062.1, PROD-062.2)
 model ProviderAvailability {
-  id            String          @id @default(uuid())
-  providerId    String
-  provider      ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  id         String          @id @default(uuid())
+  providerId String
+  provider   ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
-  dayOfWeek     Int             // 0-6 (Sunday-Saturday)
-  startTime     String          // "09:00" format
-  endTime       String          // "17:00" format
-  isAvailable   Boolean         @default(true)
+  dayOfWeek   Int // 0-6 (Sunday-Saturday)
+  startTime   String // "09:00" format
+  endTime     String // "17:00" format
+  isAvailable Boolean @default(true)
 
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([providerId, dayOfWeek])
   @@index([providerId])
@@ -1213,15 +1219,15 @@ model ProviderAvailability {
 
 // Availability Exceptions (PROD-062.3) - specific dates unavailable
 model AvailabilityException {
-  id            String          @id @default(uuid())
-  providerId    String
-  provider      ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  id         String          @id @default(uuid())
+  providerId String
+  provider   ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
-  date          DateTime        @db.Date
-  isAvailable   Boolean         @default(false) // false = unavailable, true = override to available
-  reason        String?
+  date        DateTime @db.Date
+  isAvailable Boolean  @default(false) // false = unavailable, true = override to available
+  reason      String?
 
-  createdAt     DateTime        @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([providerId, date])
   @@index([providerId])
@@ -1230,56 +1236,56 @@ model AvailabilityException {
 
 // Service Request / Job Offer (PROD-063, PROD-064)
 model ServiceRequest {
-  id                String               @id @default(uuid())
+  id String @id @default(uuid())
 
   // Who is requesting the service
-  requesterId       String
-  requester         User                 @relation(fields: [requesterId], references: [id])
+  requesterId String
+  requester   User   @relation(fields: [requesterId], references: [id])
 
   // Which provider (can be null if broadcasting to matching providers)
-  providerId        String?
-  provider          ServiceProvider?     @relation("ProviderRequests", fields: [providerId], references: [id])
+  providerId String?
+  provider   ServiceProvider? @relation("ProviderRequests", fields: [providerId], references: [id])
 
   // Service details
-  serviceType       ServiceType
-  propertyId        String?              // Optional link to property
-  property          Property?            @relation(fields: [propertyId], references: [id])
+  serviceType ServiceType
+  propertyId  String? // Optional link to property
+  property    Property?   @relation(fields: [propertyId], references: [id])
 
   // Request details
   title             String
   description       String
   preferredDate     DateTime?
-  preferredTimeSlot String?              // "09:00-12:00"
-  urgency           String?              // "normal", "urgent", "flexible"
+  preferredTimeSlot String? // "09:00-12:00"
+  urgency           String? // "normal", "urgent", "flexible"
 
   // Location (can differ from property)
-  address           String?
-  city              String?
-  country           String?
+  address String?
+  city    String?
+  country String?
 
   // Budget
-  budget            Decimal?             @db.Decimal(10, 2)
-  currency          String               @default("EUR")
+  budget   Decimal? @db.Decimal(10, 2)
+  currency String   @default("EUR")
 
   // Status (PROD-064.4)
-  status            ServiceRequestStatus @default(PENDING)
+  status ServiceRequestStatus @default(PENDING)
 
   // Provider response
-  respondedAt       DateTime?
-  rejectionReason   String?
+  respondedAt     DateTime?
+  rejectionReason String?
 
   // Completion
-  completedAt       DateTime?
-  completionNotes   String?
+  completedAt     DateTime?
+  completionNotes String?
 
   // Payment link (if applicable)
-  transactionId     String?
+  transactionId String?
 
   // Review reference
-  review            ProviderReview?
+  review ProviderReview?
 
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([requesterId])
   @@index([providerId])
@@ -1290,33 +1296,33 @@ model ServiceRequest {
 
 // Provider Reviews (PROD-068)
 model ProviderReview {
-  id            String          @id @default(uuid())
+  id String @id @default(uuid())
 
-  providerId    String
-  provider      ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  providerId String
+  provider   ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
-  reviewerId    String
-  reviewer      User            @relation(fields: [reviewerId], references: [id])
+  reviewerId String
+  reviewer   User   @relation(fields: [reviewerId], references: [id])
 
   // Must be linked to a completed service request (PROD-068.5)
-  serviceRequestId String       @unique
+  serviceRequestId String         @unique
   serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id])
 
   // Rating (PROD-068.3)
-  rating        Int             // 1-5 stars
+  rating Int // 1-5 stars
 
   // Written review (PROD-068.4)
-  title         String?
-  comment       String?
+  title   String?
+  comment String?
 
   // Helpful votes
-  helpfulCount  Int             @default(0)
+  helpfulCount Int @default(0)
 
   // Visibility
-  isPublic      Boolean         @default(true)
+  isPublic Boolean @default(true)
 
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([providerId])
   @@index([reviewerId])
@@ -1328,55 +1334,55 @@ model ProviderReview {
 // ============================================
 
 model MaintenanceRequest {
-  id                  String                    @id @default(uuid())
+  id String @id @default(uuid())
 
   // Property being maintained
-  propertyId          String
-  property            Property                  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   // Associated lease (tenant's lease)
-  leaseId             String
-  lease               Lease                     @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  leaseId String
+  lease   Lease  @relation(fields: [leaseId], references: [id], onDelete: Cascade)
 
   // Tenant (requester)
-  tenantId            String
-  tenant              User                      @relation("TenantMaintenanceRequests", fields: [tenantId], references: [id])
+  tenantId String
+  tenant   User   @relation("TenantMaintenanceRequests", fields: [tenantId], references: [id])
 
   // Landlord (property owner)
-  landlordId          String
-  landlord            User                      @relation("LandlordMaintenanceRequests", fields: [landlordId], references: [id])
+  landlordId String
+  landlord   User   @relation("LandlordMaintenanceRequests", fields: [landlordId], references: [id])
 
   // Assigned service provider (optional)
-  assignedProviderId  String?
-  assignedProvider    ServiceProvider?          @relation(fields: [assignedProviderId], references: [id])
+  assignedProviderId String?
+  assignedProvider   ServiceProvider? @relation(fields: [assignedProviderId], references: [id])
 
   // Request details
-  type                MaintenanceRequestType
-  priority            MaintenancePriority       @default(NORMAL)
-  title               String
-  description         String
-  attachmentUrls      String[]                  @default([])
+  type           MaintenanceRequestType
+  priority       MaintenancePriority    @default(NORMAL)
+  title          String
+  description    String
+  attachmentUrls String[]               @default([])
 
   // Status & workflow
-  status              MaintenanceRequestStatus  @default(SUBMITTED)
-  rejectionReason     String?
+  status          MaintenanceRequestStatus @default(SUBMITTED)
+  rejectionReason String?
 
   // Scheduling
-  preferredDate       DateTime?
-  scheduledDate       DateTime?
-  scheduledTimeSlot   String?                   // e.g., "09:00-12:00"
+  preferredDate     DateTime?
+  scheduledDate     DateTime?
+  scheduledTimeSlot String? // e.g., "09:00-12:00"
 
   // Completion
   completionNotes     String?
-  completionPhotos    String[]                  @default([])
-  estimatedCost       Decimal?                  @db.Decimal(10, 2)
-  actualCost          Decimal?                  @db.Decimal(10, 2)
+  completionPhotos    String[]  @default([])
+  estimatedCost       Decimal?  @db.Decimal(10, 2)
+  actualCost          Decimal?  @db.Decimal(10, 2)
   completedAt         DateTime?
-  confirmedByTenant   Boolean                   @default(false)
-  confirmedByLandlord Boolean                   @default(false)
+  confirmedByTenant   Boolean   @default(false)
+  confirmedByLandlord Boolean   @default(false)
 
-  createdAt           DateTime                  @default(now())
-  updatedAt           DateTime                  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([propertyId])
   @@index([leaseId])
@@ -1391,35 +1397,35 @@ model MaintenanceRequest {
 // ============================================
 
 model LeaseRenewal {
-  id                  String              @id @default(uuid())
+  id String @id @default(uuid())
 
   // Relationships
-  leaseId             String
-  lease               Lease               @relation(fields: [leaseId], references: [id], onDelete: Cascade)
-  landlordId          String
-  landlord            User                @relation("LandlordLeaseRenewals", fields: [landlordId], references: [id])
-  tenantId            String
-  tenant              User                @relation("TenantLeaseRenewals", fields: [tenantId], references: [id])
-  newLeaseId          String?             @unique
-  newLease            Lease?              @relation("RenewalNewLease", fields: [newLeaseId], references: [id])
+  leaseId    String
+  lease      Lease   @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  landlordId String
+  landlord   User    @relation("LandlordLeaseRenewals", fields: [landlordId], references: [id])
+  tenantId   String
+  tenant     User    @relation("TenantLeaseRenewals", fields: [tenantId], references: [id])
+  newLeaseId String? @unique
+  newLease   Lease?  @relation("RenewalNewLease", fields: [newLeaseId], references: [id])
 
   // Renewal terms
-  status              LeaseRenewalStatus  @default(PENDING)
-  proposedStartDate   DateTime?           // New lease start date
-  proposedEndDate     DateTime?           // New lease end date
-  proposedRentAmount  Decimal?            @db.Decimal(12, 2)
-  proposedTerms       String?             // Additional terms/notes
-  offerExpiresAt      DateTime?           // Deadline for tenant response
+  status             LeaseRenewalStatus @default(PENDING)
+  proposedStartDate  DateTime? // New lease start date
+  proposedEndDate    DateTime? // New lease end date
+  proposedRentAmount Decimal?           @db.Decimal(12, 2)
+  proposedTerms      String? // Additional terms/notes
+  offerExpiresAt     DateTime? // Deadline for tenant response
 
   // Tracking
-  reminderSentAt      DateTime?           // When 60-day reminder was sent
-  offerSentAt         DateTime?           // When offer was sent to tenant
-  respondedAt         DateTime?           // When tenant responded
-  declineReason       String?             // Optional reason if declined
+  reminderSentAt DateTime? // When 60-day reminder was sent
+  offerSentAt    DateTime? // When offer was sent to tenant
+  respondedAt    DateTime? // When tenant responded
+  declineReason  String? // Optional reason if declined
 
   // Timestamps
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([leaseId])
   @@index([landlordId])
@@ -1432,35 +1438,35 @@ model LeaseRenewal {
 // ============================================
 
 model Expense {
-  id              String          @id @default(uuid())
+  id String @id @default(uuid())
 
   // Owner (landlord)
-  landlordId      String
-  landlord        User            @relation("LandlordExpenses", fields: [landlordId], references: [id])
+  landlordId String
+  landlord   User   @relation("LandlordExpenses", fields: [landlordId], references: [id])
 
   // Optional property association
-  propertyId      String?
-  property        Property?       @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
   // Expense details
-  category        ExpenseCategory
-  description     String
-  amount          Decimal         @db.Decimal(12, 2)
-  currency        String          @default("EUR")
+  category    ExpenseCategory
+  description String
+  amount      Decimal         @db.Decimal(12, 2)
+  currency    String          @default("EUR")
 
   // Date of expense
-  expenseDate     DateTime
+  expenseDate DateTime
 
   // Receipt/documentation
-  receiptUrl      String?
-  notes           String?
+  receiptUrl String?
+  notes      String?
 
   // Recurring expense tracking
-  isRecurring     Boolean         @default(false)
-  recurringPeriod String?         // "monthly", "quarterly", "annually"
+  isRecurring     Boolean @default(false)
+  recurringPeriod String? // "monthly", "quarterly", "annually"
 
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([landlordId])
   @@index([propertyId])
@@ -1473,38 +1479,217 @@ model Expense {
 // ============================================
 
 enum TenantDocumentType {
-  LEASE_AGREEMENT       // Original lease document
-  SIGNED_LEASE          // Signed version of lease
-  PAYMENT_RECEIPT       // Rent payment receipts
-  MOVE_IN_CHECKLIST     // Move-in inspection
-  MOVE_OUT_CHECKLIST    // Move-out inspection
-  NOTICE                // Notices (rent increase, etc.)
-  OTHER                 // Miscellaneous documents
+  LEASE_AGREEMENT // Original lease document
+  SIGNED_LEASE // Signed version of lease
+  PAYMENT_RECEIPT // Rent payment receipts
+  MOVE_IN_CHECKLIST // Move-in inspection
+  MOVE_OUT_CHECKLIST // Move-out inspection
+  NOTICE // Notices (rent increase, etc.)
+  OTHER // Miscellaneous documents
 }
 
 model TenantDocument {
-  id              String              @id @default(uuid())
+  id String @id @default(uuid())
 
   // Associated lease
-  leaseId         String
-  lease           Lease               @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  leaseId String
+  lease   Lease  @relation(fields: [leaseId], references: [id], onDelete: Cascade)
 
   // Document details
-  type            TenantDocumentType
-  name            String              // Display name
-  description     String?
-  documentUrl     String              // External URL to document
+  type        TenantDocumentType
+  name        String // Display name
+  description String?
+  documentUrl String // External URL to document
 
   // File metadata
-  fileSize        Int?                // Size in bytes
-  mimeType        String?             // application/pdf, image/jpeg, etc.
+  fileSize Int? // Size in bytes
+  mimeType String? // application/pdf, image/jpeg, etc.
 
   // Audit trail
-  uploadedById    String              // User who uploaded the document
+  uploadedById String // User who uploaded the document
 
-  createdAt       DateTime            @default(now())
+  createdAt DateTime @default(now())
 
   @@index([leaseId])
   @@index([type])
   @@index([uploadedById])
+}
+
+// ============================================
+// AI TOUR GUIDE (PROD-120 to PROD-133)
+// ============================================
+
+// Voice style for narration (PROD-127)
+enum VoiceStyle {
+  HISTORICAL // Formal, informative tone
+  FRIENDLY // Casual, conversational tone
+  PROFESSIONAL // Business-like tone
+}
+
+// Interest categories for filtered content (PROD-133)
+enum InterestCategory {
+  HISTORY
+  FOOD
+  ARCHITECTURE
+  NATURE
+  SHOPPING
+  NIGHTLIFE
+  CULTURE
+  SPORTS
+  FAMILY
+  ART
+}
+
+// POI types for comprehensive coverage (PROD-122)
+enum PoiType {
+  RESTAURANT
+  BUILDING
+  PARK
+  SHOP
+  LANDMARK
+  MUSEUM
+  HOTEL
+  TRANSPORT
+  ENTERTAINMENT
+  HEALTHCARE
+  EDUCATION
+  OTHER
+}
+
+// User's tour preferences (PROD-123, PROD-127, PROD-133)
+model TourPreferences {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Voice settings (PROD-127)
+  voiceStyle VoiceStyle @default(FRIENDLY)
+  language   String     @default("en") // ISO 639-1 code
+
+  // Interest preferences (PROD-133)
+  // Stored as JSON array of InterestCategory values
+  interests Json @default("[]")
+
+  // Follow Me mode preference (PROD-125)
+  followMeEnabled Boolean @default(true)
+  poiRadius       Int     @default(100) // meters (PROD-121.5)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Saved Places / Bookmarks (PROD-130)
+model SavedPlace {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // POI identification (Google Places)
+  placeId   String // Google Places ID
+  placeName String // Cached name
+  placeType PoiType @default(OTHER)
+
+  // Location
+  latitude  Float
+  longitude Float
+  address   String?
+
+  // User-added data
+  notes String? // User notes (PROD-130.1)
+
+  createdAt DateTime @default(now())
+
+  // One saved place per user per POI
+  @@unique([userId, placeId])
+  @@index([userId])
+  @@index([placeId])
+}
+
+// Custom Tours (PROD-131)
+model CustomTour {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String // Tour name (PROD-131.1)
+  description String?
+
+  // Sharing (PROD-131.7)
+  isPublic Boolean @default(false)
+
+  // Calculated values
+  estimatedDuration Int? // Total minutes (PROD-131.5)
+  totalDistance     Float? // Total meters
+
+  // Tour stops
+  stops TourStop[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isPublic])
+}
+
+// Tour Stops within a Custom Tour (PROD-131.2, PROD-131.3)
+model TourStop {
+  id String @id @default(uuid())
+
+  tourId String
+  tour   CustomTour @relation(fields: [tourId], references: [id], onDelete: Cascade)
+
+  // POI identification
+  placeId   String // Google Places ID
+  placeName String // Cached name
+  placeType PoiType @default(OTHER)
+
+  // Location
+  latitude  Float
+  longitude Float
+  address   String?
+
+  // Ordering (PROD-131.3)
+  orderIndex Int // 0-based order in tour
+
+  // Timing
+  arrivalDuration Int? // Minutes from previous stop
+  stayDuration    Int  @default(15) // Minutes to spend here
+
+  // Custom narration override (optional)
+  customNarration String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([tourId, orderIndex])
+  @@index([tourId])
+  @@index([placeId])
+}
+
+// User Notes on POIs (PROD-132)
+model UserNote {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // POI identification
+  placeId   String // Google Places ID
+  placeName String? // Cached name for display
+
+  // Note content (PROD-132.2)
+  text String
+
+  // Photo attachments (PROD-132.3)
+  // JSON array: [{ url, caption }]
+  photos Json @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([placeId])
+  @@index([userId, placeId])
 }

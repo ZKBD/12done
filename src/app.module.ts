@@ -23,6 +23,7 @@ import { ApplicationsModule } from './modules/applications';
 import { LeasesModule } from './modules/leases';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
 import { DashboardModule } from './modules/dashboard';
+import { TourGuideModule } from './modules/tour-guide';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { DashboardModule } from './modules/dashboard';
     LeasesModule,
     MaintenanceModule,
     DashboardModule,
+    TourGuideModule,
   ],
   controllers: [AppController],
   providers: [AppService],
