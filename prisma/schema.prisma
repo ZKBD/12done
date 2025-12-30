@@ -421,6 +421,11 @@ model User {
   verificationRequests VerificationRequest[]
   backgroundChecks     BackgroundCheck[]
 
+  // Platform Services (PROD-080-082)
+  insuranceProvider InsuranceProvider?
+  mortgageProvider  MortgageProvider?
+  providerInquiries ProviderInquiry[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -656,6 +661,7 @@ model Property {
   leases                 Lease[] // Leases (PROD-102)
   maintenanceRequests    MaintenanceRequest[] // Maintenance requests (PROD-103)
   expenses               Expense[] // Landlord expenses (PROD-100.4)
+  providerInquiries      ProviderInquiry[] // Platform provider inquiries (PROD-082)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2120,4 +2126,259 @@ model UserNote {
   @@index([userId])
   @@index([placeId])
   @@index([userId, placeId])
+}
+
+// ============================================
+// PLATFORM SERVICES (PROD-080, PROD-081, PROD-082)
+// ============================================
+
+// Provider Status (PROD-081.5)
+enum PlatformProviderStatus {
+  PENDING // Application submitted, awaiting review
+  APPROVED // Approved and active
+  SUSPENDED // Temporarily suspended
+  REJECTED // Application rejected
+}
+
+// Insurance Service Types (PROD-082.1)
+enum InsuranceType {
+  HOME // Homeowner's insurance
+  RENTERS // Renter's insurance
+  LANDLORD // Landlord/property insurance
+  TITLE // Title insurance
+  MORTGAGE // Mortgage insurance (PMI)
+  LIABILITY // Liability coverage
+  FLOOD // Flood insurance
+  FIRE // Fire insurance
+  OTHER
+}
+
+// Mortgage Product Types (PROD-082.2)
+enum MortgageProductType {
+  FIXED_30 // 30-year fixed rate
+  FIXED_15 // 15-year fixed rate
+  FIXED_20 // 20-year fixed rate
+  FIXED_10 // 10-year fixed rate
+  ARM_5_1 // 5/1 Adjustable rate
+  ARM_7_1 // 7/1 Adjustable rate
+  FHA // FHA loans
+  VA // VA loans
+  JUMBO // Jumbo loans
+  USDA // USDA rural loans
+  REFINANCE // Refinancing options
+  HOME_EQUITY // Home equity loans/HELOC
+  OTHER
+}
+
+// Inquiry Status (PROD-082.4)
+enum InquiryStatus {
+  PENDING // Sent, awaiting response
+  VIEWED // Provider viewed the inquiry
+  RESPONDED // Provider responded
+  CLOSED // Inquiry closed/resolved
+  EXPIRED // No response within timeframe
+}
+
+// Insurance Provider (PROD-081.1)
+model InsuranceProvider {
+  id String @id @default(uuid())
+
+  // Linked user account
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Company Information (PROD-081.1)
+  companyName     String
+  companyLogo     String? // URL to logo
+  licenseNumber   String
+  licenseState    String // State where licensed
+  licenseExpiry   DateTime?
+  taxId           String? // EIN/Tax ID
+
+  // Contact Information
+  email        String
+  phone        String
+  website      String?
+  address      String?
+  city         String?
+  state        String?
+  postalCode   String?
+  country      String @default("US")
+
+  // Business Details (PROD-082.1)
+  description   String? // Company description
+  yearFounded   Int?
+  employeeCount Int?
+
+  // Services Offered (PROD-082.1)
+  insuranceTypes InsuranceType[]
+
+  // Coverage Areas
+  coverageAreas String[] // List of states/regions served
+
+  // Status (PROD-081.5)
+  status       PlatformProviderStatus @default(PENDING)
+  statusReason String? // Reason for rejection/suspension
+  approvedAt   DateTime?
+  approvedBy   String? // Admin user ID
+
+  // Application Details
+  applicationNotes String? // Notes from application
+  documents        Json    @default("[]") // Array of {type, url, name}
+
+  // Platform Branding (PROD-080.4)
+  isPlatformPartner Boolean @default(false) // Featured as 12done partner
+
+  // Rating (derived from inquiries/feedback)
+  averageRating  Float @default(0)
+  totalReviews   Int   @default(0)
+  responseRate   Float @default(0) // % of inquiries responded to
+  avgResponseTime Int?  // Average response time in hours
+
+  // Inquiries
+  inquiries ProviderInquiry[] @relation("InsuranceProviderInquiries")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([isPlatformPartner])
+  @@index([averageRating])
+}
+
+// Mortgage Provider (PROD-081.2)
+model MortgageProvider {
+  id String @id @default(uuid())
+
+  // Linked user account
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Company Information (PROD-081.2)
+  companyName    String
+  companyLogo    String? // URL to logo
+  nmlsId         String // NMLS license number (required for mortgage)
+  licenseNumber  String? // Additional state license
+  licenseState   String? // State where licensed
+  licenseExpiry  DateTime?
+  taxId          String? // EIN/Tax ID
+
+  // Contact Information
+  email        String
+  phone        String
+  website      String?
+  address      String?
+  city         String?
+  state        String?
+  postalCode   String?
+  country      String @default("US")
+
+  // Business Details (PROD-082.2)
+  description   String? // Company description
+  yearFounded   Int?
+  employeeCount Int?
+
+  // Products Offered (PROD-082.2)
+  productTypes MortgageProductType[]
+
+  // Lending Criteria
+  minLoanAmount Decimal? @db.Decimal(12, 2)
+  maxLoanAmount Decimal? @db.Decimal(12, 2)
+  minCreditScore Int?
+
+  // Coverage Areas
+  lendingAreas String[] // List of states where they can lend
+
+  // Current Rates (updated periodically)
+  rates Json @default("{}") // { productType: rate }
+
+  // Status (PROD-081.5)
+  status       PlatformProviderStatus @default(PENDING)
+  statusReason String? // Reason for rejection/suspension
+  approvedAt   DateTime?
+  approvedBy   String? // Admin user ID
+
+  // Application Details
+  applicationNotes String? // Notes from application
+  documents        Json    @default("[]") // Array of {type, url, name}
+
+  // Platform Branding (PROD-080.4)
+  isPlatformPartner Boolean @default(false) // Featured as 12done partner
+
+  // Rating (derived from inquiries/feedback)
+  averageRating   Float @default(0)
+  totalReviews    Int   @default(0)
+  responseRate    Float @default(0) // % of inquiries responded to
+  avgResponseTime Int?  // Average response time in hours
+
+  // Inquiries
+  inquiries ProviderInquiry[] @relation("MortgageProviderInquiries")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([nmlsId])
+  @@index([isPlatformPartner])
+  @@index([averageRating])
+}
+
+// Provider Inquiries (PROD-082.3, PROD-082.4)
+model ProviderInquiry {
+  id String @id @default(uuid())
+
+  // Inquirer (user making the request)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Provider (one of these will be set)
+  insuranceProviderId String?
+  insuranceProvider   InsuranceProvider? @relation("InsuranceProviderInquiries", fields: [insuranceProviderId], references: [id], onDelete: Cascade)
+
+  mortgageProviderId String?
+  mortgageProvider   MortgageProvider? @relation("MortgageProviderInquiries", fields: [mortgageProviderId], references: [id], onDelete: Cascade)
+
+  // Inquiry Type
+  providerType String // "insurance" or "mortgage"
+
+  // Property Context (optional)
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  // Inquiry Details (PROD-082.3)
+  subject     String
+  message     String
+  phoneNumber String? // Optional callback number
+
+  // For Insurance Inquiries
+  insuranceType InsuranceType?
+
+  // For Mortgage Inquiries
+  mortgageType  MortgageProductType?
+  loanAmount    Decimal? @db.Decimal(12, 2)
+  downPayment   Decimal? @db.Decimal(12, 2)
+  creditScore   Int?
+
+  // Status Tracking (PROD-082.4)
+  status      InquiryStatus @default(PENDING)
+  viewedAt    DateTime?
+  respondedAt DateTime?
+
+  // Provider Response
+  response    String?
+  responseBy  String? // User ID of responder (for company with multiple users)
+
+  // User Feedback
+  rating      Int? // 1-5 stars
+  feedback    String?
+  feedbackAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([insuranceProviderId])
+  @@index([mortgageProviderId])
+  @@index([status])
+  @@index([providerType])
 }

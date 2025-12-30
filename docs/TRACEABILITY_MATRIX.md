@@ -425,6 +425,69 @@ Note: E2E tests require Docker/database to run.
 | PROD-050.10 | `scoring > weights by engagement` | recommendations.service.spec.ts | Verifies engagement scoring | ✅ |
 | PROD-050.11 | `explanations > generates correctly` | recommendations.service.spec.ts | Verifies recommendation explanations | ✅ |
 
+### PROD-080: Platform Services Landing Pages
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-080.1 | `listProviders > should list approved providers` | insurance-provider.service.spec.ts | Verifies insurance provider directory only shows approved providers | ✅ |
+| PROD-080.2 | `listProviders > should filter by insurance type` | insurance-provider.service.spec.ts | Verifies filtering by HOME, RENTERS, etc. | ✅ |
+| PROD-080.3 | `listProviders > should filter by coverage area` | insurance-provider.service.spec.ts | Verifies geographic filtering for coverage | ✅ |
+| PROD-080.4 | `listProviders > should filter by platform partners only` | insurance-provider.service.spec.ts | Verifies platform partner flag filter | ✅ |
+| PROD-080.5 | `togglePlatformPartner > should toggle platform partner status` | insurance-provider.service.spec.ts | Verifies admin can set partner status | ✅ |
+| PROD-080.6 | `listProviders > should list approved providers` | mortgage-provider.service.spec.ts | Verifies mortgage provider directory only shows approved providers | ✅ |
+| PROD-080.7 | `listProviders > should filter by product type` | mortgage-provider.service.spec.ts | Verifies filtering by FIXED_30, FIXED_15, ARM, etc. | ✅ |
+| PROD-080.8 | `listProviders > should filter by lending area` | mortgage-provider.service.spec.ts | Verifies geographic filtering for lending areas | ✅ |
+| PROD-080.9 | `listProviders > should filter by platform partners only` | mortgage-provider.service.spec.ts | Verifies platform partner flag filter for mortgage | ✅ |
+| PROD-080.10 | `togglePlatformPartner > should toggle platform partner status` | mortgage-provider.service.spec.ts | Verifies admin can set mortgage partner status | ✅ |
+
+### PROD-081: Provider Applications
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-081.1 | `applyAsProvider > should create a new insurance provider application` | insurance-provider.service.spec.ts | Verifies insurance provider application creates PENDING record | ✅ |
+| PROD-081.2 | `applyAsProvider > should throw ConflictException if user already has a provider profile` | insurance-provider.service.spec.ts | Verifies one provider profile per user | ✅ |
+| PROD-081.3 | `applyAsProvider > should create a new mortgage provider application` | mortgage-provider.service.spec.ts | Verifies mortgage provider application creates PENDING record | ✅ |
+| PROD-081.4 | `applyAsProvider > should throw ConflictException if user already has a provider profile` | mortgage-provider.service.spec.ts | Verifies one mortgage profile per user | ✅ |
+| PROD-081.5 | `updateProviderStatus > should update provider status` | insurance-provider.service.spec.ts | Verifies admin can approve/reject applications | ✅ |
+| PROD-081.6 | `updateProviderStatus > should set approvedAt and approvedBy when approving` | insurance-provider.service.spec.ts | Verifies approval audit trail | ✅ |
+| PROD-081.7 | `updateProviderStatus > should update provider status` | mortgage-provider.service.spec.ts | Verifies admin can approve/reject mortgage applications | ✅ |
+| PROD-081.8 | `listPendingApplications > should list pending applications` | insurance-provider.service.spec.ts | Verifies admin can view pending insurance apps | ✅ |
+| PROD-081.9 | `listPendingApplications > should list pending applications` | mortgage-provider.service.spec.ts | Verifies admin can view pending mortgage apps | ✅ |
+
+### PROD-082: Provider Profiles & Inquiries
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-082.1 | `getProviderById > should return provider by ID` | insurance-provider.service.spec.ts | Verifies insurance provider detail page data retrieval | ✅ |
+| PROD-082.2 | `getProviderById > should throw NotFoundException if provider not found` | insurance-provider.service.spec.ts | Verifies 404 for invalid provider | ✅ |
+| PROD-082.3 | `updateProvider > should update provider profile` | insurance-provider.service.spec.ts | Verifies provider can update their own profile | ✅ |
+| PROD-082.4 | `updateProvider > should throw ForbiddenException if user is not the provider owner` | insurance-provider.service.spec.ts | Verifies only owner can update profile | ✅ |
+| PROD-082.5 | `getProviderById > should return provider by ID` | mortgage-provider.service.spec.ts | Verifies mortgage provider detail page data | ✅ |
+| PROD-082.6 | `getProviderById > should throw NotFoundException if provider not found` | mortgage-provider.service.spec.ts | Verifies 404 for invalid mortgage provider | ✅ |
+| PROD-082.7 | `updateProvider > should update provider profile` | mortgage-provider.service.spec.ts | Verifies mortgage provider can update profile | ✅ |
+| PROD-082.8 | `updateProvider > should throw ForbiddenException if user is not the provider owner` | mortgage-provider.service.spec.ts | Verifies only owner can update mortgage profile | ✅ |
+| PROD-082.9 | `updateRates > should update mortgage rates` | mortgage-provider.service.spec.ts | Verifies provider can update current rates | ✅ |
+| PROD-082.10 | `updateRates > should throw ForbiddenException if user is not the provider owner` | mortgage-provider.service.spec.ts | Verifies only owner can update rates | ✅ |
+| PROD-082.11 | `createInsuranceInquiry > should create an insurance inquiry` | provider-inquiry.service.spec.ts | Verifies users can send inquiries to insurance providers | ✅ |
+| PROD-082.12 | `createInsuranceInquiry > should throw NotFoundException if provider not found` | provider-inquiry.service.spec.ts | Verifies provider validation on inquiry | ✅ |
+| PROD-082.13 | `createInsuranceInquiry > should throw BadRequestException if provider is not approved` | provider-inquiry.service.spec.ts | Verifies only approved providers receive inquiries | ✅ |
+| PROD-082.14 | `createMortgageInquiry > should create a mortgage inquiry` | provider-inquiry.service.spec.ts | Verifies users can send inquiries to mortgage providers | ✅ |
+| PROD-082.15 | `getInquiryById > should return inquiry for the inquirer` | provider-inquiry.service.spec.ts | Verifies inquirer can view their inquiry | ✅ |
+| PROD-082.16 | `getInquiryById > should mark as viewed when provider views` | provider-inquiry.service.spec.ts | Verifies inquiry status updates to VIEWED | ✅ |
+| PROD-082.17 | `getInquiryById > should throw ForbiddenException for unauthorized user` | provider-inquiry.service.spec.ts | Verifies inquiry privacy | ✅ |
+| PROD-082.18 | `respondToInquiry > should allow provider to respond` | provider-inquiry.service.spec.ts | Verifies provider can respond to inquiries | ✅ |
+| PROD-082.19 | `respondToInquiry > should throw ForbiddenException if not the provider` | provider-inquiry.service.spec.ts | Verifies only assigned provider can respond | ✅ |
+| PROD-082.20 | `respondToInquiry > should throw BadRequestException if already responded` | provider-inquiry.service.spec.ts | Verifies one response per inquiry | ✅ |
+| PROD-082.21 | `submitFeedback > should allow user to submit feedback` | provider-inquiry.service.spec.ts | Verifies users can rate provider responses | ✅ |
+| PROD-082.22 | `submitFeedback > should throw ForbiddenException if not the inquirer` | provider-inquiry.service.spec.ts | Verifies only inquirer can submit feedback | ✅ |
+| PROD-082.23 | `submitFeedback > should throw BadRequestException if not yet responded` | provider-inquiry.service.spec.ts | Verifies feedback only after response | ✅ |
+| PROD-082.24 | `submitFeedback > should throw BadRequestException if feedback already submitted` | provider-inquiry.service.spec.ts | Verifies one feedback per inquiry | ✅ |
+| PROD-082.25 | `listUserInquiries > should list user inquiries` | provider-inquiry.service.spec.ts | Verifies users can view their sent inquiries | ✅ |
+| PROD-082.26 | `listUserInquiries > should filter by provider type` | provider-inquiry.service.spec.ts | Verifies filtering by insurance/mortgage | ✅ |
+| PROD-082.27 | `listProviderInquiries > should list provider received inquiries` | provider-inquiry.service.spec.ts | Verifies providers can view received inquiries | ✅ |
+| PROD-082.28 | `listProviderInquiries > should throw NotFoundException if provider profile not found` | provider-inquiry.service.spec.ts | Verifies provider profile requirement | ✅ |
+| PROD-082.29 | `updateProviderMetrics > should update provider metrics` | insurance-provider.service.spec.ts | Verifies rating/review metrics update | ✅ |
+
 ### PROD-083: Mortgage Calculator
 
 | Req ID | Test Case | Test File | Purpose | Status |
