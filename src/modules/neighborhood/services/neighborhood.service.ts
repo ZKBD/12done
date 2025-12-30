@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@/database/prisma.service';
-import { AmenityCategory, SchoolLevel, RiskLevel } from '@prisma/client';
+import { AmenityCategory, SchoolLevel, RiskLevel, Prisma } from '@prisma/client';
 import {
   LocationQueryDto,
   GetSchoolsDto,
@@ -321,7 +321,7 @@ export class NeighborhoodService {
           violent: data.safety.violentCrimeRate,
           property: data.safety.propertyCrimeRate,
         },
-        demographics: data.demographics as unknown as Record<string, unknown>,
+        demographics: data.demographics as Prisma.InputJsonObject,
         noiseLevel: data.environmental?.noiseLevel,
         airQuality: data.environmental?.airQuality,
         pollenLevel: data.environmental?.pollenLevel,
@@ -344,7 +344,7 @@ export class NeighborhoodService {
           violent: data.safety.violentCrimeRate,
           property: data.safety.propertyCrimeRate,
         },
-        demographics: data.demographics as unknown as Record<string, unknown>,
+        demographics: data.demographics as Prisma.InputJsonObject,
         noiseLevel: data.environmental?.noiseLevel,
         airQuality: data.environmental?.airQuality,
         pollenLevel: data.environmental?.pollenLevel,
