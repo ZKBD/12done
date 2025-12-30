@@ -3197,32 +3197,8 @@ model PayoutRequest {
 // STAY PLANNING (PROD-140 to PROD-144)
 // ============================================
 
-// Season preference
-enum Season {
-  SPRING
-  SUMMER
-  FALL
-  WINTER
-  ANY
-}
-
-// Activity/Interest categories
-enum InterestCategory {
-  ADVENTURE
-  BEACH
-  CULTURE
-  DINING
-  FAMILY
-  HIKING
-  HISTORY
-  MUSEUMS
-  NATURE
-  NIGHTLIFE
-  RELAXATION
-  SHOPPING
-  SPORTS
-  WINE_TASTING
-}
+// Note: Season enum reused from PROD-031
+// Note: InterestCategory enum reused from PROD-133
 
 // Trip Plan Status
 enum TripPlanStatus {
@@ -3270,6 +3246,7 @@ enum CateringQuoteStatus {
   QUOTED
   ACCEPTED
   DECLINED
+  CANCELLED
   EXPIRED
 }
 

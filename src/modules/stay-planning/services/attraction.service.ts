@@ -49,9 +49,7 @@ export class AttractionService {
     }
 
     // Build where clause
-    const where: Prisma.AttractionWhereInput = {
-      isActive: true,
-    };
+    const where: Prisma.AttractionWhereInput = {};
 
     if (dto.categories?.length) {
       where.category = { in: dto.categories };
@@ -65,15 +63,11 @@ export class AttractionService {
       where.priceLevel = { lte: dto.maxPriceLevel };
     }
 
-    if (dto.bookableOnly) {
-      where.isBookable = true;
-    }
-
     if (dto.query) {
       where.OR = [
         { name: { contains: dto.query, mode: 'insensitive' } },
         { description: { contains: dto.query, mode: 'insensitive' } },
-        { tags: { hasSome: [dto.query.toLowerCase()] } },
+        { features: { hasSome: [dto.query.toLowerCase()] } },
       ];
     }
 
@@ -138,7 +132,6 @@ export class AttractionService {
   ): Promise<AttractionResponseDto[]> {
     const where: Prisma.AttractionWhereInput = {
       category: category as any,
-      isActive: true,
     };
 
     if (options?.city) {
@@ -168,20 +161,21 @@ export class AttractionService {
         name: dto.name,
         description: dto.description,
         category: dto.category,
-        address: dto.address,
-        city: dto.city,
-        country: dto.country,
-        latitude: dto.latitude,
-        longitude: dto.longitude,
+        address: dto.address!,
+        city: dto.city!,
+        country: dto.country!,
+        latitude: dto.latitude!,
+        longitude: dto.longitude!,
         website: dto.website,
         phone: dto.phone,
         openingHours: dto.openingHours,
+        imageUrl: dto.imageUrls?.[0],
         imageUrls: dto.imageUrls || [],
         priceLevel: dto.priceLevel,
-        durationMinutes: dto.durationMinutes,
-        tags: dto.tags || [],
-        externalSource: dto.externalSource,
-        externalId: dto.externalId,
+        estimatedDuration: dto.durationMinutes,
+        features: dto.tags || [],
+        googlePlaceId: dto.externalSource === 'google' ? dto.externalId : undefined,
+        tripAdvisorId: dto.externalSource === 'tripadvisor' ? dto.externalId : undefined,
       },
     });
 
@@ -205,7 +199,25 @@ export class AttractionService {
 
     const updated = await this.prisma.attraction.update({
       where: { id: attractionId },
-      data: dto,
+      data: {
+        name: dto.name,
+        description: dto.description,
+        category: dto.category,
+        address: dto.address,
+        city: dto.city,
+        country: dto.country,
+        latitude: dto.latitude,
+        longitude: dto.longitude,
+        website: dto.website,
+        phone: dto.phone,
+        openingHours: dto.openingHours,
+        imageUrl: dto.imageUrls?.[0],
+        imageUrls: dto.imageUrls,
+        priceLevel: dto.priceLevel,
+        estimatedDuration: dto.durationMinutes,
+        features: dto.tags,
+        lastSyncedAt: new Date(),
+      },
     });
 
     return this.mapAttractionToResponse(updated);
@@ -222,24 +234,47 @@ export class AttractionService {
     let updated = 0;
 
     for (const item of data) {
-      const existing = await this.prisma.attraction.findFirst({
-        where: {
-          externalSource: source,
-          externalId: item.externalId,
-        },
-      });
+      let existing: any = null;
+
+      if (source === 'google' && item.externalId) {
+        existing = await this.prisma.attraction.findFirst({
+          where: { googlePlaceId: item.externalId },
+        });
+      } else if (source === 'tripadvisor' && item.externalId) {
+        existing = await this.prisma.attraction.findFirst({
+          where: { tripAdvisorId: item.externalId },
+        });
+      }
 
       if (existing) {
         await this.prisma.attraction.update({
           where: { id: existing.id },
-          data: item,
+          data: {
+            name: item.name,
+            description: item.description,
+            category: item.category,
+            address: item.address,
+            city: item.city,
+            country: item.country,
+            latitude: item.latitude,
+            longitude: item.longitude,
+            lastSyncedAt: new Date(),
+          },
         });
         updated++;
       } else {
         await this.prisma.attraction.create({
           data: {
-            ...item,
-            externalSource: source,
+            name: item.name,
+            description: item.description,
+            category: item.category,
+            address: item.address!,
+            city: item.city!,
+            country: item.country!,
+            latitude: item.latitude!,
+            longitude: item.longitude!,
+            googlePlaceId: source === 'google' ? item.externalId : undefined,
+            tripAdvisorId: source === 'tripadvisor' ? item.externalId : undefined,
           },
         });
         created++;
@@ -268,10 +303,6 @@ export class AttractionService {
       throw new NotFoundException('Attraction not found');
     }
 
-    if (!attraction.isBookable) {
-      throw new BadRequestException('This attraction is not bookable');
-    }
-
     // Validate booking date
     const bookingDate = new Date(dto.bookingDate);
     if (bookingDate < new Date()) {
@@ -283,16 +314,11 @@ export class AttractionService {
         userId,
         attractionId: dto.attractionId,
         bookingDate,
-        timeSlot: dto.timeSlot,
+        bookingTime: dto.timeSlot ? new Date(`1970-01-01T${dto.timeSlot}:00`) : undefined,
         numberOfGuests: dto.numberOfGuests,
-        adults: dto.adults || dto.numberOfGuests,
-        children: dto.children || 0,
         ticketType: dto.ticketType,
-        specialRequests: dto.specialRequests,
-        tripDayId: dto.tripDayId,
-        contactName: dto.contactName,
-        contactEmail: dto.contactEmail,
-        contactPhone: dto.contactPhone,
+        notes: dto.specialRequests,
+        totalPrice: 0, // Will be set when confirmed
         currency: 'EUR',
       },
       include: {
@@ -373,9 +399,9 @@ export class AttractionService {
       where: { id: bookingId },
       data: {
         bookingDate: dto.bookingDate ? new Date(dto.bookingDate) : undefined,
-        timeSlot: dto.timeSlot,
+        bookingTime: dto.timeSlot ? new Date(`1970-01-01T${dto.timeSlot}:00`) : undefined,
         numberOfGuests: dto.numberOfGuests,
-        specialRequests: dto.specialRequests,
+        notes: dto.specialRequests,
       },
       include: { attraction: true },
     });
@@ -408,7 +434,7 @@ export class AttractionService {
       data: {
         status: 'CANCELLED',
         cancelledAt: new Date(),
-        cancellationReason: reason,
+        notes: reason ? `${booking.notes || ''}\nCancellation: ${reason}` : booking.notes,
       },
       include: { attraction: true },
     });
@@ -439,7 +465,7 @@ export class AttractionService {
         status: 'CONFIRMED',
         confirmationCode,
         externalBookingId,
-        totalPrice,
+        totalPrice: totalPrice || booking.totalPrice,
         confirmedAt: new Date(),
       },
       include: { attraction: true },
@@ -513,6 +539,17 @@ export class AttractionService {
   }
 
   private mapAttractionToResponse(attraction: any): AttractionResponseDto {
+    // Determine external source from IDs
+    let externalSource: string | undefined;
+    let externalId: string | undefined;
+    if (attraction.googlePlaceId) {
+      externalSource = 'google';
+      externalId = attraction.googlePlaceId;
+    } else if (attraction.tripAdvisorId) {
+      externalSource = 'tripadvisor';
+      externalId = attraction.tripAdvisorId;
+    }
+
     return {
       id: attraction.id,
       name: attraction.name,
@@ -526,23 +563,30 @@ export class AttractionService {
       website: attraction.website,
       phone: attraction.phone,
       openingHours: attraction.openingHours,
-      imageUrls: attraction.imageUrls,
+      imageUrls: attraction.imageUrls || [],
       rating: attraction.rating ? Number(attraction.rating) : undefined,
       reviewCount: attraction.reviewCount,
       priceLevel: attraction.priceLevel,
-      durationMinutes: attraction.durationMinutes,
-      tags: attraction.tags,
-      isBookable: attraction.isBookable,
-      bookingUrl: attraction.bookingUrl,
-      externalSource: attraction.externalSource,
-      externalId: attraction.externalId,
-      isActive: attraction.isActive,
+      durationMinutes: attraction.estimatedDuration,
+      tags: attraction.features || [],
+      isBookable: false, // Not in schema
+      bookingUrl: undefined, // Not in schema
+      externalSource,
+      externalId,
+      isActive: true, // Not in schema
       createdAt: attraction.createdAt,
       updatedAt: attraction.updatedAt,
     };
   }
 
   private mapBookingToResponse(booking: any): BookingResponseDto {
+    // Format time slot from DateTime
+    const formatTimeSlot = (time: Date | null) => {
+      if (!time) return undefined;
+      const d = new Date(time);
+      return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    };
+
     return {
       id: booking.id,
       userId: booking.userId,
@@ -551,24 +595,24 @@ export class AttractionService {
         ? this.mapAttractionToResponse(booking.attraction)
         : undefined,
       bookingDate: booking.bookingDate,
-      timeSlot: booking.timeSlot,
+      timeSlot: formatTimeSlot(booking.bookingTime),
       numberOfGuests: booking.numberOfGuests,
-      adults: booking.adults,
-      children: booking.children,
+      adults: booking.numberOfGuests, // Not in schema separately
+      children: 0, // Not in schema
       ticketType: booking.ticketType,
-      specialRequests: booking.specialRequests,
-      tripDayId: booking.tripDayId,
+      specialRequests: booking.notes,
+      tripDayId: undefined, // Not in schema
       totalPrice: booking.totalPrice ? Number(booking.totalPrice) : undefined,
       currency: booking.currency,
       status: booking.status,
       confirmationCode: booking.confirmationCode,
       externalBookingId: booking.externalBookingId,
-      contactName: booking.contactName,
-      contactEmail: booking.contactEmail,
-      contactPhone: booking.contactPhone,
+      contactName: undefined, // Not in schema
+      contactEmail: undefined, // Not in schema
+      contactPhone: undefined, // Not in schema
       confirmedAt: booking.confirmedAt,
       cancelledAt: booking.cancelledAt,
-      cancellationReason: booking.cancellationReason,
+      cancellationReason: undefined, // Not in schema
       createdAt: booking.createdAt,
       updatedAt: booking.updatedAt,
     };

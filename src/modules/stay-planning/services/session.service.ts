@@ -188,7 +188,7 @@ export class SessionService {
     await this.prisma.stayPlanningSession.update({
       where: { id: sessionId },
       data: {
-        proposals: proposals as unknown as Prisma.JsonValue,
+        proposals: JSON.parse(JSON.stringify(proposals)),
       },
     });
 

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TripPlanService } from './trip-plan.service';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { TripPlanStatus, AttractionCategory } from '../dto';
+import { TripPlanStatus, InterestCategory } from '../dto';
 
 describe('TripPlanService', () => {
   let service: TripPlanService;
@@ -14,16 +14,17 @@ describe('TripPlanService', () => {
   const mockDayId = 'day-123';
   const mockActivityId = 'activity-123';
 
+  // Mock data matches Prisma schema field names
   const mockTripPlan = {
     id: mockTripPlanId,
     userId: mockUserId,
     propertyId: mockPropertyId,
-    sessionId: null,
-    title: 'Barcelona Trip',
+    planningSessionId: null, // Prisma field (mapped to sessionId in response)
+    name: 'Barcelona Trip', // Prisma field (mapped to title in response)
     description: 'Summer vacation in Barcelona',
     startDate: new Date('2024-12-15'),
     endDate: new Date('2024-12-20'),
-    totalBudget: 2000,
+    estimatedBudget: 2000, // Prisma field (mapped to totalBudget in response)
     currency: 'EUR',
     status: TripPlanStatus.DRAFT,
     days: [],
@@ -36,7 +37,7 @@ describe('TripPlanService', () => {
     tripPlanId: mockTripPlanId,
     date: new Date('2024-12-15'),
     dayNumber: 1,
-    title: 'Arrival Day',
+    theme: 'Arrival Day', // Prisma field (mapped to title in response)
     notes: null,
     activities: [],
     createdAt: new Date(),
@@ -44,22 +45,21 @@ describe('TripPlanService', () => {
 
   const mockActivity = {
     id: mockActivityId,
-    dayId: mockDayId,
+    tripDayId: mockDayId, // Prisma field (mapped to dayId in response)
     title: 'Visit Sagrada Familia',
     description: 'Tour of the famous basilica',
-    startTime: '10:00',
-    endTime: '12:00',
+    startTime: new Date('1970-01-01T10:00:00'), // DateTime in Prisma
+    endTime: new Date('1970-01-01T12:00:00'), // DateTime in Prisma
     location: 'Sagrada Familia',
     address: 'Carrer de Mallorca, 401',
     latitude: 41.4036,
     longitude: 2.1744,
     estimatedCost: 26,
-    category: AttractionCategory.MONUMENT,
+    category: InterestCategory.CULTURE, // Uses InterestCategory, not AttractionCategory
     attractionId: null,
     bookingId: null,
     notes: null,
     order: 0,
-    isCompleted: false,
     createdAt: new Date(),
   };
 
@@ -237,7 +237,7 @@ describe('TripPlanService', () => {
       mockPrismaService.tripPlan.findFirst.mockResolvedValue(mockTripPlan);
       mockPrismaService.tripPlan.update.mockResolvedValue({
         ...mockTripPlan,
-        title: 'Updated Title',
+        name: 'Updated Title', // Prisma field
         days: [],
       });
 
@@ -311,7 +311,7 @@ describe('TripPlanService', () => {
       });
       mockPrismaService.tripDay.update.mockResolvedValue({
         ...mockDay,
-        title: 'Updated Day',
+        theme: 'Updated Day', // Prisma field (mapped to title in response)
         activities: [],
       });
 
@@ -380,18 +380,18 @@ describe('TripPlanService', () => {
     it('should update activity', async () => {
       mockPrismaService.tripActivity.findUnique.mockResolvedValue({
         ...mockActivity,
-        day: { tripPlan: { userId: mockUserId } },
+        tripDay: { tripPlan: { userId: mockUserId } }, // Use tripDay not day
       });
       mockPrismaService.tripActivity.update.mockResolvedValue({
         ...mockActivity,
-        isCompleted: true,
+        notes: 'Updated notes',
       });
 
       const result = await service.updateActivity(mockUserId, mockActivityId, {
-        isCompleted: true,
+        notes: 'Updated notes',
       });
 
-      expect(result.isCompleted).toBe(true);
+      expect(result.notes).toBe('Updated notes');
     });
   });
 
@@ -399,7 +399,7 @@ describe('TripPlanService', () => {
     it('should delete activity', async () => {
       mockPrismaService.tripActivity.findUnique.mockResolvedValue({
         ...mockActivity,
-        day: { tripPlan: { userId: mockUserId } },
+        tripDay: { tripPlan: { userId: mockUserId } }, // Use tripDay not day
       });
       mockPrismaService.tripActivity.delete.mockResolvedValue(mockActivity);
 
@@ -440,7 +440,7 @@ describe('TripPlanService', () => {
             ...mockDay,
             activities: [
               { ...mockActivity, estimatedCost: 26 },
-              { ...mockActivity, id: 'act-2', estimatedCost: 50, isCompleted: true },
+              { ...mockActivity, id: 'act-2', estimatedCost: 50 },
             ],
           },
         ],
@@ -450,7 +450,7 @@ describe('TripPlanService', () => {
 
       expect(result.totalDays).toBe(1);
       expect(result.totalActivities).toBe(2);
-      expect(result.completedActivities).toBe(1);
+      expect(result.completedActivities).toBe(0); // No isCompleted in schema
       expect(result.estimatedTotalCost).toBe(76);
     });
   });

@@ -12,11 +12,12 @@ describe('AttractionService', () => {
   const mockAttractionId = 'attraction-123';
   const mockBookingId = 'booking-123';
 
+  // Mock data matches Prisma schema field names
   const mockAttraction = {
     id: mockAttractionId,
     name: 'Sagrada Familia',
     description: 'Famous basilica designed by Gaudi',
-    category: AttractionCategory.MONUMENT,
+    category: AttractionCategory.MONUMENT, // Uses AttractionCategory
     address: 'Carrer de Mallorca, 401',
     city: 'Barcelona',
     country: 'ES',
@@ -25,44 +26,47 @@ describe('AttractionService', () => {
     website: 'https://sagradafamilia.org',
     phone: '+34 932 08 04 14',
     openingHours: { mon: '09:00-20:00' },
+    imageUrl: 'https://example.com/image.jpg',
     imageUrls: ['https://example.com/image.jpg'],
     rating: 4.8,
     reviewCount: 15000,
     priceLevel: 3,
-    durationMinutes: 120,
-    tags: ['architecture', 'gaudi', 'modernism'],
-    isBookable: true,
-    bookingUrl: 'https://sagradafamilia.org/tickets',
-    externalSource: 'tripadvisor',
-    externalId: 'ta-123',
-    isActive: true,
+    estimatedDuration: 120, // Prisma field (not durationMinutes)
+    features: ['architecture', 'gaudi', 'modernism'], // Prisma field (not tags)
+    // No isBookable in schema
+    // No bookingUrl in schema
+    googlePlaceId: null,
+    tripAdvisorId: 'ta-123', // Prisma field (not externalSource/externalId)
+    // No isActive in schema
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+
+  // Future date for testing (30 days from now)
+  const futureBookingDate = new Date();
+  futureBookingDate.setDate(futureBookingDate.getDate() + 30);
+  const futureBookingDateString = futureBookingDate.toISOString().split('T')[0];
 
   const mockBooking = {
     id: mockBookingId,
     userId: mockUserId,
     attractionId: mockAttractionId,
-    bookingDate: new Date('2024-12-15'),
-    timeSlot: '10:00',
+    bookingDate: futureBookingDate,
+    bookingTime: new Date('1970-01-01T10:00:00'), // Prisma field (DateTime, not timeSlot string)
     numberOfGuests: 2,
-    adults: 2,
-    children: 0,
+    // No adults/children in schema
     ticketType: 'standard',
-    specialRequests: null,
-    tripDayId: null,
+    notes: null, // Prisma field (not specialRequests)
+    // No tripDayId in schema
     totalPrice: 52,
     currency: 'EUR',
     status: AttractionBookingStatus.PENDING,
     confirmationCode: null,
     externalBookingId: null,
-    contactName: 'John Doe',
-    contactEmail: 'john@example.com',
-    contactPhone: '+1234567890',
+    // No contactName/contactEmail/contactPhone in schema
     confirmedAt: null,
     cancelledAt: null,
-    cancellationReason: null,
+    // No cancellationReason in schema
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -145,16 +149,16 @@ describe('AttractionService', () => {
       );
     });
 
-    it('should filter bookable only', async () => {
+    it('should filter by maximum price level', async () => {
       mockPrismaService.attraction.findMany.mockResolvedValue([mockAttraction]);
       mockPrismaService.attraction.count.mockResolvedValue(1);
 
-      await service.searchAttractions({ bookableOnly: true });
+      await service.searchAttractions({ maxPriceLevel: 3 });
 
       expect(mockPrismaService.attraction.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            isBookable: true,
+            priceLevel: { lte: 3 },
           }),
         }),
       );
@@ -343,7 +347,7 @@ describe('AttractionService', () => {
 
       const result = await service.createBooking(mockUserId, {
         attractionId: mockAttractionId,
-        bookingDate: '2024-12-15',
+        bookingDate: futureBookingDateString,
         numberOfGuests: 2,
       });
 
@@ -356,25 +360,10 @@ describe('AttractionService', () => {
       await expect(
         service.createBooking(mockUserId, {
           attractionId: 'invalid',
-          bookingDate: '2024-12-15',
+          bookingDate: futureBookingDateString,
           numberOfGuests: 2,
         }),
       ).rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw BadRequestException for non-bookable attraction', async () => {
-      mockPrismaService.attraction.findUnique.mockResolvedValue({
-        ...mockAttraction,
-        isBookable: false,
-      });
-
-      await expect(
-        service.createBooking(mockUserId, {
-          attractionId: mockAttractionId,
-          bookingDate: '2024-12-15',
-          numberOfGuests: 2,
-        }),
-      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException for past date', async () => {

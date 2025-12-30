@@ -30,25 +30,21 @@ export enum Season {
 }
 
 export enum InterestCategory {
-  CULTURE = 'CULTURE',
-  NATURE = 'NATURE',
-  ADVENTURE = 'ADVENTURE',
-  FOOD_WINE = 'FOOD_WINE',
-  RELAXATION = 'RELAXATION',
-  NIGHTLIFE = 'NIGHTLIFE',
-  SHOPPING = 'SHOPPING',
-  FAMILY = 'FAMILY',
-  SPORTS = 'SPORTS',
   HISTORY = 'HISTORY',
+  FOOD = 'FOOD',
+  ARCHITECTURE = 'ARCHITECTURE',
+  NATURE = 'NATURE',
+  SHOPPING = 'SHOPPING',
+  NIGHTLIFE = 'NIGHTLIFE',
+  CULTURE = 'CULTURE',
+  SPORTS = 'SPORTS',
+  FAMILY = 'FAMILY',
   ART = 'ART',
-  MUSIC = 'MUSIC',
-  BEACH = 'BEACH',
-  MOUNTAINS = 'MOUNTAINS',
-  WELLNESS = 'WELLNESS',
 }
 
 export enum TripPlanStatus {
   DRAFT = 'DRAFT',
+  PLANNED = 'PLANNED',
   ACTIVE = 'ACTIVE',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
@@ -58,27 +54,18 @@ export enum AttractionCategory {
   MUSEUM = 'MUSEUM',
   MONUMENT = 'MONUMENT',
   PARK = 'PARK',
-  BEACH = 'BEACH',
   RESTAURANT = 'RESTAURANT',
   BAR = 'BAR',
-  CLUB = 'CLUB',
-  THEATER = 'THEATER',
-  CINEMA = 'CINEMA',
-  GALLERY = 'GALLERY',
-  ZOO = 'ZOO',
-  THEME_PARK = 'THEME_PARK',
-  WATER_PARK = 'WATER_PARK',
+  BEACH = 'BEACH',
   HIKING_TRAIL = 'HIKING_TRAIL',
   VIEWPOINT = 'VIEWPOINT',
-  MARKET = 'MARKET',
   SHOPPING_CENTER = 'SHOPPING_CENTER',
+  ENTERTAINMENT = 'ENTERTAINMENT',
   SPA = 'SPA',
-  SPORTS_VENUE = 'SPORTS_VENUE',
+  SPORTS_FACILITY = 'SPORTS_FACILITY',
+  HISTORICAL_SITE = 'HISTORICAL_SITE',
   RELIGIOUS_SITE = 'RELIGIOUS_SITE',
-  CASTLE = 'CASTLE',
-  WINERY = 'WINERY',
-  TOUR = 'TOUR',
-  OTHER = 'OTHER',
+  NATURE_RESERVE = 'NATURE_RESERVE',
 }
 
 export enum AttractionBookingStatus {
@@ -93,9 +80,9 @@ export enum CateringQuoteStatus {
   REQUESTED = 'REQUESTED',
   QUOTED = 'QUOTED',
   ACCEPTED = 'ACCEPTED',
-  REJECTED = 'REJECTED',
-  EXPIRED = 'EXPIRED',
+  DECLINED = 'DECLINED',
   CANCELLED = 'CANCELLED',
+  EXPIRED = 'EXPIRED',
 }
 
 // ============================================
@@ -309,10 +296,10 @@ export class CreateActivityDto {
   @Min(0)
   estimatedCost?: number;
 
-  @ApiPropertyOptional({ enum: AttractionCategory })
+  @ApiPropertyOptional({ enum: InterestCategory })
   @IsOptional()
-  @IsEnum(AttractionCategory)
-  category?: AttractionCategory;
+  @IsEnum(InterestCategory)
+  category?: InterestCategory;
 
   @ApiPropertyOptional({ description: 'Linked attraction ID' })
   @IsOptional()
@@ -461,8 +448,8 @@ export class TripActivityResponseDto {
   @ApiPropertyOptional()
   estimatedCost?: number;
 
-  @ApiPropertyOptional({ enum: AttractionCategory })
-  category?: AttractionCategory;
+  @ApiPropertyOptional({ enum: InterestCategory })
+  category?: InterestCategory;
 
   @ApiPropertyOptional()
   attractionId?: string;
@@ -889,8 +876,8 @@ export class BookingResponseDto {
   @ApiProperty()
   attractionId: string;
 
-  @ApiProperty()
-  attraction: AttractionResponseDto;
+  @ApiPropertyOptional()
+  attraction?: AttractionResponseDto;
 
   @ApiProperty()
   bookingDate: Date;
@@ -1459,8 +1446,8 @@ export class CateringQuoteResponseDto {
   @ApiProperty()
   providerId: string;
 
-  @ApiProperty()
-  provider: CateringProviderResponseDto;
+  @ApiPropertyOptional()
+  provider?: CateringProviderResponseDto;
 
   @ApiProperty()
   eventDate: Date;

@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import {
@@ -93,33 +92,7 @@ export class CateringService {
       this.prisma.cateringProvider.count({ where }),
     ]);
 
-    // Calculate distances if coordinates provided
-    let results = providers.map((p) => {
-      const response = this.mapProviderToResponse(p);
-      if (
-        dto.latitude !== undefined &&
-        dto.longitude !== undefined &&
-        p.latitude &&
-        p.longitude
-      ) {
-        response.distance = this.calculateDistance(
-          dto.latitude,
-          dto.longitude,
-          p.latitude,
-          p.longitude,
-        );
-      }
-      return response;
-    });
-
-    // Filter by radius if coordinates provided
-    if (dto.latitude !== undefined && dto.longitude !== undefined) {
-      const radiusKm = dto.radiusKm || 25;
-      results = results.filter(
-        (r) => r.distance === undefined || r.distance <= radiusKm,
-      );
-      results.sort((a, b) => (a.distance || 0) - (b.distance || 0));
-    }
+    const results = providers.map((p) => this.mapProviderToResponse(p));
 
     return { providers: results, total };
   }
@@ -154,25 +127,19 @@ export class CateringService {
       data: {
         name: dto.name,
         description: dto.description,
-        cuisineTypes: dto.cuisineTypes,
+        cuisineTypes: dto.cuisineTypes || [],
         city: dto.city,
         country: dto.country,
-        address: dto.address,
-        latitude: dto.latitude,
-        longitude: dto.longitude,
-        email: dto.email,
+        address: dto.address!,
+        email: dto.email!,
         phone: dto.phone,
         website: dto.website,
         minGuests: dto.minGuests,
         maxGuests: dto.maxGuests,
-        pricePerPersonMin: dto.pricePerPersonMin,
-        pricePerPersonMax: dto.pricePerPersonMax,
+        pricePerPerson: dto.pricePerPersonMin,
         currency: dto.currency || 'EUR',
         eventTypes: dto.eventTypes || [],
-        dietaryOptions: dto.dietaryOptions || [],
-        serviceRadiusKm: dto.serviceRadiusKm,
-        leadTimeDays: dto.leadTimeDays,
-        imageUrls: dto.imageUrls || [],
+        serviceRadius: dto.serviceRadiusKm,
       },
       include: {
         menus: true,
@@ -199,7 +166,24 @@ export class CateringService {
 
     const updated = await this.prisma.cateringProvider.update({
       where: { id: providerId },
-      data: dto,
+      data: {
+        name: dto.name,
+        description: dto.description,
+        cuisineTypes: dto.cuisineTypes,
+        city: dto.city,
+        country: dto.country,
+        address: dto.address,
+        email: dto.email,
+        phone: dto.phone,
+        website: dto.website,
+        minGuests: dto.minGuests,
+        maxGuests: dto.maxGuests,
+        pricePerPerson: dto.pricePerPersonMin,
+        currency: dto.currency,
+        eventTypes: dto.eventTypes,
+        serviceRadius: dto.serviceRadiusKm,
+        isActive: dto.isActive,
+      },
       include: {
         menus: {
           where: { isActive: true },
@@ -237,11 +221,13 @@ export class CateringService {
         menuType: dto.menuType,
         pricePerPerson: dto.pricePerPerson,
         currency: dto.currency || provider.currency,
-        minGuests: dto.minGuests,
-        maxGuests: dto.maxGuests,
-        items: dto.items,
-        dietaryOptions: dto.dietaryOptions || [],
-        imageUrls: dto.imageUrls || [],
+        minimumGuests: dto.minGuests,
+        items: dto.items || [],
+        vegetarianOptions: dto.dietaryOptions?.includes('vegetarian') || false,
+        veganOptions: dto.dietaryOptions?.includes('vegan') || false,
+        glutenFreeOptions: dto.dietaryOptions?.includes('gluten-free') || false,
+        halalOptions: dto.dietaryOptions?.includes('halal') || false,
+        kosherOptions: dto.dietaryOptions?.includes('kosher') || false,
       },
     });
 
@@ -277,7 +263,16 @@ export class CateringService {
 
     const updated = await this.prisma.cateringMenu.update({
       where: { id: menuId },
-      data: dto,
+      data: {
+        name: dto.name,
+        description: dto.description,
+        menuType: dto.menuType,
+        pricePerPerson: dto.pricePerPerson,
+        currency: dto.currency,
+        minimumGuests: dto.minGuests,
+        items: dto.items,
+        isActive: dto.isActive,
+      },
     });
 
     return this.mapMenuToResponse(updated);
@@ -324,15 +319,13 @@ export class CateringService {
       throw new BadRequestException('Provider is not currently accepting quotes');
     }
 
-    // Validate event date
+    // Validate event date (at least 3 days in advance)
     const eventDate = new Date(dto.eventDate);
     const minDate = new Date();
-    minDate.setDate(minDate.getDate() + (provider.leadTimeDays || 3));
+    minDate.setDate(minDate.getDate() + 3);
 
     if (eventDate < minDate) {
-      throw new BadRequestException(
-        `Event must be at least ${provider.leadTimeDays || 3} days in advance`,
-      );
+      throw new BadRequestException('Event must be at least 3 days in advance');
     }
 
     // Validate guest count
@@ -570,7 +563,7 @@ export class CateringService {
     const updated = await this.prisma.cateringQuote.update({
       where: { id: quoteId },
       data: {
-        status: 'REJECTED',
+        status: 'DECLINED',
         respondedAt: new Date(),
         responseNotes: reason,
       },
@@ -622,29 +615,6 @@ export class CateringService {
   // HELPER METHODS
   // ============================================
 
-  private calculateDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
-  ): number {
-    const R = 6371;
-    const dLat = this.deg2rad(lat2 - lat1);
-    const dLon = this.deg2rad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.deg2rad(lat1)) *
-        Math.cos(this.deg2rad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return Math.round(R * c * 10) / 10;
-  }
-
-  private deg2rad(deg: number): number {
-    return deg * (Math.PI / 180);
-  }
-
   private mapProviderToResponse(provider: any): CateringProviderResponseDto {
     return {
       id: provider.id,
@@ -654,25 +624,23 @@ export class CateringService {
       city: provider.city,
       country: provider.country,
       address: provider.address,
-      latitude: provider.latitude,
-      longitude: provider.longitude,
+      latitude: undefined, // Not in schema
+      longitude: undefined, // Not in schema
       email: provider.email,
       phone: provider.phone,
       website: provider.website,
       minGuests: provider.minGuests,
       maxGuests: provider.maxGuests,
-      pricePerPersonMin: provider.pricePerPersonMin
-        ? Number(provider.pricePerPersonMin)
+      pricePerPersonMin: provider.pricePerPerson
+        ? Number(provider.pricePerPerson)
         : undefined,
-      pricePerPersonMax: provider.pricePerPersonMax
-        ? Number(provider.pricePerPersonMax)
-        : undefined,
+      pricePerPersonMax: undefined, // Not in schema
       currency: provider.currency,
       eventTypes: provider.eventTypes,
-      dietaryOptions: provider.dietaryOptions,
-      serviceRadiusKm: provider.serviceRadiusKm,
-      leadTimeDays: provider.leadTimeDays,
-      imageUrls: provider.imageUrls,
+      dietaryOptions: [], // Not in schema
+      serviceRadiusKm: provider.serviceRadius,
+      leadTimeDays: undefined, // Not in schema
+      imageUrls: [], // Not in schema
       rating: provider.rating ? Number(provider.rating) : undefined,
       reviewCount: provider.reviewCount,
       isActive: provider.isActive,
@@ -685,6 +653,14 @@ export class CateringService {
   }
 
   private mapMenuToResponse(menu: any): CateringMenuResponseDto {
+    // Build dietary options from individual flags
+    const dietaryOptions: string[] = [];
+    if (menu.vegetarianOptions) dietaryOptions.push('vegetarian');
+    if (menu.veganOptions) dietaryOptions.push('vegan');
+    if (menu.glutenFreeOptions) dietaryOptions.push('gluten-free');
+    if (menu.halalOptions) dietaryOptions.push('halal');
+    if (menu.kosherOptions) dietaryOptions.push('kosher');
+
     return {
       id: menu.id,
       providerId: menu.providerId,
@@ -693,11 +669,11 @@ export class CateringService {
       menuType: menu.menuType,
       pricePerPerson: Number(menu.pricePerPerson),
       currency: menu.currency,
-      minGuests: menu.minGuests,
-      maxGuests: menu.maxGuests,
+      minGuests: menu.minimumGuests,
+      maxGuests: undefined, // Not in schema
       items: menu.items,
-      dietaryOptions: menu.dietaryOptions,
-      imageUrls: menu.imageUrls,
+      dietaryOptions,
+      imageUrls: [], // Not in schema
       isActive: menu.isActive,
       createdAt: menu.createdAt,
       updatedAt: menu.updatedAt,

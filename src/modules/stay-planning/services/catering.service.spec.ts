@@ -13,6 +13,7 @@ describe('CateringService', () => {
   const mockMenuId = 'menu-123';
   const mockQuoteId = 'quote-123';
 
+  // Mock data matches Prisma schema field names
   const mockProvider = {
     id: mockProviderId,
     name: 'Barcelona Catering Co',
@@ -21,21 +22,19 @@ describe('CateringService', () => {
     city: 'Barcelona',
     country: 'ES',
     address: 'Carrer Example 123',
-    latitude: 41.4,
-    longitude: 2.17,
+    // No latitude/longitude in schema
     email: 'info@barcelonacatering.com',
     phone: '+34 123 456 789',
     website: 'https://barcelonacatering.com',
     minGuests: 20,
     maxGuests: 200,
-    pricePerPersonMin: 35,
-    pricePerPersonMax: 150,
+    pricePerPerson: 35, // Prisma field (not pricePerPersonMin/Max)
     currency: 'EUR',
     eventTypes: ['Wedding', 'Corporate', 'Birthday'],
-    dietaryOptions: ['Vegetarian', 'Vegan', 'Gluten-free'],
-    serviceRadiusKm: 50,
-    leadTimeDays: 7,
-    imageUrls: ['https://example.com/image.jpg'],
+    // No dietaryOptions array - on menus as boolean flags
+    serviceRadius: 50, // Prisma field (not serviceRadiusKm)
+    // No leadTimeDays in schema
+    // No imageUrls in schema
     rating: 4.8,
     reviewCount: 120,
     isActive: true,
@@ -53,24 +52,34 @@ describe('CateringService', () => {
     menuType: 'plated',
     pricePerPerson: 85,
     currency: 'EUR',
-    minGuests: 30,
-    maxGuests: 150,
+    minimumGuests: 30, // Prisma field (not minGuests)
+    // No maxGuests in schema
     items: [
       { type: 'starter', items: ['Salad', 'Soup'] },
       { type: 'main', items: ['Fish', 'Meat'] },
     ],
-    dietaryOptions: ['Vegetarian'],
-    imageUrls: [],
+    // Dietary options as boolean flags
+    vegetarianOptions: true,
+    veganOptions: false,
+    glutenFreeOptions: false,
+    halalOptions: false,
+    kosherOptions: false,
+    // No imageUrls in schema
     isActive: true,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
+  // Future date for testing (30 days from now)
+  const futureDate = new Date();
+  futureDate.setDate(futureDate.getDate() + 30);
+  const futureDateString = futureDate.toISOString().split('T')[0];
+
   const mockQuote = {
     id: mockQuoteId,
     userId: mockUserId,
     providerId: mockProviderId,
-    eventDate: new Date('2024-12-25'),
+    eventDate: futureDate,
     eventType: 'Wedding',
     numberOfGuests: 100,
     venue: 'Beach Resort',
@@ -191,19 +200,24 @@ describe('CateringService', () => {
       );
     });
 
-    it('should calculate distance when coordinates provided', async () => {
+    it('should paginate results', async () => {
       mockPrismaService.cateringProvider.findMany.mockResolvedValue([
         { ...mockProvider, menus: [] },
       ]);
-      mockPrismaService.cateringProvider.count.mockResolvedValue(1);
+      mockPrismaService.cateringProvider.count.mockResolvedValue(25);
 
       const result = await service.searchProviders({
-        latitude: 41.4,
-        longitude: 2.17,
-        radiusKm: 25,
+        page: 2,
+        limit: 10,
       });
 
-      expect(result.providers[0].distance).toBeDefined();
+      expect(result.total).toBe(25);
+      expect(mockPrismaService.cateringProvider.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: 10,
+          take: 10,
+        }),
+      );
     });
   });
 
@@ -365,7 +379,7 @@ describe('CateringService', () => {
 
       const result = await service.requestQuote(mockUserId, {
         providerId: mockProviderId,
-        eventDate: '2024-12-25',
+        eventDate: futureDateString, // Use future date
         eventType: 'Wedding',
         numberOfGuests: 100,
       });
@@ -379,7 +393,7 @@ describe('CateringService', () => {
       await expect(
         service.requestQuote(mockUserId, {
           providerId: 'invalid',
-          eventDate: '2024-12-25',
+          eventDate: futureDateString,
           eventType: 'Wedding',
           numberOfGuests: 100,
         }),
@@ -395,7 +409,7 @@ describe('CateringService', () => {
       await expect(
         service.requestQuote(mockUserId, {
           providerId: mockProviderId,
-          eventDate: '2024-12-25',
+          eventDate: futureDateString,
           eventType: 'Wedding',
           numberOfGuests: 100,
         }),
@@ -403,12 +417,9 @@ describe('CateringService', () => {
     });
 
     it('should throw BadRequestException for insufficient lead time', async () => {
-      mockPrismaService.cateringProvider.findUnique.mockResolvedValue({
-        ...mockProvider,
-        leadTimeDays: 30,
-      });
+      mockPrismaService.cateringProvider.findUnique.mockResolvedValue(mockProvider);
 
-      // Event date too soon
+      // Event date too soon (service requires at least 3 days advance)
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -428,7 +439,7 @@ describe('CateringService', () => {
       await expect(
         service.requestQuote(mockUserId, {
           providerId: mockProviderId,
-          eventDate: '2024-12-25',
+          eventDate: futureDateString,
           eventType: 'Wedding',
           numberOfGuests: 5, // Below minimum of 20
         }),
@@ -441,7 +452,7 @@ describe('CateringService', () => {
       await expect(
         service.requestQuote(mockUserId, {
           providerId: mockProviderId,
-          eventDate: '2024-12-25',
+          eventDate: futureDateString,
           eventType: 'Wedding',
           numberOfGuests: 500, // Above maximum of 200
         }),
@@ -598,7 +609,7 @@ describe('CateringService', () => {
       });
       mockPrismaService.cateringQuote.update.mockResolvedValue({
         ...mockQuote,
-        status: CateringQuoteStatus.REJECTED,
+        status: CateringQuoteStatus.DECLINED,
         responseNotes: 'Too expensive',
         provider: { ...mockProvider, menus: [] },
       });
@@ -609,7 +620,7 @@ describe('CateringService', () => {
         'Too expensive',
       );
 
-      expect(result.status).toBe(CateringQuoteStatus.REJECTED);
+      expect(result.status).toBe(CateringQuoteStatus.DECLINED);
     });
 
     it('should throw BadRequestException for non-quoted status', async () => {

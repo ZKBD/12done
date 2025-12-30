@@ -155,13 +155,13 @@ describe('SessionService', () => {
       mockPrismaService.stayPlanningSession.update.mockResolvedValue({
         ...mockSession,
         season: Season.SUMMER,
-        interests: [InterestCategory.CULTURE, InterestCategory.FOOD_WINE],
+        interests: [InterestCategory.CULTURE, InterestCategory.FOOD],
         currentStep: 2,
       });
 
       const result = await service.updateWizardStep(mockUserId, mockSessionId, {
         season: Season.SUMMER,
-        interests: [InterestCategory.CULTURE, InterestCategory.FOOD_WINE],
+        interests: [InterestCategory.CULTURE, InterestCategory.FOOD],
         currentStep: 2,
       });
 

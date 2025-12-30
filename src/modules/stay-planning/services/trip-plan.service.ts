@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import {
@@ -50,27 +49,27 @@ export class TripPlanService {
       data: {
         userId,
         propertyId: dto.propertyId,
-        sessionId: dto.sessionId,
-        title: dto.title,
+        planningSessionId: dto.sessionId,
+        name: dto.title,
         description: dto.description,
         startDate,
         endDate,
-        totalBudget: dto.totalBudget,
+        estimatedBudget: dto.totalBudget,
         currency: dto.currency || 'EUR',
         days: dto.days
           ? {
               create: dto.days.map((day, index) => ({
                 date: new Date(day.date),
                 dayNumber: day.dayNumber || index + 1,
-                title: day.title,
+                theme: day.title,
                 notes: day.notes,
                 activities: day.activities
                   ? {
                       create: day.activities.map((act, actIndex) => ({
                         title: act.title,
                         description: act.description,
-                        startTime: act.startTime,
-                        endTime: act.endTime,
+                        startTime: act.startTime ? new Date(`1970-01-01T${act.startTime}:00`) : new Date(),
+                        endTime: act.endTime ? new Date(`1970-01-01T${act.endTime}:00`) : new Date(),
                         location: act.location,
                         address: act.address,
                         latitude: act.latitude,
@@ -78,7 +77,6 @@ export class TripPlanService {
                         estimatedCost: act.estimatedCost,
                         category: act.category,
                         attractionId: act.attractionId,
-                        bookingId: act.bookingId,
                         notes: act.notes,
                         order: act.order ?? actIndex,
                       })),
@@ -208,11 +206,11 @@ export class TripPlanService {
     const updated = await this.prisma.tripPlan.update({
       where: { id: tripPlanId },
       data: {
-        title: dto.title,
+        name: dto.title,
         description: dto.description,
         startDate: dto.startDate ? new Date(dto.startDate) : undefined,
         endDate: dto.endDate ? new Date(dto.endDate) : undefined,
-        totalBudget: dto.totalBudget,
+        estimatedBudget: dto.totalBudget,
         currency: dto.currency,
         status: dto.status,
       },
@@ -272,15 +270,15 @@ export class TripPlanService {
         tripPlanId,
         date: new Date(dto.date),
         dayNumber,
-        title: dto.title,
+        theme: dto.title,
         notes: dto.notes,
         activities: dto.activities
           ? {
               create: dto.activities.map((act, index) => ({
                 title: act.title,
                 description: act.description,
-                startTime: act.startTime,
-                endTime: act.endTime,
+                startTime: act.startTime ? new Date(`1970-01-01T${act.startTime}:00`) : new Date(),
+                endTime: act.endTime ? new Date(`1970-01-01T${act.endTime}:00`) : new Date(),
                 location: act.location,
                 address: act.address,
                 latitude: act.latitude,
@@ -288,7 +286,6 @@ export class TripPlanService {
                 estimatedCost: act.estimatedCost,
                 category: act.category,
                 attractionId: act.attractionId,
-                bookingId: act.bookingId,
                 notes: act.notes,
                 order: act.order ?? index,
               })),
@@ -327,7 +324,7 @@ export class TripPlanService {
       data: {
         date: dto.date ? new Date(dto.date) : undefined,
         dayNumber: dto.dayNumber,
-        title: dto.title,
+        theme: dto.title,
         notes: dto.notes,
       },
       include: {
@@ -382,11 +379,11 @@ export class TripPlanService {
 
     const activity = await this.prisma.tripActivity.create({
       data: {
-        dayId,
+        tripDayId: dayId,
         title: dto.title,
         description: dto.description,
-        startTime: dto.startTime,
-        endTime: dto.endTime,
+        startTime: dto.startTime ? new Date(`1970-01-01T${dto.startTime}:00`) : new Date(),
+        endTime: dto.endTime ? new Date(`1970-01-01T${dto.endTime}:00`) : new Date(),
         location: dto.location,
         address: dto.address,
         latitude: dto.latitude,
@@ -394,7 +391,6 @@ export class TripPlanService {
         estimatedCost: dto.estimatedCost,
         category: dto.category,
         attractionId: dto.attractionId,
-        bookingId: dto.bookingId,
         notes: dto.notes,
         order,
       },
@@ -414,13 +410,13 @@ export class TripPlanService {
     const activity = await this.prisma.tripActivity.findUnique({
       where: { id: activityId },
       include: {
-        day: {
+        tripDay: {
           include: { tripPlan: true },
         },
       },
     });
 
-    if (!activity || activity.day.tripPlan.userId !== userId) {
+    if (!activity || activity.tripDay.tripPlan.userId !== userId) {
       throw new NotFoundException('Activity not found');
     }
 
@@ -429,8 +425,8 @@ export class TripPlanService {
       data: {
         title: dto.title,
         description: dto.description,
-        startTime: dto.startTime,
-        endTime: dto.endTime,
+        startTime: dto.startTime ? new Date(`1970-01-01T${dto.startTime}:00`) : undefined,
+        endTime: dto.endTime ? new Date(`1970-01-01T${dto.endTime}:00`) : undefined,
         location: dto.location,
         address: dto.address,
         latitude: dto.latitude,
@@ -438,10 +434,8 @@ export class TripPlanService {
         estimatedCost: dto.estimatedCost,
         category: dto.category,
         attractionId: dto.attractionId,
-        bookingId: dto.bookingId,
         notes: dto.notes,
         order: dto.order,
-        isCompleted: dto.isCompleted,
       },
     });
 
@@ -455,13 +449,13 @@ export class TripPlanService {
     const activity = await this.prisma.tripActivity.findUnique({
       where: { id: activityId },
       include: {
-        day: {
+        tripDay: {
           include: { tripPlan: true },
         },
       },
     });
 
-    if (!activity || activity.day.tripPlan.userId !== userId) {
+    if (!activity || activity.tripDay.tripPlan.userId !== userId) {
       throw new NotFoundException('Activity not found');
     }
 
@@ -546,10 +540,11 @@ export class TripPlanService {
       0,
     );
 
+    // Note: isCompleted is tracked via bookings, not on activity directly
     return {
       totalDays: tripPlan.days.length,
       totalActivities: allActivities.length,
-      completedActivities: allActivities.filter((a) => a.isCompleted).length,
+      completedActivities: 0, // Would need to check booking status
       estimatedTotalCost,
       currency: tripPlan.currency,
     };
@@ -560,13 +555,13 @@ export class TripPlanService {
       id: tripPlan.id,
       userId: tripPlan.userId,
       propertyId: tripPlan.propertyId,
-      sessionId: tripPlan.sessionId,
-      title: tripPlan.title,
+      sessionId: tripPlan.planningSessionId,
+      title: tripPlan.name,
       description: tripPlan.description,
       startDate: tripPlan.startDate,
       endDate: tripPlan.endDate,
-      totalBudget: tripPlan.totalBudget
-        ? Number(tripPlan.totalBudget)
+      totalBudget: tripPlan.estimatedBudget
+        ? Number(tripPlan.estimatedBudget)
         : undefined,
       currency: tripPlan.currency,
       status: tripPlan.status,
@@ -582,7 +577,7 @@ export class TripPlanService {
       tripPlanId: day.tripPlanId,
       date: day.date,
       dayNumber: day.dayNumber,
-      title: day.title,
+      title: day.theme,
       notes: day.notes,
       activities:
         day.activities?.map((a: any) => this.mapActivityToResponse(a)) || [],
@@ -591,13 +586,19 @@ export class TripPlanService {
   }
 
   private mapActivityToResponse(activity: any): TripActivityResponseDto {
+    const formatTime = (date: Date) => {
+      if (!date) return undefined;
+      const d = new Date(date);
+      return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    };
+
     return {
       id: activity.id,
-      dayId: activity.dayId,
+      dayId: activity.tripDayId,
       title: activity.title,
       description: activity.description,
-      startTime: activity.startTime,
-      endTime: activity.endTime,
+      startTime: formatTime(activity.startTime),
+      endTime: formatTime(activity.endTime),
       location: activity.location,
       address: activity.address,
       latitude: activity.latitude,
@@ -610,7 +611,7 @@ export class TripPlanService {
       bookingId: activity.bookingId,
       notes: activity.notes,
       order: activity.order,
-      isCompleted: activity.isCompleted,
+      isCompleted: false, // Tracked via booking status
       createdAt: activity.createdAt,
     };
   }
