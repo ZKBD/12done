@@ -312,7 +312,17 @@ Note: E2E tests require Docker/database to run.
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-050 | N/A | N/A | AI recommendations - not yet implemented | 🚧 |
+| PROD-050.1 | `trackView > should track property view` | browsing-history.service.spec.ts | Verifies property view tracking | ✅ |
+| PROD-050.2 | `getHistory > should return history` | browsing-history.service.spec.ts | Verifies browsing history retrieval | ✅ |
+| PROD-050.3 | `getRecommendations > should return recommendations` | recommendations.service.spec.ts | Verifies AI-powered recommendations | ✅ |
+| PROD-050.4 | `getRecommendations > with browsing history` | recommendations.service.spec.ts | Verifies history-based scoring | ✅ |
+| PROD-050.5 | `getRecommendations > with favorites` | recommendations.service.spec.ts | Verifies favorite-based preferences | ✅ |
+| PROD-050.6 | `getRecommendations > with search agents` | recommendations.service.spec.ts | Verifies search agent preferences | ✅ |
+| PROD-050.7 | `getSimilarProperties > returns similar` | recommendations.service.spec.ts | Verifies similar property matching | ✅ |
+| PROD-050.8 | `submitFeedback > creates feedback` | recommendations.service.spec.ts | Verifies recommendation feedback | ✅ |
+| PROD-050.9 | `getUserPreferences > extracts preferences` | recommendations.service.spec.ts | Verifies preference extraction | ✅ |
+| PROD-050.10 | `scoring > weights by engagement` | recommendations.service.spec.ts | Verifies engagement scoring | ✅ |
+| PROD-050.11 | `explanations > generates correctly` | recommendations.service.spec.ts | Verifies recommendation explanations | ✅ |
 
 ---
 
@@ -1581,7 +1591,7 @@ The following requirements do not yet have test coverage:
 | PROD-030 | Virtual Staging | Not yet implemented |
 | PROD-031 | Time-of-Day Photos | Not yet implemented |
 | PROD-044-047 | Advanced Search Features (Voice, Visual, AR, Lifestyle) | Phase 4 features |
-| PROD-050 | AI Recommendations | Not yet implemented |
+| ~~PROD-050~~ | ~~AI Recommendations~~ | ✅ **COMPLETE** - BrowsingHistoryService (view tracking, history retrieval), RecommendationsService (preference extraction from favorites/search agents, similarity calculation, scoring algorithm with 40% preference + 40% similarity + 20% popularity weights, explanation generation), RecommendationFeedback model, 4 endpoints (GET /recommendations, GET /recommendations/preferences, GET /recommendations/similar/:propertyId, POST /recommendations/:propertyId/feedback); 30 browsing history tests; 31 recommendation tests |
 | ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller); 47 E2E tests covering full API flow |
 | PROD-096-097 | Advanced Transaction Features | Not yet implemented |
 | ~~PROD-100-108~~ | ~~Property Management~~ | ✅ **COMPLETE** - All requirements (PROD-100 through PROD-108) implemented |
