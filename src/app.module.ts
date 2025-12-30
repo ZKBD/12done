@@ -29,6 +29,7 @@ import { PlatformServicesModule } from './modules/platform-services/platform-ser
 import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
 import { FinancialToolsModule } from './modules/financial-tools/financial-tools.module';
 import { RevenueShareModule } from './modules/revenue-share/revenue-share.module';
+import { StayPlanningModule } from './modules/stay-planning/stay-planning.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { RevenueShareModule } from './modules/revenue-share/revenue-share.module
     NeighborhoodModule,
     FinancialToolsModule,
     RevenueShareModule,
+    StayPlanningModule,
   ],
   controllers: [AppController],
   providers: [AppService],

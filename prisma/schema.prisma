@@ -433,6 +433,12 @@ model User {
   // Profit-Sharing (Revenue Distribution)
   wallet UserWallet?
 
+  // Stay Planning (PROD-140-144)
+  stayPlanningSessions StayPlanningSession[]
+  tripPlans            TripPlan[]
+  attractionBookings   AttractionBooking[]
+  cateringQuotes       CateringQuote[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -675,6 +681,11 @@ model Property {
   priceHistory        PriceHistory[]
   portfolioEntries    PortfolioProperty[]
   cashFlowProjections CashFlowProjection[]
+
+  // Stay Planning (PROD-140-144)
+  stayPlanningSessions StayPlanningSession[]
+  tripPlans            TripPlan[]
+  cateringQuotes       CateringQuote[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3180,4 +3191,507 @@ model PayoutRequest {
   @@index([walletId])
   @@index([status])
   @@index([createdAt])
+}
+
+// ============================================
+// STAY PLANNING (PROD-140 to PROD-144)
+// ============================================
+
+// Season preference
+enum Season {
+  SPRING
+  SUMMER
+  FALL
+  WINTER
+  ANY
+}
+
+// Activity/Interest categories
+enum InterestCategory {
+  ADVENTURE
+  BEACH
+  CULTURE
+  DINING
+  FAMILY
+  HIKING
+  HISTORY
+  MUSEUMS
+  NATURE
+  NIGHTLIFE
+  RELAXATION
+  SHOPPING
+  SPORTS
+  WINE_TASTING
+}
+
+// Trip Plan Status
+enum TripPlanStatus {
+  DRAFT
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// Attraction Category
+enum AttractionCategory {
+  MUSEUM
+  MONUMENT
+  PARK
+  RESTAURANT
+  BAR
+  BEACH
+  HIKING_TRAIL
+  VIEWPOINT
+  SHOPPING_CENTER
+  ENTERTAINMENT
+  SPA
+  SPORTS_FACILITY
+  HISTORICAL_SITE
+  RELIGIOUS_SITE
+  NATURE_RESERVE
+  THEME_PARK
+  ZOO
+  AQUARIUM
+}
+
+// Booking Status
+enum AttractionBookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  REFUNDED
+}
+
+// Catering Quote Status
+enum CateringQuoteStatus {
+  REQUESTED
+  QUOTED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+// Stay Planning Session (PROD-140) - Wizard state
+model StayPlanningSession {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id])
+
+  // Wizard answers
+  season           Season?
+  startDate        DateTime?
+  endDate          DateTime?
+  budgetMin        Decimal?  @db.Decimal(10, 2)
+  budgetMax        Decimal?  @db.Decimal(10, 2)
+  currency         String    @default("EUR")
+  interests        InterestCategory[]
+  numberOfGuests   Int?
+  hasChildren      Boolean?
+  childrenAges     Int[]     @default([])
+  mobilityNeeds    Boolean?  @default(false)
+  preferredPace    String?   // "relaxed", "moderate", "packed"
+
+  // AI-generated proposals
+  proposals    Json?    // Array of suggested itineraries
+  selectedProposalIndex Int?
+
+  // Resulting trip plan (if completed)
+  tripPlan     TripPlan?
+
+  // Session status
+  currentStep  Int      @default(1)
+  isCompleted  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([propertyId])
+  @@index([isCompleted])
+}
+
+// Trip Plan (PROD-141) - Daily schedules
+model TripPlan {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  // Link to planning session
+  planningSessionId String? @unique
+  planningSession   StayPlanningSession? @relation(fields: [planningSessionId], references: [id])
+
+  // Trip details
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  status      TripPlanStatus @default(DRAFT)
+
+  // Budget tracking
+  estimatedBudget Decimal? @db.Decimal(10, 2)
+  actualSpent     Decimal? @db.Decimal(10, 2)
+  currency        String   @default("EUR")
+
+  // Days and activities
+  days TripDay[]
+
+  // Bookings linked to this plan
+  attractionBookings AttractionBooking[]
+
+  // Calendar export
+  calendarExportedAt DateTime?
+  icalUid            String?   @unique
+
+  // Notes
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([propertyId])
+  @@index([status])
+  @@index([startDate])
+}
+
+// Trip Day - Individual day in a trip plan
+model TripDay {
+  id String @id @default(uuid())
+
+  tripPlanId String
+  tripPlan   TripPlan @relation(fields: [tripPlanId], references: [id], onDelete: Cascade)
+
+  date       DateTime
+  dayNumber  Int      // 1, 2, 3...
+  theme      String?  // "Beach Day", "City Exploration"
+
+  // Activities for this day
+  activities TripActivity[]
+
+  // Weather (if fetched)
+  weatherForecast Json?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tripPlanId, dayNumber])
+  @@index([tripPlanId])
+  @@index([date])
+}
+
+// Trip Activity - Individual activity within a day
+model TripActivity {
+  id String @id @default(uuid())
+
+  tripDayId String
+  tripDay   TripDay @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
+
+  // Timing
+  startTime DateTime
+  endTime   DateTime
+  order     Int      // Order within the day
+
+  // Activity details
+  title       String
+  description String?
+  category    InterestCategory?
+  location    String?
+  address     String?
+  latitude    Float?
+  longitude   Float?
+
+  // Travel from previous activity
+  travelTimeMinutes Int?
+  travelMode        String? // "walking", "driving", "public_transit"
+  travelDistance    Float?  // in km
+
+  // Linked attraction (if applicable)
+  attractionId String?
+  attraction   Attraction? @relation(fields: [attractionId], references: [id])
+
+  // Booking (if applicable)
+  bookingId String?       @unique
+  booking   AttractionBooking? @relation(fields: [bookingId], references: [id])
+
+  // Cost estimate
+  estimatedCost Decimal? @db.Decimal(10, 2)
+  currency      String   @default("EUR")
+
+  // Meal type (for restaurant activities)
+  mealType String? // "breakfast", "lunch", "dinner", "snack"
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tripDayId])
+  @@index([attractionId])
+  @@index([startTime])
+}
+
+// Attraction (PROD-142) - Touristic information
+model Attraction {
+  id String @id @default(uuid())
+
+  // Basic info
+  name        String
+  description String?
+  category    AttractionCategory
+  subcategory String?
+
+  // Location
+  address   String
+  city      String
+  country   String
+  latitude  Float
+  longitude Float
+
+  // External IDs
+  googlePlaceId    String? @unique
+  tripAdvisorId    String? @unique
+  yelpId           String?
+
+  // Ratings
+  rating           Float?  // 0-5
+  reviewCount      Int?
+  tripAdvisorRating Float?
+  googleRating     Float?
+
+  // Details
+  imageUrl         String?
+  imageUrls        String[]
+  website          String?
+  phone            String?
+  priceLevel       Int?    // 1-4 ($ to $$$$)
+  estimatedDuration Int?   // in minutes
+
+  // Opening hours (JSON format)
+  openingHours Json?
+
+  // Features/Tags
+  features String[]
+
+  // Activities using this attraction
+  activities TripActivity[]
+
+  // Bookings for this attraction
+  bookings AttractionBooking[]
+
+  // Cache control
+  lastSyncedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city, country])
+  @@index([category])
+  @@index([rating])
+  @@index([latitude, longitude])
+}
+
+// Attraction Booking (PROD-143)
+model AttractionBooking {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  attractionId String
+  attraction   Attraction @relation(fields: [attractionId], references: [id])
+
+  tripPlanId String?
+  tripPlan   TripPlan? @relation(fields: [tripPlanId], references: [id])
+
+  // Linked activity (if part of trip plan)
+  activity TripActivity?
+
+  // Booking details
+  bookingDate     DateTime
+  bookingTime     DateTime?
+  numberOfGuests  Int
+  ticketType      String?   // "adult", "child", "senior", "family"
+
+  // External booking
+  provider          String?  // "getyourguide", "viator", "direct"
+  externalBookingId String?
+  externalUrl       String?
+
+  // Pricing
+  totalPrice   Decimal @db.Decimal(10, 2)
+  currency     String  @default("EUR")
+  pricePaid    Decimal? @db.Decimal(10, 2)
+
+  // Status
+  status       AttractionBookingStatus @default(PENDING)
+  confirmedAt  DateTime?
+  cancelledAt  DateTime?
+
+  // Confirmation details
+  confirmationCode String?
+  ticketUrl        String?
+  qrCode           String?
+
+  // Notes
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([attractionId])
+  @@index([tripPlanId])
+  @@index([status])
+  @@index([bookingDate])
+}
+
+// Catering Provider (PROD-144)
+model CateringProvider {
+  id String @id @default(uuid())
+
+  // Basic info
+  name        String
+  description String?
+  logoUrl     String?
+
+  // Contact
+  email    String
+  phone    String?
+  website  String?
+
+  // Location
+  address  String
+  city     String
+  country  String
+  serviceRadius Int? // in km
+
+  // Business details
+  cuisineTypes    String[]  // "Italian", "Mediterranean", "BBQ"
+  eventTypes      String[]  // "Wedding", "Corporate", "Birthday"
+  minGuests       Int?
+  maxGuests       Int?
+  pricePerPerson  Decimal?  @db.Decimal(8, 2)
+  currency        String    @default("EUR")
+
+  // Rating
+  rating       Float?
+  reviewCount  Int?
+
+  // Menus
+  menus CateringMenu[]
+
+  // Quotes
+  quotes CateringQuote[]
+
+  // Verification
+  isVerified   Boolean @default(false)
+  verifiedAt   DateTime?
+
+  // Status
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city, country])
+  @@index([isActive])
+  @@index([rating])
+}
+
+// Catering Menu
+model CateringMenu {
+  id String @id @default(uuid())
+
+  providerId String
+  provider   CateringProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+  menuType    String  // "Buffet", "Plated", "Cocktail", "Family-style"
+
+  // Items
+  items Json // Array of { name, description, dietaryInfo }
+
+  // Pricing
+  pricePerPerson Decimal @db.Decimal(8, 2)
+  minimumGuests  Int?
+  currency       String  @default("EUR")
+
+  // Dietary options
+  vegetarianOptions Boolean @default(false)
+  veganOptions      Boolean @default(false)
+  glutenFreeOptions Boolean @default(false)
+  halalOptions      Boolean @default(false)
+  kosherOptions     Boolean @default(false)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([providerId])
+  @@index([isActive])
+}
+
+// Catering Quote Request (PROD-144)
+model CateringQuote {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  providerId String
+  provider   CateringProvider @relation(fields: [providerId], references: [id])
+
+  // Event details
+  eventDate     DateTime
+  eventType     String
+  numberOfGuests Int
+  venue         String?
+  venueAddress  String?
+
+  // Property link (if event at listed property)
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id])
+
+  // Requirements
+  cuisinePreferences String[]
+  dietaryRequirements String[]
+  budgetMin          Decimal? @db.Decimal(10, 2)
+  budgetMax          Decimal? @db.Decimal(10, 2)
+  currency           String   @default("EUR")
+  additionalNotes    String?
+
+  // Quote response
+  status         CateringQuoteStatus @default(REQUESTED)
+  quotedAmount   Decimal?            @db.Decimal(10, 2)
+  quotedDetails  String?
+  quotedMenuId   String?
+  quotedAt       DateTime?
+  expiresAt      DateTime?
+
+  // Response
+  respondedAt    DateTime?
+  responseNotes  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([providerId])
+  @@index([propertyId])
+  @@index([status])
+  @@index([eventDate])
 }

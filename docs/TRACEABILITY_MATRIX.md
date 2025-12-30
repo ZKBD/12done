@@ -15,10 +15,10 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 1422 | 0 | 1422 | 100% |
+| Unit Tests | 1532 | 0 | 1532 | 100% |
 | E2E Tests | 287 | 0 | 287 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **1714** | **0** | **1714** | **100%** |
+| **Total** | **1824** | **0** | **1824** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -2203,6 +2203,130 @@ The AI Tour Guide module provides location-based tour narration with voice style
 
 ---
 
+## 9.2. Stay Planning (PROD-140 to PROD-144)
+
+### PROD-140: Interactive Planning Wizard
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-140.1 | `createSession > should create a new planning session` | session.service.spec.ts | Verifies session creation for stay planning | ✅ |
+| PROD-140.2 | `createSession > should create session with property link` | session.service.spec.ts | Verifies session links to property | ✅ |
+| PROD-140.3 | `createSession > should throw NotFoundException for invalid property` | session.service.spec.ts | Verifies property validation | ✅ |
+| PROD-140.4 | `getSession > should return session by ID` | session.service.spec.ts | Verifies session retrieval | ✅ |
+| PROD-140.5 | `getUserSessions > should filter by completed status` | session.service.spec.ts | Verifies session filtering | ✅ |
+| PROD-140.6 | `updateWizardStep > should update wizard step with answers` | session.service.spec.ts | Verifies wizard progression | ✅ |
+| PROD-140.7 | `updateWizardStep > should throw BadRequestException for completed session` | session.service.spec.ts | Verifies completed session protection | ✅ |
+| PROD-140.8 | `updateWizardStep > should validate date range` | session.service.spec.ts | Verifies date validation | ✅ |
+| PROD-140.9 | `updateWizardStep > should validate budget range` | session.service.spec.ts | Verifies budget validation | ✅ |
+| PROD-140.10 | `generateProposals > should generate AI proposals` | session.service.spec.ts | Verifies AI proposal generation | ✅ |
+| PROD-140.11 | `generateProposals > should throw BadRequestException without dates` | session.service.spec.ts | Verifies required fields | ✅ |
+| PROD-140.12 | `selectProposal > should select a proposal` | session.service.spec.ts | Verifies proposal selection | ✅ |
+| PROD-140.13 | `selectProposal > should throw BadRequestException for invalid proposal index` | session.service.spec.ts | Verifies proposal validation | ✅ |
+| PROD-140.14 | `completeSession > should complete a session` | session.service.spec.ts | Verifies session completion | ✅ |
+| PROD-140.15 | `deleteSession > should delete a session` | session.service.spec.ts | Verifies session deletion | ✅ |
+
+### PROD-141: Daily Schedules
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-141.1 | `createTripPlan > should create a new trip plan` | trip-plan.service.spec.ts | Verifies trip plan creation | ✅ |
+| PROD-141.2 | `createTripPlan > should validate date range` | trip-plan.service.spec.ts | Verifies date validation | ✅ |
+| PROD-141.3 | `createTripPlan > should create trip plan with days and activities` | trip-plan.service.spec.ts | Verifies nested creation | ✅ |
+| PROD-141.4 | `getTripPlan > should return trip plan by ID` | trip-plan.service.spec.ts | Verifies retrieval | ✅ |
+| PROD-141.5 | `getUserTripPlans > should filter by property ID` | trip-plan.service.spec.ts | Verifies property filtering | ✅ |
+| PROD-141.6 | `getUserTripPlans > should filter by status` | trip-plan.service.spec.ts | Verifies status filtering | ✅ |
+| PROD-141.7 | `updateTripPlan > should update trip plan` | trip-plan.service.spec.ts | Verifies update | ✅ |
+| PROD-141.8 | `deleteTripPlan > should delete trip plan` | trip-plan.service.spec.ts | Verifies deletion | ✅ |
+| PROD-141.9 | `addDay > should add day to trip plan` | trip-plan.service.spec.ts | Verifies day addition | ✅ |
+| PROD-141.10 | `updateDay > should update day` | trip-plan.service.spec.ts | Verifies day update | ✅ |
+| PROD-141.11 | `deleteDay > should delete day` | trip-plan.service.spec.ts | Verifies day deletion | ✅ |
+| PROD-141.12 | `addActivity > should add activity to day` | trip-plan.service.spec.ts | Verifies activity addition | ✅ |
+| PROD-141.13 | `updateActivity > should update activity` | trip-plan.service.spec.ts | Verifies activity update | ✅ |
+| PROD-141.14 | `deleteActivity > should delete activity` | trip-plan.service.spec.ts | Verifies activity deletion | ✅ |
+| PROD-141.15 | `reorderActivities > should reorder activities` | trip-plan.service.spec.ts | Verifies activity reordering | ✅ |
+| PROD-141.16 | `getTripPlanStats > should return trip plan statistics` | trip-plan.service.spec.ts | Verifies statistics calculation | ✅ |
+
+### PROD-142: Touristic Information
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-142.1 | `searchAttractions > should search attractions` | attraction.service.spec.ts | Verifies attraction search | ✅ |
+| PROD-142.2 | `searchAttractions > should filter by categories` | attraction.service.spec.ts | Verifies category filtering | ✅ |
+| PROD-142.3 | `searchAttractions > should filter by minimum rating` | attraction.service.spec.ts | Verifies rating filtering | ✅ |
+| PROD-142.4 | `searchAttractions > should filter bookable only` | attraction.service.spec.ts | Verifies bookable filtering | ✅ |
+| PROD-142.5 | `searchAttractions > should search by query text` | attraction.service.spec.ts | Verifies text search | ✅ |
+| PROD-142.6 | `searchAttractions > should calculate distance when coordinates provided` | attraction.service.spec.ts | Verifies distance calculation | ✅ |
+| PROD-142.7 | `searchAttractions > should use property coordinates if provided` | attraction.service.spec.ts | Verifies property location | ✅ |
+| PROD-142.8 | `getAttraction > should return attraction by ID` | attraction.service.spec.ts | Verifies retrieval | ✅ |
+| PROD-142.9 | `getAttractionsByCategory > should return attractions by category` | attraction.service.spec.ts | Verifies category lookup | ✅ |
+| PROD-142.10 | `createAttraction > should create attraction` | attraction.service.spec.ts | Verifies creation | ✅ |
+| PROD-142.11 | `updateAttraction > should update attraction` | attraction.service.spec.ts | Verifies update | ✅ |
+| PROD-142.12 | `syncFromExternalSource > should create new attractions` | attraction.service.spec.ts | Verifies external sync | ✅ |
+| PROD-142.13 | `syncFromExternalSource > should update existing attractions` | attraction.service.spec.ts | Verifies sync update | ✅ |
+
+### PROD-143: Attraction Bookings
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-143.1 | `createBooking > should create booking` | attraction.service.spec.ts | Verifies booking creation | ✅ |
+| PROD-143.2 | `createBooking > should throw NotFoundException for invalid attraction` | attraction.service.spec.ts | Verifies attraction validation | ✅ |
+| PROD-143.3 | `createBooking > should throw BadRequestException for non-bookable attraction` | attraction.service.spec.ts | Verifies bookable check | ✅ |
+| PROD-143.4 | `createBooking > should throw BadRequestException for past date` | attraction.service.spec.ts | Verifies date validation | ✅ |
+| PROD-143.5 | `getBooking > should return booking by ID` | attraction.service.spec.ts | Verifies retrieval | ✅ |
+| PROD-143.6 | `getUserBookings > should return user bookings` | attraction.service.spec.ts | Verifies listing | ✅ |
+| PROD-143.7 | `getUserBookings > should filter by status` | attraction.service.spec.ts | Verifies status filtering | ✅ |
+| PROD-143.8 | `updateBooking > should update booking` | attraction.service.spec.ts | Verifies update | ✅ |
+| PROD-143.9 | `updateBooking > should throw BadRequestException for non-pending booking` | attraction.service.spec.ts | Verifies status protection | ✅ |
+| PROD-143.10 | `cancelBooking > should cancel booking` | attraction.service.spec.ts | Verifies cancellation | ✅ |
+| PROD-143.11 | `cancelBooking > should throw BadRequestException for completed booking` | attraction.service.spec.ts | Verifies completed protection | ✅ |
+| PROD-143.12 | `confirmBooking > should confirm booking` | attraction.service.spec.ts | Verifies confirmation | ✅ |
+| PROD-143.13 | `getAvailableTimeSlots > should return time slots` | attraction.service.spec.ts | Verifies availability | ✅ |
+| PROD-143.14 | `getAvailableTimeSlots > should return more slots on weekends` | attraction.service.spec.ts | Verifies weekend slots | ✅ |
+
+### PROD-144: Catering for Events
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-144.1 | `searchProviders > should search providers` | catering.service.spec.ts | Verifies provider search | ✅ |
+| PROD-144.2 | `searchProviders > should filter by city` | catering.service.spec.ts | Verifies city filtering | ✅ |
+| PROD-144.3 | `searchProviders > should filter by cuisine types` | catering.service.spec.ts | Verifies cuisine filtering | ✅ |
+| PROD-144.4 | `searchProviders > should filter by minimum rating` | catering.service.spec.ts | Verifies rating filtering | ✅ |
+| PROD-144.5 | `searchProviders > should calculate distance when coordinates provided` | catering.service.spec.ts | Verifies distance calculation | ✅ |
+| PROD-144.6 | `getProvider > should return provider by ID` | catering.service.spec.ts | Verifies retrieval | ✅ |
+| PROD-144.7 | `createProvider > should create provider` | catering.service.spec.ts | Verifies creation | ✅ |
+| PROD-144.8 | `updateProvider > should update provider` | catering.service.spec.ts | Verifies update | ✅ |
+| PROD-144.9 | `createMenu > should create menu` | catering.service.spec.ts | Verifies menu creation | ✅ |
+| PROD-144.10 | `getProviderMenus > should return provider menus` | catering.service.spec.ts | Verifies menu listing | ✅ |
+| PROD-144.11 | `updateMenu > should update menu` | catering.service.spec.ts | Verifies menu update | ✅ |
+| PROD-144.12 | `deleteMenu > should soft delete menu` | catering.service.spec.ts | Verifies menu deletion | ✅ |
+| PROD-144.13 | `requestQuote > should request a quote` | catering.service.spec.ts | Verifies quote request | ✅ |
+| PROD-144.14 | `requestQuote > should throw BadRequestException for inactive provider` | catering.service.spec.ts | Verifies provider status | ✅ |
+| PROD-144.15 | `requestQuote > should throw BadRequestException for insufficient lead time` | catering.service.spec.ts | Verifies lead time | ✅ |
+| PROD-144.16 | `requestQuote > should throw BadRequestException for too few guests` | catering.service.spec.ts | Verifies minimum guests | ✅ |
+| PROD-144.17 | `requestQuote > should throw BadRequestException for too many guests` | catering.service.spec.ts | Verifies maximum guests | ✅ |
+| PROD-144.18 | `getQuote > should return quote by ID` | catering.service.spec.ts | Verifies quote retrieval | ✅ |
+| PROD-144.19 | `getUserQuotes > should return user quotes` | catering.service.spec.ts | Verifies quote listing | ✅ |
+| PROD-144.20 | `getUserQuotes > should filter by status` | catering.service.spec.ts | Verifies status filtering | ✅ |
+| PROD-144.21 | `getProviderQuotes > should return provider quotes` | catering.service.spec.ts | Verifies provider view | ✅ |
+| PROD-144.22 | `respondToQuote > should respond to quote` | catering.service.spec.ts | Verifies provider response | ✅ |
+| PROD-144.23 | `respondToQuote > should throw BadRequestException for already responded quote` | catering.service.spec.ts | Verifies response protection | ✅ |
+| PROD-144.24 | `acceptQuote > should accept quote` | catering.service.spec.ts | Verifies quote acceptance | ✅ |
+| PROD-144.25 | `acceptQuote > should throw BadRequestException for expired quote` | catering.service.spec.ts | Verifies expiration | ✅ |
+| PROD-144.26 | `rejectQuote > should reject quote` | catering.service.spec.ts | Verifies quote rejection | ✅ |
+| PROD-144.27 | `cancelQuote > should cancel requested quote` | catering.service.spec.ts | Verifies quote cancellation | ✅ |
+
+### Test Summary for PROD-140-144
+
+| Test Type | Count | Status |
+|-----------|-------|--------|
+| SessionService Unit Tests | 18 | ✅ |
+| TripPlanService Unit Tests | 30 | ✅ |
+| AttractionService Unit Tests | 35 | ✅ |
+| CateringService Unit Tests | 27 | ✅ |
+| **Total** | **110** | ✅ |
+
+---
+
 ## 10. Test Execution Summary
 
 ### CI/CD Status
@@ -2363,6 +2487,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-30 | Claude | Implemented Predictive Maintenance (PROD-108.1-108.4): PredictiveMaintenanceService with historical data analysis (aggregated stats by maintenance type), failure prediction with risk scoring (age multipliers, frequency analysis, seasonal adjustments), proactive alerts with weekly cron job (Monday 8 AM), HVAC-specific predictions (lifespan tracking, health status, seasonal risk); 5 endpoints (GET /history/:propertyId, GET /predictions/property/:propertyId, GET /predictions/portfolio, GET /alerts, GET /hvac/:propertyId); 36 unit tests; 22 E2E tests; Moved ScheduleModule.forRoot() to app.module.ts |
 | 2025-12-30 | Claude | Implemented AI Tour Guide (PROD-120-133): Prisma models (VoiceStyle/InterestCategory/PoiType enums, TourPreferences, SavedPlace, CustomTour, TourStop, UserNote), TourGuideModule with 6 services (PoiService for Google Places API integration with mock fallback, NarrationService with 3 voice styles and interest-based content, PreferencesService for user settings, SavedPlacesService for bookmarks, ToursService for custom routes with stops/reordering, NotesService for POI notes with photos), 20+ API endpoints at /tour-guide/*; 106 unit tests (14 poi + 21 narration + 10 preferences + 16 saved-places + 21 tours + 28 notes); Total tests now 1526 |
 | 2025-12-30 | Claude | Implemented Split Payments & Escrow Services (PROD-096-097): SplitPaymentService with participant payment links, email notifications, reminders, and cancellation (27 tests); EscrowService with milestone-based releases, threshold-based escrow, funding workflow, and dispute resolution (47 tests); PaymentsController updated with 20+ endpoints for both features; Fixed payments.controller.spec.ts with SplitPaymentService and EscrowService mocks; Total tests now 1639 |
+| 2025-12-30 | Claude | Implemented Stay Planning (PROD-140-144): Prisma models (StayPlanningSession, TripPlan, TripDay, TripActivity, Attraction, AttractionBooking, CateringProvider, CateringMenu, CateringQuote with 9 enums), StayPlanningModule with 4 services (SessionService for wizard/proposals, TripPlanService for daily schedules/activities, AttractionService for attractions/bookings, CateringService for providers/quotes), 50+ API endpoints, distance calculation, AI proposal generation; 110 unit tests (18 session + 30 trip-plan + 35 attraction + 27 catering); Total tests now 1824 |
 
 ---
 
