@@ -6,4 +6,5 @@ export * from './lease-response.dto';
 export * from './create-renewal-offer.dto';
 export * from './decline-renewal.dto';
 export * from './renewal-query.dto';
+export * from './renewal-response.dto';
 export * from './sign-lease.dto';

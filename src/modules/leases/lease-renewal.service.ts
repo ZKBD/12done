@@ -15,61 +15,9 @@ import {
   CreateRenewalOfferDto,
   DeclineRenewalDto,
   RenewalQueryDto,
+  LeaseRenewalResponseDto,
+  RenewalListResponseDto,
 } from './dto';
-
-interface LeaseRenewalResponseDto {
-  id: string;
-  leaseId: string;
-  landlordId: string;
-  tenantId: string;
-  status: LeaseRenewalStatus;
-  proposedStartDate: Date | null;
-  proposedEndDate: Date | null;
-  proposedRentAmount: number | null;
-  proposedTerms: string | null;
-  offerExpiresAt: Date | null;
-  reminderSentAt: Date | null;
-  offerSentAt: Date | null;
-  respondedAt: Date | null;
-  declineReason: string | null;
-  newLeaseId: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  lease?: {
-    id: string;
-    startDate: Date;
-    endDate: Date;
-    rentAmount: number;
-    property: {
-      id: string;
-      title: string;
-      address: string;
-      city: string;
-    };
-  };
-  landlord?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-  tenant?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-}
-
-interface RenewalListResponseDto {
-  data: LeaseRenewalResponseDto[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
 
 @Injectable()
 export class LeaseRenewalService {
