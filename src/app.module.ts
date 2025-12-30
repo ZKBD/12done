@@ -26,6 +26,7 @@ import { DashboardModule } from './modules/dashboard';
 import { TourGuideModule } from './modules/tour-guide';
 import { VerificationModule } from './modules/verification';
 import { PlatformServicesModule } from './modules/platform-services/platform-services.module';
+import { NeighborhoodModule } from './modules/neighborhood/neighborhood.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { PlatformServicesModule } from './modules/platform-services/platform-ser
     TourGuideModule,
     VerificationModule,
     PlatformServicesModule,
+    NeighborhoodModule,
   ],
   controllers: [AppController],
   providers: [AppService],

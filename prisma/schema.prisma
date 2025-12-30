@@ -2179,6 +2179,56 @@ enum InquiryStatus {
   EXPIRED // No response within timeframe
 }
 
+// ============================================
+// NEIGHBORHOOD & LOCATION (PROD-150 to PROD-158)
+// ============================================
+
+// School Level (PROD-151)
+enum SchoolLevel {
+  ELEMENTARY
+  MIDDLE
+  HIGH
+  PRIVATE
+  CHARTER
+}
+
+// Amenity Category (PROD-150, PROD-158)
+enum AmenityCategory {
+  RESTAURANT
+  GROCERY
+  SHOPPING
+  HEALTHCARE
+  FITNESS
+  PARK
+  ENTERTAINMENT
+  COFFEE
+  BANK
+  TRANSIT
+  SCHOOL
+  LIBRARY
+  PHARMACY
+  GAS_STATION
+}
+
+// Climate Risk Type (PROD-156)
+enum ClimateRiskType {
+  FLOOD
+  FIRE
+  EARTHQUAKE
+  HURRICANE
+  TORNADO
+  DROUGHT
+}
+
+// Risk Level (PROD-156)
+enum RiskLevel {
+  MINIMAL
+  LOW
+  MODERATE
+  HIGH
+  EXTREME
+}
+
 // Insurance Provider (PROD-081.1)
 model InsuranceProvider {
   id String @id @default(uuid())
@@ -2381,4 +2431,227 @@ model ProviderInquiry {
   @@index([mortgageProviderId])
   @@index([status])
   @@index([providerType])
+}
+
+// ============================================
+// NEIGHBORHOOD & LOCATION DATA (PROD-150 to PROD-158)
+// ============================================
+
+// Neighborhood Data Cache (PROD-150)
+model NeighborhoodData {
+  id String @id @default(uuid())
+
+  // Location identifier (can be cached by lat/lng grid or zip code)
+  latitude  Float
+  longitude Float
+  zipCode   String?
+  city      String?
+  state     String?
+
+  // AI-Generated Summary (PROD-150.4)
+  aiDescription String?
+  neighborhood  String? // Neighborhood name
+
+  // Mobility Scores (PROD-153)
+  walkScore    Int? // 0-100
+  transitScore Int? // 0-100
+  bikeScore    Int? // 0-100
+
+  // Safety Data (PROD-152)
+  safetyScore     Int? // 0-100 (calculated)
+  crimeData       Json? // { violent: rate, property: rate, total: rate }
+  crimeRating     String? // "LOW", "MODERATE", "HIGH"
+
+  // Demographics (PROD-154)
+  demographics Json? // { population, medianAge, medianIncome, familyComposition }
+
+  // Environmental (PROD-155)
+  noiseLevel   String? // "LOW", "MODERATE", "HIGH"
+  airQuality   Int? // AQI index
+  pollenLevel  String? // "LOW", "MODERATE", "HIGH"
+
+  // Cache metadata
+  dataSource String? // API source name
+  fetchedAt  DateTime @default(now())
+  expiresAt  DateTime // Cache expiration
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([latitude, longitude])
+  @@index([zipCode])
+  @@index([expiresAt])
+}
+
+// School Data (PROD-151)
+model SchoolData {
+  id String @id @default(uuid())
+
+  // Location reference
+  latitude  Float
+  longitude Float
+
+  // School Information
+  name         String
+  level        SchoolLevel
+  rating       Float? // 1-10 scale (from GreatSchools or similar)
+  studentCount Int?
+  address      String?
+
+  // Distance from reference point
+  distanceKm     Float?
+  walkingMinutes Int?
+  drivingMinutes Int?
+
+  // Additional data
+  publicPrivate   String? // "PUBLIC" or "PRIVATE"
+  schoolDistrict  String?
+  grades          String? // e.g., "K-5", "6-8", "9-12"
+
+  // External IDs
+  externalId   String? // ID from external API
+  dataSource   String? // "greatschools", "nces", etc.
+
+  // Cache metadata
+  fetchedAt DateTime @default(now())
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([latitude, longitude])
+  @@index([level])
+  @@index([rating])
+  @@index([expiresAt])
+}
+
+// Climate Risk Data (PROD-156)
+model ClimateRiskData {
+  id String @id @default(uuid())
+
+  // Location
+  latitude  Float
+  longitude Float
+  zipCode   String?
+
+  // Risk Assessments
+  floodRisk      RiskLevel @default(MINIMAL)
+  floodZone      String? // FEMA flood zone (A, AE, X, etc.)
+  fireRisk       RiskLevel @default(MINIMAL)
+  earthquakeRisk RiskLevel @default(MINIMAL)
+  hurricaneRisk  RiskLevel @default(MINIMAL)
+  tornadoRisk    RiskLevel @default(MINIMAL)
+  droughtRisk    RiskLevel @default(MINIMAL)
+
+  // Composite Score
+  overallRiskScore Int? // 0-100 (100 = highest risk)
+  overallRiskLevel RiskLevel @default(MINIMAL)
+
+  // Historical Events
+  historicalEvents Json? // Array of { type, date, severity, description }
+
+  // Insurance Implications (PROD-156.6)
+  insuranceNotes String?
+  floodInsuranceRequired Boolean @default(false)
+
+  // Data Source
+  dataSource String? // "FEMA", "USGS", etc.
+  fetchedAt  DateTime @default(now())
+  expiresAt  DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([latitude, longitude])
+  @@index([zipCode])
+  @@index([overallRiskLevel])
+  @@index([expiresAt])
+}
+
+// Nearby Amenities (PROD-150.3, PROD-158)
+model NearbyAmenity {
+  id String @id @default(uuid())
+
+  // Reference location
+  refLatitude  Float
+  refLongitude Float
+
+  // Amenity Information
+  category    AmenityCategory
+  name        String
+  address     String?
+  latitude    Float
+  longitude   Float
+
+  // Distance & Time
+  distanceMeters Float
+  walkingMinutes Int?
+  drivingMinutes Int?
+
+  // Additional Info
+  rating     Float? // Google rating
+  priceLevel Int? // 1-4 ($-$$$$)
+  placeId    String? // Google Places ID
+  photoUrl   String?
+  website    String?
+  phone      String?
+
+  // Hours
+  isOpenNow Boolean?
+  hours     Json? // Opening hours
+
+  // Cache metadata
+  fetchedAt DateTime @default(now())
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([refLatitude, refLongitude])
+  @@index([category])
+  @@index([expiresAt])
+}
+
+// Future Development Projects (PROD-157)
+model FutureDevelopment {
+  id String @id @default(uuid())
+
+  // Location
+  latitude  Float
+  longitude Float
+  city      String?
+  zipCode   String?
+
+  // Project Details
+  projectName     String
+  projectType     String // "RESIDENTIAL", "COMMERCIAL", "INFRASTRUCTURE", "TRANSIT"
+  description     String?
+  developer       String?
+
+  // Timeline
+  plannedStart    DateTime?
+  expectedEnd     DateTime?
+  status          String? // "PROPOSED", "APPROVED", "IN_PROGRESS", "COMPLETED"
+
+  // Impact
+  impactRadius    Float? // km
+  estimatedUnits  Int? // For residential
+  squareFootage   Int? // For commercial
+
+  // External Data
+  permitNumber    String?
+  sourceUrl       String?
+  dataSource      String?
+
+  // Cache
+  fetchedAt DateTime @default(now())
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([latitude, longitude])
+  @@index([projectType])
+  @@index([status])
+  @@index([expiresAt])
 }

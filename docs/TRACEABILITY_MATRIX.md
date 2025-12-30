@@ -520,6 +520,101 @@ Note: E2E tests require Docker/database to run.
 | PROD-083.26 | `getDefaultScenarios > should throw NotFoundException if property not found` | mortgage-calculator.service.spec.ts | Verifies property validation | ✅ |
 | PROD-083.27 | `getDefaultScenarios > should throw NotFoundException if property has no price` | mortgage-calculator.service.spec.ts | Verifies price exists | ✅ |
 
+### PROD-150: Location Information
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-150.1 | `getNeighborhoodData > should fetch fresh data if cache is expired` | neighborhood.service.spec.ts | Verifies neighborhood data fetching from APIs | ✅ |
+| PROD-150.2 | `getNeighborhoodData > should return cached data if available` | neighborhood.service.spec.ts | Verifies interactive map data via cache | ✅ |
+| PROD-150.3 | `getAmenities > should return nearby amenities` | neighborhood.service.spec.ts | Verifies nearby amenities display | ✅ |
+| PROD-150.4 | `getNeighborhoodData > should include AI-generated description` | neighborhood.service.spec.ts | Verifies AI neighborhood summary | ✅ |
+
+### PROD-151: School Data
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-151.1 | `getSchools > should return nearby schools` | neighborhood.service.spec.ts | Verifies school data integration | ✅ |
+| PROD-151.2 | `getSchools > should include school ratings` | neighborhood.service.spec.ts | Verifies numeric school ratings | ✅ |
+| PROD-151.3 | `getSchools > should group schools by level` | neighborhood.service.spec.ts | Verifies elementary/middle/high grouping | ✅ |
+| PROD-151.4 | `getSchools > should filter by school level` | neighborhood.service.spec.ts | Verifies level filtering | ✅ |
+| PROD-151.5 | `getSchools > should include distance and walking time` | neighborhood.service.spec.ts | Verifies walking/driving times | ✅ |
+| PROD-151.6 | `getSchools > should filter by minimum rating` | neighborhood.service.spec.ts | Verifies rating threshold filter | ✅ |
+
+### PROD-152: Safety Data
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-152.1 | `getNeighborhoodData > safety > crimeRating` | neighborhood.service.spec.ts | Verifies crime data API integration | ✅ |
+| PROD-152.2 | `Safety Data > should return safety score` | neighborhood.service.spec.ts | Verifies composite safety score | ✅ |
+| PROD-152.3 | `Safety Data > should return crime statistics` | neighborhood.service.spec.ts | Verifies crime types and frequencies | ✅ |
+
+### PROD-153: Mobility Scores
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-153.1 | `getNeighborhoodData > mobilityScores` | neighborhood.service.spec.ts | Verifies Walk Score API integration | ✅ |
+| PROD-153.2 | `Mobility Scores > should return walk score 0-100` | neighborhood.service.spec.ts | Verifies walk score display | ✅ |
+| PROD-153.3 | `Mobility Scores > should return transit score 0-100` | neighborhood.service.spec.ts | Verifies transit score display | ✅ |
+| PROD-153.4 | `Mobility Scores > should return bike score 0-100` | neighborhood.service.spec.ts | Verifies bike score display | ✅ |
+| PROD-153.5 | `getAmenities > should include transit info` | neighborhood.service.spec.ts | Verifies public transport nearby | ✅ |
+| PROD-153.6 | `Mobility Scores > should include score descriptions` | neighborhood.service.spec.ts | Verifies score explanations | ✅ |
+
+### PROD-154: Demographics
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-154.1 | `getNeighborhoodData > demographics` | neighborhood.service.spec.ts | Verifies census data integration | ✅ |
+| PROD-154.2 | `Demographics > should return demographic data` | neighborhood.service.spec.ts | Verifies population demographics | ✅ |
+| PROD-154.3 | `Demographics > should include income data` | neighborhood.service.spec.ts | Verifies median household income | ✅ |
+
+### PROD-155: Environmental Data
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-155.1 | `Environmental Data > should include noise level` | neighborhood.service.spec.ts | Verifies noise level API | ✅ |
+| PROD-155.2 | `Environmental Data > should include air quality` | neighborhood.service.spec.ts | Verifies air quality API | ✅ |
+| PROD-155.3 | `Environmental Data > should return environmental data` | neighborhood.service.spec.ts | Verifies environmental metrics display | ✅ |
+
+### PROD-156: Climate Risk
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-156.1 | `getClimateRisk > should include flood zone information` | neighborhood.service.spec.ts | Verifies FEMA flood zone data | ✅ |
+| PROD-156.2 | `getClimateRisk > should include fire risk` | neighborhood.service.spec.ts | Verifies fire risk data | ✅ |
+| PROD-156.3 | `getClimateRisk > should include earthquake risk` | neighborhood.service.spec.ts | Verifies earthquake risk data | ✅ |
+| PROD-156.4 | `getClimateRisk > should calculate overall risk score` | neighborhood.service.spec.ts | Verifies composite climate risk score | ✅ |
+| PROD-156.5 | `getClimateRisk > should return climate risk data` | neighborhood.service.spec.ts | Verifies map overlays data | ✅ |
+| PROD-156.6 | `getClimateRisk > should include insurance implications` | neighborhood.service.spec.ts | Verifies insurance link/notes | ✅ |
+
+### PROD-157: Future Development
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-157.1 | `getFutureDevelopments > should return future development projects` | neighborhood.service.spec.ts | Verifies development data source | ✅ |
+| PROD-157.2 | `getFutureDevelopments > developments include infrastructure` | neighborhood.service.spec.ts | Verifies planned infrastructure data | ✅ |
+| PROD-157.3 | `getFutureDevelopments > developments include commercial` | neighborhood.service.spec.ts | Verifies commercial development data | ✅ |
+| PROD-157.4 | `getFutureDevelopments > should include distance from location` | neighborhood.service.spec.ts | Verifies map markers with distance | ✅ |
+| PROD-157.5 | `getFutureDevelopments > should include project timeline` | neighborhood.service.spec.ts | Verifies expected completion dates | ✅ |
+
+### PROD-158: Amenity Walkability
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-158.1 | `getAmenities > should filter by category` | neighborhood.service.spec.ts | Verifies specific amenity search | ✅ |
+| PROD-158.2 | `getWalkability > should calculate walking times by category` | neighborhood.service.spec.ts | Verifies Google Directions API | ✅ |
+| PROD-158.3 | `getWalkability > should return nearest amenity per category` | neighborhood.service.spec.ts | Verifies nearest by category | ✅ |
+| PROD-158.4 | `getWalkability > should count amenities within 10 minutes walk` | neighborhood.service.spec.ts | Verifies walking time display | ✅ |
+| PROD-158.5 | `getAmenities > should include walking time` | neighborhood.service.spec.ts | Verifies minutes to each amenity | ✅ |
+
+### Property Neighborhood Profile
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-150-158.1 | `getPropertyNeighborhoodProfile > should return complete profile` | neighborhood.service.spec.ts | Verifies complete neighborhood data for property | ✅ |
+| PROD-150-158.2 | `getPropertyNeighborhoodProfile > should throw if property not found` | neighborhood.service.spec.ts | Verifies property validation | ✅ |
+| PROD-150-158.3 | `getPropertyNeighborhoodProfile > should throw if no coordinates` | neighborhood.service.spec.ts | Verifies location requirement | ✅ |
+| PROD-150-158.4 | `getPropertyNeighborhoodProfile > should include all data types` | neighborhood.service.spec.ts | Verifies comprehensive data | ✅ |
+
 ---
 
 ## 4. Authentication & Security
