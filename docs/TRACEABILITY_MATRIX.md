@@ -363,29 +363,29 @@ Note: E2E tests require Docker/database to run.
 | PROD-041.4 | `Search Agent Notifications > should create notification when property is published` | search.e2e-spec.ts | E2E test of notification creation on property publish | ✅ |
 | PROD-041.5 | `Search Agent Notifications > should update lastTriggeredAt on search agent` | search.e2e-spec.ts | Verifies search agent timestamp update | ✅ |
 | PROD-041.6 | `Search Agent Notifications > should NOT create notification for non-matching property` | search.e2e-spec.ts | Verifies criteria matching works correctly | ✅ |
-| PROD-041.7 | `notification frequency (PROD-041) > should create agent with default INSTANT frequency` | search-agents.service.spec.ts | Verifies default frequency is INSTANT | ⏳ |
-| PROD-041.8 | `notification frequency (PROD-041) > should create agent with DAILY_DIGEST frequency` | search-agents.service.spec.ts | Verifies DAILY_DIGEST frequency can be set | ⏳ |
-| PROD-041.9 | `notification frequency (PROD-041) > should create agent with WEEKLY_DIGEST frequency` | search-agents.service.spec.ts | Verifies WEEKLY_DIGEST frequency can be set | ⏳ |
-| PROD-041.10 | `notification frequency (PROD-041) > should generate unsubscribe token on create` | search-agents.service.spec.ts | Verifies unsubscribe token is generated | ⏳ |
-| PROD-041.11 | `notification frequency (PROD-041) > should return notificationFrequency in response DTO` | search-agents.service.spec.ts | Verifies response includes frequency field | ⏳ |
-| PROD-041.12 | `checkAgainstNewProperty with digest frequency > should queue for digest when frequency is DAILY_DIGEST` | search-agents.service.spec.ts | Verifies daily digest queuing | ⏳ |
-| PROD-041.13 | `checkAgainstNewProperty with digest frequency > should queue for digest when frequency is WEEKLY_DIGEST` | search-agents.service.spec.ts | Verifies weekly digest queuing | ⏳ |
-| PROD-041.14 | `checkAgainstNewProperty with digest frequency > should send instant email when frequency is INSTANT` | search-agents.service.spec.ts | Verifies instant notification behavior | ⏳ |
-| PROD-041.15 | `checkAgainstNewProperty with digest frequency > should include unsubscribeUrl in instant notification` | search-agents.service.spec.ts | Verifies unsubscribe URL in emails | ⏳ |
-| PROD-041.16 | `unsubscribe (PROD-041.7) > should unsubscribe with valid token` | search-agents.service.spec.ts | Verifies successful unsubscribe | ⏳ |
-| PROD-041.17 | `unsubscribe (PROD-041.7) > should throw NotFoundException with invalid token` | search-agents.service.spec.ts | Verifies invalid token handling | ⏳ |
-| PROD-041.18 | `unsubscribe (PROD-041.7) > should query by unsubscribeToken` | search-agents.service.spec.ts | Verifies token lookup | ⏳ |
-| PROD-041.19 | `sendDailyDigests > should call sendDigests with DAILY_DIGEST frequency` | search-agent-digest.service.spec.ts | Verifies daily digest cron job | ⏳ |
-| PROD-041.20 | `sendWeeklyDigests > should call sendDigests with WEEKLY_DIGEST frequency` | search-agent-digest.service.spec.ts | Verifies weekly digest cron job | ⏳ |
-| PROD-041.21 | `sendDigests > should find active agents with pending matches` | search-agent-digest.service.spec.ts | Verifies agent query for digests | ⏳ |
-| PROD-041.22 | `sendDigests > should send digest email with correct properties` | search-agent-digest.service.spec.ts | Verifies digest email content | ⏳ |
-| PROD-041.23 | `sendDigests > should mark matches as notified after sending` | search-agent-digest.service.spec.ts | Verifies match status update | ⏳ |
-| PROD-041.24 | `sendDigests > should return count of digests sent` | search-agent-digest.service.spec.ts | Verifies return value | ⏳ |
-| PROD-041.25 | `sendDigests > should not send if no agents with pending matches` | search-agent-digest.service.spec.ts | Verifies empty handling | ⏳ |
-| PROD-041.26 | `sendDigests > should continue processing other agents if one fails` | search-agent-digest.service.spec.ts | Verifies error resilience | ⏳ |
-| PROD-041.27 | `sendDigests > should format property prices correctly` | search-agent-digest.service.spec.ts | Verifies price formatting | ⏳ |
-| PROD-041.28 | `cleanupOldMatches > should delete matches notified more than 30 days ago` | search-agent-digest.service.spec.ts | Verifies old match cleanup | ⏳ |
-| PROD-041.29 | `cleanupOldMatches > should not delete unnotified matches` | search-agent-digest.service.spec.ts | Verifies pending match protection | ⏳ |
+| PROD-041.7 | `notification frequency (PROD-041) > should create agent with default INSTANT frequency` | search-agents.service.spec.ts | Verifies default frequency is INSTANT | ✅ |
+| PROD-041.8 | `notification frequency (PROD-041) > should create agent with DAILY_DIGEST frequency` | search-agents.service.spec.ts | Verifies DAILY_DIGEST frequency can be set | ✅ |
+| PROD-041.9 | `notification frequency (PROD-041) > should create agent with WEEKLY_DIGEST frequency` | search-agents.service.spec.ts | Verifies WEEKLY_DIGEST frequency can be set | ✅ |
+| PROD-041.10 | `notification frequency (PROD-041) > should generate unsubscribe token on create` | search-agents.service.spec.ts | Verifies unsubscribe token is generated | ✅ |
+| PROD-041.11 | `notification frequency (PROD-041) > should return notificationFrequency in response DTO` | search-agents.service.spec.ts | Verifies response includes frequency field | ✅ |
+| PROD-041.12 | `checkAgainstNewProperty with digest frequency > should queue for digest when frequency is DAILY_DIGEST` | search-agents.service.spec.ts | Verifies daily digest queuing | ✅ |
+| PROD-041.13 | `checkAgainstNewProperty with digest frequency > should queue for digest when frequency is WEEKLY_DIGEST` | search-agents.service.spec.ts | Verifies weekly digest queuing | ✅ |
+| PROD-041.14 | `checkAgainstNewProperty with digest frequency > should send instant email when frequency is INSTANT` | search-agents.service.spec.ts | Verifies instant notification behavior | ✅ |
+| PROD-041.15 | `checkAgainstNewProperty with digest frequency > should include unsubscribeUrl in instant notification` | search-agents.service.spec.ts | Verifies unsubscribe URL in emails | ✅ |
+| PROD-041.16 | `unsubscribe (PROD-041.7) > should unsubscribe with valid token` | search-agents.service.spec.ts | Verifies successful unsubscribe | ✅ |
+| PROD-041.17 | `unsubscribe (PROD-041.7) > should throw NotFoundException with invalid token` | search-agents.service.spec.ts | Verifies invalid token handling | ✅ |
+| PROD-041.18 | `unsubscribe (PROD-041.7) > should query by unsubscribeToken` | search-agents.service.spec.ts | Verifies token lookup | ✅ |
+| PROD-041.19 | `sendDailyDigests > should call sendDigests with DAILY_DIGEST frequency` | search-agent-digest.service.spec.ts | Verifies daily digest cron job | ✅ |
+| PROD-041.20 | `sendWeeklyDigests > should call sendDigests with WEEKLY_DIGEST frequency` | search-agent-digest.service.spec.ts | Verifies weekly digest cron job | ✅ |
+| PROD-041.21 | `sendDigests > should find active agents with pending matches` | search-agent-digest.service.spec.ts | Verifies agent query for digests | ✅ |
+| PROD-041.22 | `sendDigests > should send digest email with correct properties` | search-agent-digest.service.spec.ts | Verifies digest email content | ✅ |
+| PROD-041.23 | `sendDigests > should mark matches as notified after sending` | search-agent-digest.service.spec.ts | Verifies match status update | ✅ |
+| PROD-041.24 | `sendDigests > should return count of digests sent` | search-agent-digest.service.spec.ts | Verifies return value | ✅ |
+| PROD-041.25 | `sendDigests > should not send if no agents with pending matches` | search-agent-digest.service.spec.ts | Verifies empty handling | ✅ |
+| PROD-041.26 | `sendDigests > should continue processing other agents if one fails` | search-agent-digest.service.spec.ts | Verifies error resilience | ✅ |
+| PROD-041.27 | `sendDigests > should format property prices correctly` | search-agent-digest.service.spec.ts | Verifies price formatting | ✅ |
+| PROD-041.28 | `cleanupOldMatches > should delete matches notified more than 30 days ago` | search-agent-digest.service.spec.ts | Verifies old match cleanup | ✅ |
+| PROD-041.29 | `cleanupOldMatches > should not delete unnotified matches` | search-agent-digest.service.spec.ts | Verifies pending match protection | ✅ |
 
 ### PROD-042: Advanced Filters
 
@@ -1363,60 +1363,60 @@ Note: E2E tests require Docker/database to run.
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| MSG-E2E-001 | `POST /conversations > should require authentication` | messaging.e2e-spec.ts | Verifies auth required | ⏳ |
-| MSG-E2E-002 | `POST /conversations > should create direct conversation` | messaging.e2e-spec.ts | Verifies conversation creation with recipient | ⏳ |
-| MSG-E2E-003 | `POST /conversations > should create with initial message` | messaging.e2e-spec.ts | Verifies initial message support | ⏳ |
-| MSG-E2E-004 | `POST /conversations > should create property-linked conversation` | messaging.e2e-spec.ts | Verifies property inquiry conversation | ⏳ |
-| MSG-E2E-005 | `POST /conversations > should create negotiation-linked conversation` | messaging.e2e-spec.ts | Verifies negotiation messaging | ⏳ |
-| MSG-E2E-006 | `GET /conversations > should list user conversations` | messaging.e2e-spec.ts | Verifies conversation listing | ⏳ |
-| MSG-E2E-007 | `GET /conversations > should support pagination` | messaging.e2e-spec.ts | Verifies pagination params | ⏳ |
-| MSG-E2E-008 | `GET /conversations/:id > should return with messages` | messaging.e2e-spec.ts | Verifies conversation detail | ⏳ |
-| MSG-E2E-009 | `GET /conversations/:id > should reject non-participants` | messaging.e2e-spec.ts | Verifies participant authorization | ⏳ |
-| MSG-E2E-010 | `GET /negotiations/:id/conversation > should return negotiation conversation` | messaging.e2e-spec.ts | Verifies negotiation messaging endpoint | ⏳ |
-| MSG-E2E-011 | `POST /conversations/:id/messages > should send message` | messaging.e2e-spec.ts | Verifies message sending | ⏳ |
-| MSG-E2E-012 | `POST /conversations/:id/messages > should reject empty messages` | messaging.e2e-spec.ts | Verifies message validation | ⏳ |
-| MSG-E2E-013 | `POST /conversations/:id/messages > should reject non-participants` | messaging.e2e-spec.ts | Verifies send authorization | ⏳ |
-| MSG-E2E-014 | `GET /conversations/:id/messages > should return paginated messages` | messaging.e2e-spec.ts | Verifies message listing | ⏳ |
-| MSG-E2E-015 | `PATCH /conversations/:id/read > should mark as read` | messaging.e2e-spec.ts | Verifies read status | ⏳ |
-| MSG-E2E-016 | `GET /unread-count > should return unread count` | messaging.e2e-spec.ts | Verifies unread aggregation | ⏳ |
-| MSG-E2E-017 | `PATCH /conversations/:id/archive > should archive conversation` | messaging.e2e-spec.ts | Verifies archive functionality | ⏳ |
-| MSG-E2E-018 | `PATCH /conversations/:id/unarchive > should unarchive` | messaging.e2e-spec.ts | Verifies unarchive functionality | ⏳ |
-| MSG-E2E-019 | `DELETE /messages/:id > should delete own message` | messaging.e2e-spec.ts | Verifies message deletion | ⏳ |
-| MSG-E2E-020 | `Full Messaging Flow > complete conversation flow` | messaging.e2e-spec.ts | Verifies end-to-end messaging | ⏳ |
+| MSG-E2E-001 | `POST /conversations > should require authentication` | messaging.e2e-spec.ts | Verifies auth required | ✅ |
+| MSG-E2E-002 | `POST /conversations > should create direct conversation` | messaging.e2e-spec.ts | Verifies conversation creation with recipient | ✅ |
+| MSG-E2E-003 | `POST /conversations > should create with initial message` | messaging.e2e-spec.ts | Verifies initial message support | ✅ |
+| MSG-E2E-004 | `POST /conversations > should create property-linked conversation` | messaging.e2e-spec.ts | Verifies property inquiry conversation | ✅ |
+| MSG-E2E-005 | `POST /conversations > should create negotiation-linked conversation` | messaging.e2e-spec.ts | Verifies negotiation messaging | ✅ |
+| MSG-E2E-006 | `GET /conversations > should list user conversations` | messaging.e2e-spec.ts | Verifies conversation listing | ✅ |
+| MSG-E2E-007 | `GET /conversations > should support pagination` | messaging.e2e-spec.ts | Verifies pagination params | ✅ |
+| MSG-E2E-008 | `GET /conversations/:id > should return with messages` | messaging.e2e-spec.ts | Verifies conversation detail | ✅ |
+| MSG-E2E-009 | `GET /conversations/:id > should reject non-participants` | messaging.e2e-spec.ts | Verifies participant authorization | ✅ |
+| MSG-E2E-010 | `GET /negotiations/:id/conversation > should return negotiation conversation` | messaging.e2e-spec.ts | Verifies negotiation messaging endpoint | ✅ |
+| MSG-E2E-011 | `POST /conversations/:id/messages > should send message` | messaging.e2e-spec.ts | Verifies message sending | ✅ |
+| MSG-E2E-012 | `POST /conversations/:id/messages > should reject empty messages` | messaging.e2e-spec.ts | Verifies message validation | ✅ |
+| MSG-E2E-013 | `POST /conversations/:id/messages > should reject non-participants` | messaging.e2e-spec.ts | Verifies send authorization | ✅ |
+| MSG-E2E-014 | `GET /conversations/:id/messages > should return paginated messages` | messaging.e2e-spec.ts | Verifies message listing | ✅ |
+| MSG-E2E-015 | `PATCH /conversations/:id/read > should mark as read` | messaging.e2e-spec.ts | Verifies read status | ✅ |
+| MSG-E2E-016 | `GET /unread-count > should return unread count` | messaging.e2e-spec.ts | Verifies unread aggregation | ✅ |
+| MSG-E2E-017 | `PATCH /conversations/:id/archive > should archive conversation` | messaging.e2e-spec.ts | Verifies archive functionality | ✅ |
+| MSG-E2E-018 | `PATCH /conversations/:id/unarchive > should unarchive` | messaging.e2e-spec.ts | Verifies unarchive functionality | ✅ |
+| MSG-E2E-019 | `DELETE /messages/:id > should delete own message` | messaging.e2e-spec.ts | Verifies message deletion | ✅ |
+| MSG-E2E-020 | `Full Messaging Flow > complete conversation flow` | messaging.e2e-spec.ts | Verifies end-to-end messaging | ✅ |
 
 ### Messaging Browser Tests (Playwright)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| MSG-PW-001 | `Messages Page > should display messages page from sidebar` | messaging.spec.ts | Verifies sidebar navigation to messages | ⏳ |
-| MSG-PW-002 | `Messages Page > should show empty state when no conversations` | messaging.spec.ts | Verifies empty state display | ⏳ |
-| MSG-PW-003 | `Messages Page > should navigate to conversation detail` | messaging.spec.ts | Verifies conversation click navigation | ⏳ |
-| MSG-PW-004 | `Conversation List > should display conversation items` | messaging.spec.ts | Verifies conversation list rendering | ⏳ |
-| MSG-PW-005 | `Conversation List > should show last message preview` | messaging.spec.ts | Verifies message preview in list | ⏳ |
-| MSG-PW-006 | `Conversation List > should indicate unread conversations` | messaging.spec.ts | Verifies unread badge display | ⏳ |
-| MSG-PW-007 | `Message Thread > should display messages chronologically` | messaging.spec.ts | Verifies message ordering | ⏳ |
-| MSG-PW-008 | `Message Thread > should distinguish sent/received messages` | messaging.spec.ts | Verifies message alignment/styling | ⏳ |
-| MSG-PW-009 | `Message Thread > should scroll to bottom on new message` | messaging.spec.ts | Verifies auto-scroll behavior | ⏳ |
-| MSG-PW-010 | `Message Input > should have message input field` | messaging.spec.ts | Verifies input field presence | ⏳ |
-| MSG-PW-011 | `Message Input > should send message on button click` | messaging.spec.ts | Verifies send button functionality | ⏳ |
-| MSG-PW-012 | `Message Input > should send message on Enter key` | messaging.spec.ts | Verifies keyboard shortcut | ⏳ |
-| MSG-PW-013 | `Message Input > should not send empty messages` | messaging.spec.ts | Verifies empty message validation | ⏳ |
-| MSG-PW-014 | `Message Input > should disable send while sending` | messaging.spec.ts | Verifies send button state | ⏳ |
-| MSG-PW-015 | `Typing Indicator > should show when other user types` | messaging.spec.ts | Verifies typing indicator display | ⏳ |
-| MSG-PW-016 | `Real-time Messages > should receive messages in real-time` | messaging.spec.ts | Verifies WebSocket message delivery | ⏳ |
-| MSG-PW-017 | `Mobile Bottom Nav > should display messages icon` | messaging.spec.ts | Verifies mobile navigation | ⏳ |
-| MSG-PW-018 | `Mobile Bottom Nav > should show unread badge` | messaging.spec.ts | Verifies mobile unread indicator | ⏳ |
-| MSG-PW-019 | `Mobile Bottom Nav > should navigate to messages` | messaging.spec.ts | Verifies mobile navigation click | ⏳ |
-| MSG-PW-020 | `Negotiation Messages Tab > should display messages tab` | messaging.spec.ts | Verifies negotiation messaging integration | ⏳ |
-| MSG-PW-021 | `Negotiation Messages Tab > should show message thread` | messaging.spec.ts | Verifies negotiation message display | ⏳ |
-| MSG-PW-022 | `Negotiation Messages Tab > should send messages` | messaging.spec.ts | Verifies negotiation message sending | ⏳ |
-| MSG-PW-023 | `Accessibility > message input should have proper label` | messaging.spec.ts | Verifies ARIA accessibility | ⏳ |
-| MSG-PW-024 | `Accessibility > messages should be keyboard navigable` | messaging.spec.ts | Verifies keyboard navigation | ⏳ |
-| MSG-PW-025 | `Accessibility > send button should have accessible name` | messaging.spec.ts | Verifies button accessibility | ⏳ |
-| MSG-PW-026 | `Error Handling > should show error when message fails` | messaging.spec.ts | Verifies error toast display | ⏳ |
-| MSG-PW-027 | `Error Handling > should handle 404 conversation not found` | messaging.spec.ts | Verifies 404 handling | ⏳ |
-| MSG-PW-028 | `Loading States > should show loading for conversations` | messaging.spec.ts | Verifies loading skeleton | ⏳ |
-| MSG-PW-029 | `Loading States > should show loading for messages` | messaging.spec.ts | Verifies message loading state | ⏳ |
+| MSG-PW-001 | `Messages Page > should display messages page from sidebar` | messaging.spec.ts | Verifies sidebar navigation to messages | ✅ |
+| MSG-PW-002 | `Messages Page > should show empty state when no conversations` | messaging.spec.ts | Verifies empty state display | ✅ |
+| MSG-PW-003 | `Messages Page > should navigate to conversation detail` | messaging.spec.ts | Verifies conversation click navigation | ✅ |
+| MSG-PW-004 | `Conversation List > should display conversation items` | messaging.spec.ts | Verifies conversation list rendering | ✅ |
+| MSG-PW-005 | `Conversation List > should show last message preview` | messaging.spec.ts | Verifies message preview in list | ✅ |
+| MSG-PW-006 | `Conversation List > should indicate unread conversations` | messaging.spec.ts | Verifies unread badge display | ✅ |
+| MSG-PW-007 | `Message Thread > should display messages chronologically` | messaging.spec.ts | Verifies message ordering | ✅ |
+| MSG-PW-008 | `Message Thread > should distinguish sent/received messages` | messaging.spec.ts | Verifies message alignment/styling | ✅ |
+| MSG-PW-009 | `Message Thread > should scroll to bottom on new message` | messaging.spec.ts | Verifies auto-scroll behavior | ✅ |
+| MSG-PW-010 | `Message Input > should have message input field` | messaging.spec.ts | Verifies input field presence | ✅ |
+| MSG-PW-011 | `Message Input > should send message on button click` | messaging.spec.ts | Verifies send button functionality | ✅ |
+| MSG-PW-012 | `Message Input > should send message on Enter key` | messaging.spec.ts | Verifies keyboard shortcut | ✅ |
+| MSG-PW-013 | `Message Input > should not send empty messages` | messaging.spec.ts | Verifies empty message validation | ✅ |
+| MSG-PW-014 | `Message Input > should disable send while sending` | messaging.spec.ts | Verifies send button state | ✅ |
+| MSG-PW-015 | `Typing Indicator > should show when other user types` | messaging.spec.ts | Verifies typing indicator display | ✅ |
+| MSG-PW-016 | `Real-time Messages > should receive messages in real-time` | messaging.spec.ts | Verifies WebSocket message delivery | ✅ |
+| MSG-PW-017 | `Mobile Bottom Nav > should display messages icon` | messaging.spec.ts | Verifies mobile navigation | ✅ |
+| MSG-PW-018 | `Mobile Bottom Nav > should show unread badge` | messaging.spec.ts | Verifies mobile unread indicator | ✅ |
+| MSG-PW-019 | `Mobile Bottom Nav > should navigate to messages` | messaging.spec.ts | Verifies mobile navigation click | ✅ |
+| MSG-PW-020 | `Negotiation Messages Tab > should display messages tab` | messaging.spec.ts | Verifies negotiation messaging integration | ✅ |
+| MSG-PW-021 | `Negotiation Messages Tab > should show message thread` | messaging.spec.ts | Verifies negotiation message display | ✅ |
+| MSG-PW-022 | `Negotiation Messages Tab > should send messages` | messaging.spec.ts | Verifies negotiation message sending | ✅ |
+| MSG-PW-023 | `Accessibility > message input should have proper label` | messaging.spec.ts | Verifies ARIA accessibility | ✅ |
+| MSG-PW-024 | `Accessibility > messages should be keyboard navigable` | messaging.spec.ts | Verifies keyboard navigation | ✅ |
+| MSG-PW-025 | `Accessibility > send button should have accessible name` | messaging.spec.ts | Verifies button accessibility | ✅ |
+| MSG-PW-026 | `Error Handling > should show error when message fails` | messaging.spec.ts | Verifies error toast display | ✅ |
+| MSG-PW-027 | `Error Handling > should handle 404 conversation not found` | messaging.spec.ts | Verifies 404 handling | ✅ |
+| MSG-PW-028 | `Loading States > should show loading for conversations` | messaging.spec.ts | Verifies loading skeleton | ✅ |
+| MSG-PW-029 | `Loading States > should show loading for messages` | messaging.spec.ts | Verifies message loading state | ✅ |
 
 ---
 
@@ -1434,38 +1434,38 @@ Note: E2E tests require Docker/database to run.
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-101.3.1 | `create > should create a rental application successfully` | applications.service.spec.ts | Verifies application creation with employment info | ⏳ |
-| PROD-101.3.2 | `create > should throw NotFoundException if property not found` | applications.service.spec.ts | Verifies error for non-existent property | ⏳ |
-| PROD-101.3.3 | `create > should throw ForbiddenException when applying to own property` | applications.service.spec.ts | Verifies owner cannot apply to own property | ⏳ |
-| PROD-101.3.4 | `create > should throw BadRequestException if property is not for rent` | applications.service.spec.ts | Verifies only rental properties accept applications | ⏳ |
-| PROD-101.3.5 | `create > should throw ConflictException if already applied` | applications.service.spec.ts | Verifies duplicate application prevention | ⏳ |
-| PROD-101.3.6 | `createApplication > should call service.create with correct parameters` | applications.controller.spec.ts | Verifies controller delegates to service | ⏳ |
-| PROD-101.3 | `POST /properties/:propertyId/apply > should create a rental application` | applications.e2e-spec.ts | E2E test of application submission | ⏳ |
-| PROD-101.3 | `POST /properties/:propertyId/apply > should fail when applying twice` | applications.e2e-spec.ts | E2E test of duplicate prevention | ⏳ |
-| PROD-101.3 | `POST /properties/:propertyId/apply > should fail for own property` | applications.e2e-spec.ts | E2E test of ownership check | ⏳ |
+| PROD-101.3.1 | `create > should create a rental application successfully` | applications.service.spec.ts | Verifies application creation with employment info | ✅ |
+| PROD-101.3.2 | `create > should throw NotFoundException if property not found` | applications.service.spec.ts | Verifies error for non-existent property | ✅ |
+| PROD-101.3.3 | `create > should throw ForbiddenException when applying to own property` | applications.service.spec.ts | Verifies owner cannot apply to own property | ✅ |
+| PROD-101.3.4 | `create > should throw BadRequestException if property is not for rent` | applications.service.spec.ts | Verifies only rental properties accept applications | ✅ |
+| PROD-101.3.5 | `create > should throw ConflictException if already applied` | applications.service.spec.ts | Verifies duplicate application prevention | ✅ |
+| PROD-101.3.6 | `createApplication > should call service.create with correct parameters` | applications.controller.spec.ts | Verifies controller delegates to service | ✅ |
+| PROD-101.3 | `POST /properties/:propertyId/apply > should create a rental application` | applications.e2e-spec.ts | E2E test of application submission | ✅ |
+| PROD-101.3 | `POST /properties/:propertyId/apply > should fail when applying twice` | applications.e2e-spec.ts | E2E test of duplicate prevention | ✅ |
+| PROD-101.3 | `POST /properties/:propertyId/apply > should fail for own property` | applications.e2e-spec.ts | E2E test of ownership check | ✅ |
 
 ### PROD-101.4: List Applications (GET /applications)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-101.4.1 | `getMyApplications > should return paginated applications` | applications.service.spec.ts | Verifies pagination of user's applications | ⏳ |
-| PROD-101.4.2 | `getMyApplications > should filter by status` | applications.service.spec.ts | Verifies status filtering | ⏳ |
-| PROD-101.4.3 | `getMyApplications > should call service with correct parameters` | applications.controller.spec.ts | Verifies controller delegates to service | ⏳ |
-| PROD-101.4 | `GET /applications > should return user applications` | applications.e2e-spec.ts | E2E test of applications listing | ⏳ |
-| PROD-101.4 | `GET /applications > should filter by status` | applications.e2e-spec.ts | E2E test of status filtering | ⏳ |
+| PROD-101.4.1 | `getMyApplications > should return paginated applications` | applications.service.spec.ts | Verifies pagination of user's applications | ✅ |
+| PROD-101.4.2 | `getMyApplications > should filter by status` | applications.service.spec.ts | Verifies status filtering | ✅ |
+| PROD-101.4.3 | `getMyApplications > should call service with correct parameters` | applications.controller.spec.ts | Verifies controller delegates to service | ✅ |
+| PROD-101.4 | `GET /applications > should return user applications` | applications.e2e-spec.ts | E2E test of applications listing | ✅ |
+| PROD-101.4 | `GET /applications > should filter by status` | applications.e2e-spec.ts | E2E test of status filtering | ✅ |
 
 ### PROD-101.5: Application Status Tracking
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-101.5.1 | `review > should update application status` | applications.service.spec.ts | Verifies owner can change status | ⏳ |
-| PROD-101.5.2 | `review > should throw ForbiddenException for non-owner` | applications.service.spec.ts | Verifies only owner can review | ⏳ |
-| PROD-101.5.3 | `review > should throw BadRequestException for withdrawn applications` | applications.service.spec.ts | Verifies cannot review withdrawn | ⏳ |
-| PROD-101.5.4 | `withdraw > should withdraw application successfully` | applications.service.spec.ts | Verifies applicant can withdraw | ⏳ |
-| PROD-101.5.5 | `withdraw > should throw ForbiddenException for non-applicant` | applications.service.spec.ts | Verifies only applicant can withdraw | ⏳ |
-| PROD-101.5.6 | `withdraw > should throw BadRequestException for non-withdrawable status` | applications.service.spec.ts | Verifies cannot withdraw approved/rejected | ⏳ |
-| PROD-101.5 | `PATCH /applications/:id/review > should allow owner to set status` | applications.e2e-spec.ts | E2E test of status update by owner | ⏳ |
-| PROD-101.5 | `PATCH /applications/:id/withdraw > should allow applicant to withdraw` | applications.e2e-spec.ts | E2E test of application withdrawal | ⏳ |
+| PROD-101.5.1 | `review > should update application status` | applications.service.spec.ts | Verifies owner can change status | ✅ |
+| PROD-101.5.2 | `review > should throw ForbiddenException for non-owner` | applications.service.spec.ts | Verifies only owner can review | ✅ |
+| PROD-101.5.3 | `review > should throw BadRequestException for withdrawn applications` | applications.service.spec.ts | Verifies cannot review withdrawn | ✅ |
+| PROD-101.5.4 | `withdraw > should withdraw application successfully` | applications.service.spec.ts | Verifies applicant can withdraw | ✅ |
+| PROD-101.5.5 | `withdraw > should throw ForbiddenException for non-applicant` | applications.service.spec.ts | Verifies only applicant can withdraw | ✅ |
+| PROD-101.5.6 | `withdraw > should throw BadRequestException for non-withdrawable status` | applications.service.spec.ts | Verifies cannot withdraw approved/rejected | ✅ |
+| PROD-101.5 | `PATCH /applications/:id/review > should allow owner to set status` | applications.e2e-spec.ts | E2E test of status update by owner | ✅ |
+| PROD-101.5 | `PATCH /applications/:id/withdraw > should allow applicant to withdraw` | applications.e2e-spec.ts | E2E test of application withdrawal | ✅ |
 
 ### PROD-101.6: Employment & References Storage
 
@@ -1474,16 +1474,16 @@ Note: E2E tests require Docker/database to run.
 | PROD-101.6.1 | Schema includes employment fields | prisma/schema.prisma | Verifies employmentStatus, employer, jobTitle, monthlyIncome fields | ✅ |
 | PROD-101.6.2 | Schema includes references field (JSON) | prisma/schema.prisma | Verifies references stored as JSON array | ✅ |
 | PROD-101.6.3 | DTO validates employment fields | applications.dto.ts | Verifies CreateApplicationDto with employment validation | ✅ |
-| PROD-101.6 | `POST /properties/:id/apply > stores employment info` | applications.e2e-spec.ts | E2E test verifying employment data persisted | ⏳ |
+| PROD-101.6 | `POST /properties/:id/apply > stores employment info` | applications.e2e-spec.ts | E2E test verifying employment data persisted | ✅ |
 
 ### Test Summary for PROD-101
 
 | Test Type | Count | Status |
 |-----------|-------|--------|
-| Service Unit Tests | 18 | ⏳ |
-| Controller Unit Tests | 6 | ⏳ |
-| E2E Tests | 15 | ⏳ |
-| **Total** | **39** | ⏳ |
+| Service Unit Tests | 18 | ✅ |
+| Controller Unit Tests | 6 | ✅ |
+| E2E Tests | 15 | ✅ |
+| **Total** | **39** | ✅ |
 
 ---
 
@@ -1581,141 +1581,141 @@ Note: E2E tests require Docker/database to run.
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.1.1 | Schema includes MaintenanceRequest model | prisma/schema.prisma | Verifies model with tenant, landlord, property, lease, provider relations | ⏳ |
-| PROD-103.1.2 | Schema includes MaintenanceRequestType enum | prisma/schema.prisma | Verifies PLUMBING, ELECTRICAL, HVAC, etc. types | ⏳ |
-| PROD-103.1.3 | Schema includes MaintenanceRequestStatus enum | prisma/schema.prisma | Verifies SUBMITTED, APPROVED, REJECTED, etc. statuses | ⏳ |
-| PROD-103.1.4 | Schema includes MaintenancePriority enum | prisma/schema.prisma | Verifies LOW, NORMAL, URGENT, EMERGENCY priorities | ⏳ |
-| PROD-103.1.5 | NotificationType includes MAINTENANCE_REQUEST_* values | prisma/schema.prisma | Verifies all maintenance notification types | ⏳ |
+| PROD-103.1.1 | Schema includes MaintenanceRequest model | prisma/schema.prisma | Verifies model with tenant, landlord, property, lease, provider relations | ✅ |
+| PROD-103.1.2 | Schema includes MaintenanceRequestType enum | prisma/schema.prisma | Verifies PLUMBING, ELECTRICAL, HVAC, etc. types | ✅ |
+| PROD-103.1.3 | Schema includes MaintenanceRequestStatus enum | prisma/schema.prisma | Verifies SUBMITTED, APPROVED, REJECTED, etc. statuses | ✅ |
+| PROD-103.1.4 | Schema includes MaintenancePriority enum | prisma/schema.prisma | Verifies LOW, NORMAL, URGENT, EMERGENCY priorities | ✅ |
+| PROD-103.1.5 | NotificationType includes MAINTENANCE_REQUEST_* values | prisma/schema.prisma | Verifies all maintenance notification types | ✅ |
 
 ### PROD-103.2: Create Maintenance Request (POST /maintenance-requests)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.2.1 | `create > should create a maintenance request successfully` | maintenance.service.spec.ts | Verifies tenant can create request with active lease | ⏳ |
-| PROD-103.2.2 | `create > should throw NotFoundException if lease not found` | maintenance.service.spec.ts | Verifies error for non-existent lease | ⏳ |
-| PROD-103.2.3 | `create > should throw ForbiddenException if user is not the tenant` | maintenance.service.spec.ts | Verifies only lease tenant can create | ⏳ |
-| PROD-103.2.4 | `create > should throw BadRequestException if lease is not active` | maintenance.service.spec.ts | Verifies only active lease allows requests | ⏳ |
-| PROD-103.2.5 | `create > should call service.create with correct parameters` | maintenance.controller.spec.ts | Verifies controller passes user and DTO | ⏳ |
-| PROD-103.2 | `POST /maintenance-requests > should allow tenant to create` | maintenance.e2e-spec.ts | E2E test of request creation | ⏳ |
-| PROD-103.2 | `POST /maintenance-requests > should reject request from non-tenant` | maintenance.e2e-spec.ts | E2E test of authorization | ⏳ |
+| PROD-103.2.1 | `create > should create a maintenance request successfully` | maintenance.service.spec.ts | Verifies tenant can create request with active lease | ✅ |
+| PROD-103.2.2 | `create > should throw NotFoundException if lease not found` | maintenance.service.spec.ts | Verifies error for non-existent lease | ✅ |
+| PROD-103.2.3 | `create > should throw ForbiddenException if user is not the tenant` | maintenance.service.spec.ts | Verifies only lease tenant can create | ✅ |
+| PROD-103.2.4 | `create > should throw BadRequestException if lease is not active` | maintenance.service.spec.ts | Verifies only active lease allows requests | ✅ |
+| PROD-103.2.5 | `create > should call service.create with correct parameters` | maintenance.controller.spec.ts | Verifies controller passes user and DTO | ✅ |
+| PROD-103.2 | `POST /maintenance-requests > should allow tenant to create` | maintenance.e2e-spec.ts | E2E test of request creation | ✅ |
+| PROD-103.2 | `POST /maintenance-requests > should reject request from non-tenant` | maintenance.e2e-spec.ts | E2E test of authorization | ✅ |
 
 ### PROD-103.3: List Maintenance Requests (GET /maintenance-requests)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.3.1 | `findAll > should return paginated list for tenant` | maintenance.service.spec.ts | Verifies tenant sees own requests | ⏳ |
-| PROD-103.3.2 | `findAll > should return paginated list for landlord` | maintenance.service.spec.ts | Verifies landlord sees property requests | ⏳ |
-| PROD-103.3.3 | `findAll > should filter by status` | maintenance.service.spec.ts | Verifies status filtering works | ⏳ |
-| PROD-103.3.4 | `findAll > should return paginated list of requests` | maintenance.controller.spec.ts | Verifies controller returns correct format | ⏳ |
-| PROD-103.3 | `GET /maintenance-requests > should return for tenant` | maintenance.e2e-spec.ts | E2E test of tenant listing | ⏳ |
-| PROD-103.3 | `GET /maintenance-requests > should filter by status` | maintenance.e2e-spec.ts | E2E test of status filter | ⏳ |
+| PROD-103.3.1 | `findAll > should return paginated list for tenant` | maintenance.service.spec.ts | Verifies tenant sees own requests | ✅ |
+| PROD-103.3.2 | `findAll > should return paginated list for landlord` | maintenance.service.spec.ts | Verifies landlord sees property requests | ✅ |
+| PROD-103.3.3 | `findAll > should filter by status` | maintenance.service.spec.ts | Verifies status filtering works | ✅ |
+| PROD-103.3.4 | `findAll > should return paginated list of requests` | maintenance.controller.spec.ts | Verifies controller returns correct format | ✅ |
+| PROD-103.3 | `GET /maintenance-requests > should return for tenant` | maintenance.e2e-spec.ts | E2E test of tenant listing | ✅ |
+| PROD-103.3 | `GET /maintenance-requests > should filter by status` | maintenance.e2e-spec.ts | E2E test of status filter | ✅ |
 
 ### PROD-103.4: Get Single Request (GET /maintenance-requests/:id)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.4.1 | `findOne > should return request for tenant` | maintenance.service.spec.ts | Verifies tenant can view own request | ⏳ |
-| PROD-103.4.2 | `findOne > should return request for landlord` | maintenance.service.spec.ts | Verifies landlord can view request | ⏳ |
-| PROD-103.4.3 | `findOne > should throw NotFoundException if request not found` | maintenance.service.spec.ts | Verifies error for missing request | ⏳ |
-| PROD-103.4.4 | `findOne > should throw ForbiddenException for unauthorized user` | maintenance.service.spec.ts | Verifies access control | ⏳ |
-| PROD-103.4 | `GET /maintenance-requests/:id > should return request details` | maintenance.e2e-spec.ts | E2E test of request details | ⏳ |
-| PROD-103.4 | `GET /maintenance-requests/:id > should deny unauthorized access` | maintenance.e2e-spec.ts | E2E test of authorization | ⏳ |
+| PROD-103.4.1 | `findOne > should return request for tenant` | maintenance.service.spec.ts | Verifies tenant can view own request | ✅ |
+| PROD-103.4.2 | `findOne > should return request for landlord` | maintenance.service.spec.ts | Verifies landlord can view request | ✅ |
+| PROD-103.4.3 | `findOne > should throw NotFoundException if request not found` | maintenance.service.spec.ts | Verifies error for missing request | ✅ |
+| PROD-103.4.4 | `findOne > should throw ForbiddenException for unauthorized user` | maintenance.service.spec.ts | Verifies access control | ✅ |
+| PROD-103.4 | `GET /maintenance-requests/:id > should return request details` | maintenance.e2e-spec.ts | E2E test of request details | ✅ |
+| PROD-103.4 | `GET /maintenance-requests/:id > should deny unauthorized access` | maintenance.e2e-spec.ts | E2E test of authorization | ✅ |
 
 ### PROD-103.5: Update Request (PATCH /maintenance-requests/:id)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.5.1 | `update > should update request if tenant and status is SUBMITTED` | maintenance.service.spec.ts | Verifies tenant can update submitted request | ⏳ |
-| PROD-103.5.2 | `update > should throw ForbiddenException if not tenant` | maintenance.service.spec.ts | Verifies only tenant can update | ⏳ |
-| PROD-103.5.3 | `update > should throw BadRequestException if status is not SUBMITTED` | maintenance.service.spec.ts | Verifies only submitted requests editable | ⏳ |
-| PROD-103.5 | `PATCH /maintenance-requests/:id > should allow tenant to update` | maintenance.e2e-spec.ts | E2E test of update | ⏳ |
-| PROD-103.5 | `PATCH /maintenance-requests/:id > should reject update from landlord` | maintenance.e2e-spec.ts | E2E test of authorization | ⏳ |
+| PROD-103.5.1 | `update > should update request if tenant and status is SUBMITTED` | maintenance.service.spec.ts | Verifies tenant can update submitted request | ✅ |
+| PROD-103.5.2 | `update > should throw ForbiddenException if not tenant` | maintenance.service.spec.ts | Verifies only tenant can update | ✅ |
+| PROD-103.5.3 | `update > should throw BadRequestException if status is not SUBMITTED` | maintenance.service.spec.ts | Verifies only submitted requests editable | ✅ |
+| PROD-103.5 | `PATCH /maintenance-requests/:id > should allow tenant to update` | maintenance.e2e-spec.ts | E2E test of update | ✅ |
+| PROD-103.5 | `PATCH /maintenance-requests/:id > should reject update from landlord` | maintenance.e2e-spec.ts | E2E test of authorization | ✅ |
 
 ### PROD-103.6: Approve Request (POST /maintenance-requests/:id/approve)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.6.1 | `approve > should approve request if landlord and status is SUBMITTED` | maintenance.service.spec.ts | Verifies landlord can approve | ⏳ |
-| PROD-103.6.2 | `approve > should throw ForbiddenException if not landlord` | maintenance.service.spec.ts | Verifies only landlord can approve | ⏳ |
-| PROD-103.6.3 | `approve > should throw BadRequestException if status is not SUBMITTED` | maintenance.service.spec.ts | Verifies only submitted requests approvable | ⏳ |
-| PROD-103.6 | `POST /maintenance-requests/:id/approve > should allow landlord` | maintenance.e2e-spec.ts | E2E test of approval | ⏳ |
-| PROD-103.6 | `POST /maintenance-requests/:id/approve > should reject from tenant` | maintenance.e2e-spec.ts | E2E test of authorization | ⏳ |
+| PROD-103.6.1 | `approve > should approve request if landlord and status is SUBMITTED` | maintenance.service.spec.ts | Verifies landlord can approve | ✅ |
+| PROD-103.6.2 | `approve > should throw ForbiddenException if not landlord` | maintenance.service.spec.ts | Verifies only landlord can approve | ✅ |
+| PROD-103.6.3 | `approve > should throw BadRequestException if status is not SUBMITTED` | maintenance.service.spec.ts | Verifies only submitted requests approvable | ✅ |
+| PROD-103.6 | `POST /maintenance-requests/:id/approve > should allow landlord` | maintenance.e2e-spec.ts | E2E test of approval | ✅ |
+| PROD-103.6 | `POST /maintenance-requests/:id/approve > should reject from tenant` | maintenance.e2e-spec.ts | E2E test of authorization | ✅ |
 
 ### PROD-103.7: Reject Request (POST /maintenance-requests/:id/reject)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.7.1 | `reject > should reject request if landlord and status is SUBMITTED` | maintenance.service.spec.ts | Verifies landlord can reject with reason | ⏳ |
-| PROD-103.7.2 | `reject > should throw ForbiddenException if not landlord` | maintenance.service.spec.ts | Verifies only landlord can reject | ⏳ |
-| PROD-103.7 | `POST /maintenance-requests/:id/reject > should allow landlord` | maintenance.e2e-spec.ts | E2E test of rejection | ⏳ |
+| PROD-103.7.1 | `reject > should reject request if landlord and status is SUBMITTED` | maintenance.service.spec.ts | Verifies landlord can reject with reason | ✅ |
+| PROD-103.7.2 | `reject > should throw ForbiddenException if not landlord` | maintenance.service.spec.ts | Verifies only landlord can reject | ✅ |
+| PROD-103.7 | `POST /maintenance-requests/:id/reject > should allow landlord` | maintenance.e2e-spec.ts | E2E test of rejection | ✅ |
 
 ### PROD-103.8: Assign Provider (POST /maintenance-requests/:id/assign)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.8.1 | `assignProvider > should assign provider if landlord and status is APPROVED` | maintenance.service.spec.ts | Verifies provider assignment | ⏳ |
-| PROD-103.8.2 | `assignProvider > should throw NotFoundException if provider not found` | maintenance.service.spec.ts | Verifies error for missing provider | ⏳ |
-| PROD-103.8.3 | `assignProvider > should throw ForbiddenException if not landlord` | maintenance.service.spec.ts | Verifies only landlord can assign | ⏳ |
-| PROD-103.8 | `POST /maintenance-requests/:id/assign > should allow landlord` | maintenance.e2e-spec.ts | E2E test of provider assignment | ⏳ |
-| PROD-103.8 | `POST /maintenance-requests/:id/assign > should reject from tenant` | maintenance.e2e-spec.ts | E2E test of authorization | ⏳ |
+| PROD-103.8.1 | `assignProvider > should assign provider if landlord and status is APPROVED` | maintenance.service.spec.ts | Verifies provider assignment | ✅ |
+| PROD-103.8.2 | `assignProvider > should throw NotFoundException if provider not found` | maintenance.service.spec.ts | Verifies error for missing provider | ✅ |
+| PROD-103.8.3 | `assignProvider > should throw ForbiddenException if not landlord` | maintenance.service.spec.ts | Verifies only landlord can assign | ✅ |
+| PROD-103.8 | `POST /maintenance-requests/:id/assign > should allow landlord` | maintenance.e2e-spec.ts | E2E test of provider assignment | ✅ |
+| PROD-103.8 | `POST /maintenance-requests/:id/assign > should reject from tenant` | maintenance.e2e-spec.ts | E2E test of authorization | ✅ |
 
 ### PROD-103.9: Schedule Request (POST /maintenance-requests/:id/schedule)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.9.1 | `schedule > should schedule if landlord and status is ASSIGNED` | maintenance.service.spec.ts | Verifies scheduling with date/time | ⏳ |
-| PROD-103.9.2 | `schedule > should throw BadRequestException if status is not ASSIGNED` | maintenance.service.spec.ts | Verifies only assigned requests schedulable | ⏳ |
-| PROD-103.9 | `POST /maintenance-requests/:id/schedule > should allow scheduling` | maintenance.e2e-spec.ts | E2E test of scheduling | ⏳ |
+| PROD-103.9.1 | `schedule > should schedule if landlord and status is ASSIGNED` | maintenance.service.spec.ts | Verifies scheduling with date/time | ✅ |
+| PROD-103.9.2 | `schedule > should throw BadRequestException if status is not ASSIGNED` | maintenance.service.spec.ts | Verifies only assigned requests schedulable | ✅ |
+| PROD-103.9 | `POST /maintenance-requests/:id/schedule > should allow scheduling` | maintenance.e2e-spec.ts | E2E test of scheduling | ✅ |
 
 ### PROD-103.10: Start Work (POST /maintenance-requests/:id/start)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.10.1 | `startWork > should start work if provider and status is SCHEDULED` | maintenance.service.spec.ts | Verifies provider can start work | ⏳ |
-| PROD-103.10.2 | `startWork > should throw ForbiddenException if not assigned provider` | maintenance.service.spec.ts | Verifies only assigned provider can start | ⏳ |
-| PROD-103.10 | `POST /maintenance-requests/:id/start > should allow provider` | maintenance.e2e-spec.ts | E2E test of starting work | ⏳ |
-| PROD-103.10 | `POST /maintenance-requests/:id/start > should reject from non-provider` | maintenance.e2e-spec.ts | E2E test of authorization | ⏳ |
+| PROD-103.10.1 | `startWork > should start work if provider and status is SCHEDULED` | maintenance.service.spec.ts | Verifies provider can start work | ✅ |
+| PROD-103.10.2 | `startWork > should throw ForbiddenException if not assigned provider` | maintenance.service.spec.ts | Verifies only assigned provider can start | ✅ |
+| PROD-103.10 | `POST /maintenance-requests/:id/start > should allow provider` | maintenance.e2e-spec.ts | E2E test of starting work | ✅ |
+| PROD-103.10 | `POST /maintenance-requests/:id/start > should reject from non-provider` | maintenance.e2e-spec.ts | E2E test of authorization | ✅ |
 
 ### PROD-103.11: Complete Work (POST /maintenance-requests/:id/complete)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.11.1 | `complete > should complete work if provider and status is IN_PROGRESS` | maintenance.service.spec.ts | Verifies provider can complete with notes/cost | ⏳ |
-| PROD-103.11.2 | `complete > should throw ForbiddenException if not assigned provider` | maintenance.service.spec.ts | Verifies only assigned provider can complete | ⏳ |
-| PROD-103.11 | `POST /maintenance-requests/:id/complete > should allow provider` | maintenance.e2e-spec.ts | E2E test of completion | ⏳ |
+| PROD-103.11.1 | `complete > should complete work if provider and status is IN_PROGRESS` | maintenance.service.spec.ts | Verifies provider can complete with notes/cost | ✅ |
+| PROD-103.11.2 | `complete > should throw ForbiddenException if not assigned provider` | maintenance.service.spec.ts | Verifies only assigned provider can complete | ✅ |
+| PROD-103.11 | `POST /maintenance-requests/:id/complete > should allow provider` | maintenance.e2e-spec.ts | E2E test of completion | ✅ |
 
 ### PROD-103.12: Confirm Completion (POST /maintenance-requests/:id/confirm)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.12.1 | `confirmCompletion > should allow tenant to confirm completion` | maintenance.service.spec.ts | Verifies tenant confirmation | ⏳ |
-| PROD-103.12.2 | `confirmCompletion > should allow landlord to confirm completion` | maintenance.service.spec.ts | Verifies landlord confirmation | ⏳ |
-| PROD-103.12.3 | `confirmCompletion > should set status to CONFIRMED when both parties confirm` | maintenance.service.spec.ts | Verifies final status change | ⏳ |
-| PROD-103.12.4 | `confirmCompletion > should throw ForbiddenException for unauthorized user` | maintenance.service.spec.ts | Verifies access control | ⏳ |
-| PROD-103.12 | `POST /maintenance-requests/:id/confirm > should allow tenant` | maintenance.e2e-spec.ts | E2E test of tenant confirmation | ⏳ |
-| PROD-103.12 | `POST /maintenance-requests/:id/confirm > should allow landlord and finalize` | maintenance.e2e-spec.ts | E2E test of landlord confirmation | ⏳ |
+| PROD-103.12.1 | `confirmCompletion > should allow tenant to confirm completion` | maintenance.service.spec.ts | Verifies tenant confirmation | ✅ |
+| PROD-103.12.2 | `confirmCompletion > should allow landlord to confirm completion` | maintenance.service.spec.ts | Verifies landlord confirmation | ✅ |
+| PROD-103.12.3 | `confirmCompletion > should set status to CONFIRMED when both parties confirm` | maintenance.service.spec.ts | Verifies final status change | ✅ |
+| PROD-103.12.4 | `confirmCompletion > should throw ForbiddenException for unauthorized user` | maintenance.service.spec.ts | Verifies access control | ✅ |
+| PROD-103.12 | `POST /maintenance-requests/:id/confirm > should allow tenant` | maintenance.e2e-spec.ts | E2E test of tenant confirmation | ✅ |
+| PROD-103.12 | `POST /maintenance-requests/:id/confirm > should allow landlord and finalize` | maintenance.e2e-spec.ts | E2E test of landlord confirmation | ✅ |
 
 ### PROD-103.13: Cancel Request (POST /maintenance-requests/:id/cancel)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-103.13.1 | `cancel > should allow tenant to cancel SUBMITTED request` | maintenance.service.spec.ts | Verifies tenant can cancel own submitted request | ⏳ |
-| PROD-103.13.2 | `cancel > should allow landlord to cancel any cancellable request` | maintenance.service.spec.ts | Verifies landlord can cancel | ⏳ |
-| PROD-103.13.3 | `cancel > should throw BadRequestException for tenant cancelling non-SUBMITTED request` | maintenance.service.spec.ts | Verifies tenant limitation | ⏳ |
-| PROD-103.13.4 | `cancel > should throw BadRequestException for already completed request` | maintenance.service.spec.ts | Verifies completed cannot be cancelled | ⏳ |
-| PROD-103.13.5 | `cancel > should throw ForbiddenException for unauthorized user` | maintenance.service.spec.ts | Verifies access control | ⏳ |
-| PROD-103.13 | `POST /maintenance-requests/:id/cancel > should allow tenant` | maintenance.e2e-spec.ts | E2E test of tenant cancellation | ⏳ |
-| PROD-103.13 | `POST /maintenance-requests/:id/cancel > should allow landlord` | maintenance.e2e-spec.ts | E2E test of landlord cancellation | ⏳ |
-| PROD-103.13 | `POST /maintenance-requests/:id/cancel > should prevent tenant from cancelling approved` | maintenance.e2e-spec.ts | E2E test of status restriction | ⏳ |
+| PROD-103.13.1 | `cancel > should allow tenant to cancel SUBMITTED request` | maintenance.service.spec.ts | Verifies tenant can cancel own submitted request | ✅ |
+| PROD-103.13.2 | `cancel > should allow landlord to cancel any cancellable request` | maintenance.service.spec.ts | Verifies landlord can cancel | ✅ |
+| PROD-103.13.3 | `cancel > should throw BadRequestException for tenant cancelling non-SUBMITTED request` | maintenance.service.spec.ts | Verifies tenant limitation | ✅ |
+| PROD-103.13.4 | `cancel > should throw BadRequestException for already completed request` | maintenance.service.spec.ts | Verifies completed cannot be cancelled | ✅ |
+| PROD-103.13.5 | `cancel > should throw ForbiddenException for unauthorized user` | maintenance.service.spec.ts | Verifies access control | ✅ |
+| PROD-103.13 | `POST /maintenance-requests/:id/cancel > should allow tenant` | maintenance.e2e-spec.ts | E2E test of tenant cancellation | ✅ |
+| PROD-103.13 | `POST /maintenance-requests/:id/cancel > should allow landlord` | maintenance.e2e-spec.ts | E2E test of landlord cancellation | ✅ |
+| PROD-103.13 | `POST /maintenance-requests/:id/cancel > should prevent tenant from cancelling approved` | maintenance.e2e-spec.ts | E2E test of status restriction | ✅ |
 
 ### Test Summary for PROD-103
 
 | Test Type | Count | Status |
 |-----------|-------|--------|
-| Service Unit Tests (MaintenanceService) | 37 | ⏳ |
-| Controller Unit Tests | 12 | ⏳ |
-| E2E Tests | 18 | ⏳ |
-| **Total** | **67** | ⏳ |
+| Service Unit Tests (MaintenanceService) | 37 | ✅ |
+| Controller Unit Tests | 12 | ✅ |
+| E2E Tests | 18 | ✅ |
+| **Total** | **67** | ✅ |
 
 ---
 
@@ -1773,105 +1773,105 @@ Note: E2E tests require Docker/database to run.
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-105.1.1 | Schema includes LeaseRenewal model | prisma/schema.prisma | Verifies model with lease, landlord, tenant, newLease relations | ⏳ |
-| PROD-105.1.2 | Schema includes LeaseRenewalStatus enum | prisma/schema.prisma | Verifies PENDING, OFFERED, ACCEPTED, DECLINED, EXPIRED, CANCELLED statuses | ⏳ |
-| PROD-105.1.3 | NotificationType includes LEASE_RENEWAL_* values | prisma/schema.prisma | Verifies all lease renewal notification types | ⏳ |
+| PROD-105.1.1 | Schema includes LeaseRenewal model | prisma/schema.prisma | Verifies model with lease, landlord, tenant, newLease relations | ✅ |
+| PROD-105.1.2 | Schema includes LeaseRenewalStatus enum | prisma/schema.prisma | Verifies PENDING, OFFERED, ACCEPTED, DECLINED, EXPIRED, CANCELLED statuses | ✅ |
+| PROD-105.1.3 | NotificationType includes LEASE_RENEWAL_* values | prisma/schema.prisma | Verifies all lease renewal notification types | ✅ |
 
 ### PROD-105.2: Check Upcoming Renewals (Cron Job)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-105.2.1 | `checkUpcomingRenewals > should find leases ending in 60 days` | lease-renewal.service.spec.ts | Verifies cron job identifies expiring leases | ⏳ |
-| PROD-105.2.2 | `checkUpcomingRenewals > should create PENDING renewal records` | lease-renewal.service.spec.ts | Verifies renewal record is created for each lease | ⏳ |
-| PROD-105.2.3 | `checkUpcomingRenewals > should send notifications to landlords` | lease-renewal.service.spec.ts | Verifies landlord receives reminder notification | ⏳ |
-| PROD-105.2.4 | `checkUpcomingRenewals > should send emails to landlords` | lease-renewal.service.spec.ts | Verifies landlord receives reminder email | ⏳ |
-| PROD-105.2.5 | `checkUpcomingRenewals > should skip leases that already have renewal` | lease-renewal.service.spec.ts | Verifies no duplicate renewals created | ⏳ |
+| PROD-105.2.1 | `checkUpcomingRenewals > should find leases ending in 60 days` | lease-renewal.service.spec.ts | Verifies cron job identifies expiring leases | ✅ |
+| PROD-105.2.2 | `checkUpcomingRenewals > should create PENDING renewal records` | lease-renewal.service.spec.ts | Verifies renewal record is created for each lease | ✅ |
+| PROD-105.2.3 | `checkUpcomingRenewals > should send notifications to landlords` | lease-renewal.service.spec.ts | Verifies landlord receives reminder notification | ✅ |
+| PROD-105.2.4 | `checkUpcomingRenewals > should send emails to landlords` | lease-renewal.service.spec.ts | Verifies landlord receives reminder email | ✅ |
+| PROD-105.2.5 | `checkUpcomingRenewals > should skip leases that already have renewal` | lease-renewal.service.spec.ts | Verifies no duplicate renewals created | ✅ |
 
 ### PROD-105.3: List Pending Renewals (GET /leases/renewals/pending)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-105.3.1 | `findPendingRenewals > should return paginated renewals for landlord` | lease-renewal.service.spec.ts | Verifies landlord sees their pending renewals | ⏳ |
-| PROD-105.3.2 | `findPendingRenewals > should filter by status` | lease-renewal.service.spec.ts | Verifies status filtering works | ⏳ |
-| PROD-105.3 | `GET /leases/renewals/pending > should return pending renewals` | lease-renewal.e2e-spec.ts | E2E test of pending renewals list | ⏳ |
+| PROD-105.3.1 | `findPendingRenewals > should return paginated renewals for landlord` | lease-renewal.service.spec.ts | Verifies landlord sees their pending renewals | ✅ |
+| PROD-105.3.2 | `findPendingRenewals > should filter by status` | lease-renewal.service.spec.ts | Verifies status filtering works | ✅ |
+| PROD-105.3 | `GET /leases/renewals/pending > should return pending renewals` | lease-renewal.e2e-spec.ts | E2E test of pending renewals list | ✅ |
 
 ### PROD-105.4: Get Renewal for Lease (GET /leases/:id/renewal)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-105.4.1 | `findRenewalForLease > should return renewal for landlord` | lease-renewal.service.spec.ts | Verifies landlord can view renewal status | ⏳ |
-| PROD-105.4.2 | `findRenewalForLease > should return renewal for tenant` | lease-renewal.service.spec.ts | Verifies tenant can view renewal status | ⏳ |
-| PROD-105.4.3 | `findRenewalForLease > should throw NotFoundException if no renewal` | lease-renewal.service.spec.ts | Verifies error for missing renewal | ⏳ |
-| PROD-105.4.4 | `findRenewalForLease > should throw ForbiddenException for unauthorized` | lease-renewal.service.spec.ts | Verifies access control | ⏳ |
-| PROD-105.4 | `GET /leases/:id/renewal > should return renewal status` | lease-renewal.e2e-spec.ts | E2E test of renewal retrieval | ⏳ |
-| PROD-105.4 | `GET /leases/:id/renewal > should deny unauthorized access` | lease-renewal.e2e-spec.ts | E2E test of authorization | ⏳ |
+| PROD-105.4.1 | `findRenewalForLease > should return renewal for landlord` | lease-renewal.service.spec.ts | Verifies landlord can view renewal status | ✅ |
+| PROD-105.4.2 | `findRenewalForLease > should return renewal for tenant` | lease-renewal.service.spec.ts | Verifies tenant can view renewal status | ✅ |
+| PROD-105.4.3 | `findRenewalForLease > should throw NotFoundException if no renewal` | lease-renewal.service.spec.ts | Verifies error for missing renewal | ✅ |
+| PROD-105.4.4 | `findRenewalForLease > should throw ForbiddenException for unauthorized` | lease-renewal.service.spec.ts | Verifies access control | ✅ |
+| PROD-105.4 | `GET /leases/:id/renewal > should return renewal status` | lease-renewal.e2e-spec.ts | E2E test of renewal retrieval | ✅ |
+| PROD-105.4 | `GET /leases/:id/renewal > should deny unauthorized access` | lease-renewal.e2e-spec.ts | E2E test of authorization | ✅ |
 
 ### PROD-105.5: Create Renewal Offer (POST /leases/:id/renewal/offer)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-105.5.1 | `createOffer > should create offer with proposed terms` | lease-renewal.service.spec.ts | Verifies landlord can set start/end dates and rent | ⏳ |
-| PROD-105.5.2 | `createOffer > should update status to OFFERED` | lease-renewal.service.spec.ts | Verifies status transition | ⏳ |
-| PROD-105.5.3 | `createOffer > should send notification to tenant` | lease-renewal.service.spec.ts | Verifies tenant receives offer notification | ⏳ |
-| PROD-105.5.4 | `createOffer > should send email to tenant` | lease-renewal.service.spec.ts | Verifies tenant receives offer email | ⏳ |
-| PROD-105.5.5 | `createOffer > should throw ForbiddenException if not landlord` | lease-renewal.service.spec.ts | Verifies only landlord can create offer | ⏳ |
-| PROD-105.5.6 | `createOffer > should throw BadRequestException if not PENDING` | lease-renewal.service.spec.ts | Verifies status must be PENDING | ⏳ |
-| PROD-105.5 | `POST /leases/:id/renewal/offer > should allow landlord` | lease-renewal.e2e-spec.ts | E2E test of offer creation | ⏳ |
-| PROD-105.5 | `POST /leases/:id/renewal/offer > should reject from tenant` | lease-renewal.e2e-spec.ts | E2E test of authorization | ⏳ |
+| PROD-105.5.1 | `createOffer > should create offer with proposed terms` | lease-renewal.service.spec.ts | Verifies landlord can set start/end dates and rent | ✅ |
+| PROD-105.5.2 | `createOffer > should update status to OFFERED` | lease-renewal.service.spec.ts | Verifies status transition | ✅ |
+| PROD-105.5.3 | `createOffer > should send notification to tenant` | lease-renewal.service.spec.ts | Verifies tenant receives offer notification | ✅ |
+| PROD-105.5.4 | `createOffer > should send email to tenant` | lease-renewal.service.spec.ts | Verifies tenant receives offer email | ✅ |
+| PROD-105.5.5 | `createOffer > should throw ForbiddenException if not landlord` | lease-renewal.service.spec.ts | Verifies only landlord can create offer | ✅ |
+| PROD-105.5.6 | `createOffer > should throw BadRequestException if not PENDING` | lease-renewal.service.spec.ts | Verifies status must be PENDING | ✅ |
+| PROD-105.5 | `POST /leases/:id/renewal/offer > should allow landlord` | lease-renewal.e2e-spec.ts | E2E test of offer creation | ✅ |
+| PROD-105.5 | `POST /leases/:id/renewal/offer > should reject from tenant` | lease-renewal.e2e-spec.ts | E2E test of authorization | ✅ |
 
 ### PROD-105.6: Accept Renewal Offer (POST /leases/:id/renewal/accept)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-105.6.1 | `acceptOffer > should update status to ACCEPTED` | lease-renewal.service.spec.ts | Verifies status transition | ⏳ |
-| PROD-105.6.2 | `acceptOffer > should create new lease with proposed terms` | lease-renewal.service.spec.ts | Verifies new lease auto-generated | ⏳ |
-| PROD-105.6.3 | `acceptOffer > should link new lease to renewal record` | lease-renewal.service.spec.ts | Verifies newLeaseId is set | ⏳ |
-| PROD-105.6.4 | `acceptOffer > should send notifications to both parties` | lease-renewal.service.spec.ts | Verifies both landlord and tenant notified | ⏳ |
-| PROD-105.6.5 | `acceptOffer > should send emails to both parties` | lease-renewal.service.spec.ts | Verifies both receive acceptance email | ⏳ |
-| PROD-105.6.6 | `acceptOffer > should throw ForbiddenException if not tenant` | lease-renewal.service.spec.ts | Verifies only tenant can accept | ⏳ |
-| PROD-105.6.7 | `acceptOffer > should throw BadRequestException if not OFFERED` | lease-renewal.service.spec.ts | Verifies status must be OFFERED | ⏳ |
-| PROD-105.6 | `POST /leases/:id/renewal/accept > should allow tenant` | lease-renewal.e2e-spec.ts | E2E test of acceptance | ⏳ |
-| PROD-105.6 | `POST /leases/:id/renewal/accept > should create new lease` | lease-renewal.e2e-spec.ts | E2E test of lease generation | ⏳ |
-| PROD-105.6 | `POST /leases/:id/renewal/accept > should reject from landlord` | lease-renewal.e2e-spec.ts | E2E test of authorization | ⏳ |
+| PROD-105.6.1 | `acceptOffer > should update status to ACCEPTED` | lease-renewal.service.spec.ts | Verifies status transition | ✅ |
+| PROD-105.6.2 | `acceptOffer > should create new lease with proposed terms` | lease-renewal.service.spec.ts | Verifies new lease auto-generated | ✅ |
+| PROD-105.6.3 | `acceptOffer > should link new lease to renewal record` | lease-renewal.service.spec.ts | Verifies newLeaseId is set | ✅ |
+| PROD-105.6.4 | `acceptOffer > should send notifications to both parties` | lease-renewal.service.spec.ts | Verifies both landlord and tenant notified | ✅ |
+| PROD-105.6.5 | `acceptOffer > should send emails to both parties` | lease-renewal.service.spec.ts | Verifies both receive acceptance email | ✅ |
+| PROD-105.6.6 | `acceptOffer > should throw ForbiddenException if not tenant` | lease-renewal.service.spec.ts | Verifies only tenant can accept | ✅ |
+| PROD-105.6.7 | `acceptOffer > should throw BadRequestException if not OFFERED` | lease-renewal.service.spec.ts | Verifies status must be OFFERED | ✅ |
+| PROD-105.6 | `POST /leases/:id/renewal/accept > should allow tenant` | lease-renewal.e2e-spec.ts | E2E test of acceptance | ✅ |
+| PROD-105.6 | `POST /leases/:id/renewal/accept > should create new lease` | lease-renewal.e2e-spec.ts | E2E test of lease generation | ✅ |
+| PROD-105.6 | `POST /leases/:id/renewal/accept > should reject from landlord` | lease-renewal.e2e-spec.ts | E2E test of authorization | ✅ |
 
 ### PROD-105.7: Decline Renewal Offer (POST /leases/:id/renewal/decline)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-105.7.1 | `declineOffer > should update status to DECLINED` | lease-renewal.service.spec.ts | Verifies status transition | ⏳ |
-| PROD-105.7.2 | `declineOffer > should store decline reason` | lease-renewal.service.spec.ts | Verifies optional reason saved | ⏳ |
-| PROD-105.7.3 | `declineOffer > should send notification to landlord` | lease-renewal.service.spec.ts | Verifies landlord notified | ⏳ |
-| PROD-105.7.4 | `declineOffer > should send email to landlord` | lease-renewal.service.spec.ts | Verifies landlord receives decline email | ⏳ |
-| PROD-105.7.5 | `declineOffer > should throw ForbiddenException if not tenant` | lease-renewal.service.spec.ts | Verifies only tenant can decline | ⏳ |
-| PROD-105.7 | `POST /leases/:id/renewal/decline > should allow tenant` | lease-renewal.e2e-spec.ts | E2E test of decline | ⏳ |
-| PROD-105.7 | `POST /leases/:id/renewal/decline > should reject from landlord` | lease-renewal.e2e-spec.ts | E2E test of authorization | ⏳ |
+| PROD-105.7.1 | `declineOffer > should update status to DECLINED` | lease-renewal.service.spec.ts | Verifies status transition | ✅ |
+| PROD-105.7.2 | `declineOffer > should store decline reason` | lease-renewal.service.spec.ts | Verifies optional reason saved | ✅ |
+| PROD-105.7.3 | `declineOffer > should send notification to landlord` | lease-renewal.service.spec.ts | Verifies landlord notified | ✅ |
+| PROD-105.7.4 | `declineOffer > should send email to landlord` | lease-renewal.service.spec.ts | Verifies landlord receives decline email | ✅ |
+| PROD-105.7.5 | `declineOffer > should throw ForbiddenException if not tenant` | lease-renewal.service.spec.ts | Verifies only tenant can decline | ✅ |
+| PROD-105.7 | `POST /leases/:id/renewal/decline > should allow tenant` | lease-renewal.e2e-spec.ts | E2E test of decline | ✅ |
+| PROD-105.7 | `POST /leases/:id/renewal/decline > should reject from landlord` | lease-renewal.e2e-spec.ts | E2E test of authorization | ✅ |
 
 ### PROD-105.8: Cancel Renewal Offer (DELETE /leases/:id/renewal)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-105.8.1 | `cancelOffer > should update status to CANCELLED` | lease-renewal.service.spec.ts | Verifies status transition | ⏳ |
-| PROD-105.8.2 | `cancelOffer > should throw ForbiddenException if not landlord` | lease-renewal.service.spec.ts | Verifies only landlord can cancel | ⏳ |
-| PROD-105.8.3 | `cancelOffer > should throw BadRequestException if already responded` | lease-renewal.service.spec.ts | Verifies cannot cancel after response | ⏳ |
-| PROD-105.8 | `DELETE /leases/:id/renewal > should allow landlord` | lease-renewal.e2e-spec.ts | E2E test of cancellation | ⏳ |
-| PROD-105.8 | `DELETE /leases/:id/renewal > should reject from tenant` | lease-renewal.e2e-spec.ts | E2E test of authorization | ⏳ |
+| PROD-105.8.1 | `cancelOffer > should update status to CANCELLED` | lease-renewal.service.spec.ts | Verifies status transition | ✅ |
+| PROD-105.8.2 | `cancelOffer > should throw ForbiddenException if not landlord` | lease-renewal.service.spec.ts | Verifies only landlord can cancel | ✅ |
+| PROD-105.8.3 | `cancelOffer > should throw BadRequestException if already responded` | lease-renewal.service.spec.ts | Verifies cannot cancel after response | ✅ |
+| PROD-105.8 | `DELETE /leases/:id/renewal > should allow landlord` | lease-renewal.e2e-spec.ts | E2E test of cancellation | ✅ |
+| PROD-105.8 | `DELETE /leases/:id/renewal > should reject from tenant` | lease-renewal.e2e-spec.ts | E2E test of authorization | ✅ |
 
 ### PROD-105.9: Expire Offers (Cron Job)
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-105.9.1 | `expireOffers > should find offers past expiration date` | lease-renewal.service.spec.ts | Verifies cron job identifies expired offers | ⏳ |
-| PROD-105.9.2 | `expireOffers > should update status to EXPIRED` | lease-renewal.service.spec.ts | Verifies status transition | ⏳ |
-| PROD-105.9.3 | `expireOffers > should send notifications to both parties` | lease-renewal.service.spec.ts | Verifies both parties notified | ⏳ |
-| PROD-105.9.4 | `expireOffers > should send emails to both parties` | lease-renewal.service.spec.ts | Verifies both receive expiration email | ⏳ |
+| PROD-105.9.1 | `expireOffers > should find offers past expiration date` | lease-renewal.service.spec.ts | Verifies cron job identifies expired offers | ✅ |
+| PROD-105.9.2 | `expireOffers > should update status to EXPIRED` | lease-renewal.service.spec.ts | Verifies status transition | ✅ |
+| PROD-105.9.3 | `expireOffers > should send notifications to both parties` | lease-renewal.service.spec.ts | Verifies both parties notified | ✅ |
+| PROD-105.9.4 | `expireOffers > should send emails to both parties` | lease-renewal.service.spec.ts | Verifies both receive expiration email | ✅ |
 
 ### Test Summary for PROD-105
 
 | Test Type | Count | Status |
 |-----------|-------|--------|
-| Service Unit Tests (LeaseRenewalService) | 20 | ⏳ |
-| E2E Tests | 15 | ⏳ |
-| **Total** | **35** | ⏳ |
+| Service Unit Tests (LeaseRenewalService) | 20 | ✅ |
+| E2E Tests | 15 | ✅ |
+| **Total** | **35** | ✅ |
 
 ---
 
@@ -2272,16 +2272,16 @@ The AI Tour Guide module provides location-based tour narration with voice style
 | Payments | payments.e2e-spec.ts | 38 | Payment checkout, transactions, stats, refunds | ✅ |
 | **Payments (Browser)** | Playwright MCP | 5 | Mock checkout, cancellation, transactions, refunds | ✅ |
 | **Messaging (Unit)** | messaging.*.spec.ts | 79 | Conversations, messages, WebSocket gateway, real-time events | ✅ |
-| **Messaging (E2E)** | messaging.e2e-spec.ts | 38 | Full messaging flow, conversations CRUD, messages, archive | ⏳ |
-| **Messaging (Browser)** | messaging.spec.ts | 29 | UI interactions, real-time, accessibility, mobile responsive | ⏳ |
-| **Applications (Unit)** | applications.*.spec.ts | 24 | Application CRUD, status transitions, authorization | ⏳ |
-| **Applications (E2E)** | applications.e2e-spec.ts | 15 | Full rental application flow, owner review, withdrawal | ⏳ |
+| **Messaging (E2E)** | messaging.e2e-spec.ts | 38 | Full messaging flow, conversations CRUD, messages, archive | ✅ |
+| **Messaging (Browser)** | messaging.spec.ts | 29 | UI interactions, real-time, accessibility, mobile responsive | ✅ |
+| **Applications (Unit)** | applications.*.spec.ts | 24 | Application CRUD, status transitions, authorization | ✅ |
+| **Applications (E2E)** | applications.e2e-spec.ts | 15 | Full rental application flow, owner review, withdrawal | ✅ |
 | **Leases (Unit)** | leases.*.spec.ts | 60 | Lease CRUD, payments, rent reminders, cron jobs, e-signature | ✅ |
 | **Leases (E2E)** | leases.e2e-spec.ts | 15 | Full lease lifecycle, payments, activation, termination | ✅ |
-| **Maintenance (Unit)** | maintenance.*.spec.ts | 49 | Maintenance CRUD, workflow transitions, authorization | ⏳ |
-| **Maintenance (E2E)** | maintenance.e2e-spec.ts | 18 | Full maintenance workflow, approval, completion | ⏳ |
-| **Lease Renewal (Unit)** | lease-renewal.service.spec.ts | 20 | Cron jobs, offer CRUD, status transitions, authorization | ⏳ |
-| **Lease Renewal (E2E)** | lease-renewal.e2e-spec.ts | 15 | Full renewal workflow, accept/decline, new lease generation | ⏳ |
+| **Maintenance (Unit)** | maintenance.*.spec.ts | 49 | Maintenance CRUD, workflow transitions, authorization | ✅ |
+| **Maintenance (E2E)** | maintenance.e2e-spec.ts | 18 | Full maintenance workflow, approval, completion | ✅ |
+| **Lease Renewal (Unit)** | lease-renewal.service.spec.ts | 20 | Cron jobs, offer CRUD, status transitions, authorization | ✅ |
+| **Lease Renewal (E2E)** | lease-renewal.e2e-spec.ts | 15 | Full renewal workflow, accept/decline, new lease generation | ✅ |
 | **Dashboard (Unit)** | dashboard.*.spec.ts | 50 | Expense CRUD, dashboard aggregation, net income calculation, tenant dashboard, documents | ✅ |
 | **Dashboard (E2E)** | dashboard.e2e-spec.ts | 24 | Full landlord dashboard, expenses CRUD, filtering, authorization | ✅ |
 | **Tenant Portal (Unit)** | tenant-*.spec.ts | 21 | Tenant dashboard aggregation, document CRUD, authorization | ✅ |
