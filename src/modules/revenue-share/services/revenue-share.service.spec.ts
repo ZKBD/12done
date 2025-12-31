@@ -8,7 +8,8 @@ describe('RevenueShareService', () => {
   let service: RevenueShareService;
   // prisma is mocked via mockPrismaService
 
-  const mockPrismaService = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockPrismaService: any = {
     platformConfiguration: {
       findFirst: jest.fn(),
       create: jest.fn(),
@@ -100,7 +101,7 @@ describe('RevenueShareService', () => {
     payerId: 'buyer-1',
     payer: {
       id: 'buyer-1',
-      name: 'Buyer User',
+      firstName: 'Buyer',
       email: 'buyer@example.com',
       invitedById: 'inviter-1',
       invitedBy: {
@@ -125,7 +126,6 @@ describe('RevenueShareService', () => {
     }).compile();
 
     service = module.get<RevenueShareService>(RevenueShareService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });
