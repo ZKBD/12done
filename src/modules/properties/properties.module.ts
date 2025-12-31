@@ -13,9 +13,10 @@ import {
   MortgageCalculatorService,
 } from './services';
 import { SearchModule } from '../search/search.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [forwardRef(() => SearchModule)],
+  imports: [forwardRef(() => SearchModule), NotificationsModule],
   controllers: [PropertiesController],
   providers: [
     PropertiesService,

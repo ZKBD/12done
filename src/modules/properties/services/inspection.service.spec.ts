@@ -4,13 +4,15 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { PropertyStatus, UserRole } from '@prisma/client';
+import { PropertyStatus, UserRole, NotificationType } from '@prisma/client';
 import { InspectionService } from './inspection.service';
 import { PrismaService } from '@/database';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 
 describe('InspectionService', () => {
   let service: InspectionService;
   let prismaService: jest.Mocked<PrismaService>;
+  let notificationsService: jest.Mocked<NotificationsService>;
 
   const mockProperty = {
     id: 'property-123',
@@ -67,11 +69,18 @@ describe('InspectionService', () => {
             },
           },
         },
+        {
+          provide: NotificationsService,
+          useValue: {
+            create: jest.fn().mockResolvedValue({}),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<InspectionService>(InspectionService);
     prismaService = module.get(PrismaService);
+    notificationsService = module.get(NotificationsService);
   });
 
   it('should be defined', () => {
@@ -520,6 +529,61 @@ describe('InspectionService', () => {
         }),
       );
     });
+
+    it('should send notification to property owner when slot is booked', async () => {
+      const futureSlot = {
+        ...mockSlot,
+        date: new Date('2030-01-01'),
+      };
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue(mockProperty);
+      (prismaService.inspectionSlot.findFirst as jest.Mock).mockResolvedValue(futureSlot);
+      (prismaService.inspectionSlot.update as jest.Mock).mockResolvedValue({
+        ...futureSlot,
+        isBooked: true,
+        bookedById: 'user-123',
+        bookedAt: new Date(),
+        bookedBy: {
+          id: 'user-123',
+          firstName: 'John',
+          lastName: 'Doe',
+          phone: '+36201234567',
+        },
+      });
+
+      await service.bookSlot('property-123', 'slot-123', 'user-123');
+
+      expect(notificationsService.create).toHaveBeenCalledWith(
+        'owner-123',
+        NotificationType.INSPECTION_BOOKED,
+        'Inspection Booked',
+        expect.stringContaining('John Doe has booked an inspection'),
+        expect.objectContaining({
+          propertyId: 'property-123',
+          bookedById: 'user-123',
+        }),
+      );
+    });
+
+    it('should not fail if notification fails', async () => {
+      const futureSlot = {
+        ...mockSlot,
+        date: new Date('2030-01-01'),
+      };
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue(mockProperty);
+      (prismaService.inspectionSlot.findFirst as jest.Mock).mockResolvedValue(futureSlot);
+      (prismaService.inspectionSlot.update as jest.Mock).mockResolvedValue({
+        ...futureSlot,
+        isBooked: true,
+        bookedById: 'user-123',
+        bookedAt: new Date(),
+        bookedBy: null,
+      });
+      (notificationsService.create as jest.Mock).mockRejectedValue(new Error('Notification failed'));
+
+      // Should not throw despite notification failure
+      const result = await service.bookSlot('property-123', 'slot-123', 'user-123');
+      expect(result.isBooked).toBe(true);
+    });
   });
 
   describe('cancelBooking', () => {
@@ -625,6 +689,85 @@ describe('InspectionService', () => {
           },
         }),
       );
+    });
+
+    it('should send notification to property owner when booker cancels', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue(mockProperty);
+      (prismaService.inspectionSlot.findFirst as jest.Mock).mockResolvedValue(mockBookedSlot);
+      (prismaService.inspectionSlot.update as jest.Mock).mockResolvedValue({
+        ...mockSlot,
+        isBooked: false,
+        bookedById: null,
+        bookedAt: null,
+      });
+
+      await service.cancelBooking(
+        'property-123',
+        'slot-456',
+        'booker-123',
+        UserRole.USER,
+      );
+
+      expect(notificationsService.create).toHaveBeenCalledWith(
+        'owner-123',
+        NotificationType.INSPECTION_CANCELLED,
+        'Inspection Cancelled',
+        expect.stringContaining('Jane Doe has cancelled'),
+        expect.objectContaining({
+          propertyId: 'property-123',
+          cancelledById: 'booker-123',
+        }),
+      );
+    });
+
+    it('should send notification to booker when owner cancels', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue(mockProperty);
+      (prismaService.inspectionSlot.findFirst as jest.Mock).mockResolvedValue(mockBookedSlot);
+      (prismaService.inspectionSlot.update as jest.Mock).mockResolvedValue({
+        ...mockSlot,
+        isBooked: false,
+        bookedById: null,
+        bookedAt: null,
+      });
+
+      await service.cancelBooking(
+        'property-123',
+        'slot-456',
+        'owner-123',
+        UserRole.USER,
+      );
+
+      expect(notificationsService.create).toHaveBeenCalledWith(
+        'booker-123',
+        NotificationType.INSPECTION_CANCELLED,
+        'Inspection Cancelled',
+        expect.stringContaining('has been cancelled by the property owner'),
+        expect.objectContaining({
+          propertyId: 'property-123',
+          cancelledById: 'owner-123',
+        }),
+      );
+    });
+
+    it('should not fail if cancellation notification fails', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue(mockProperty);
+      (prismaService.inspectionSlot.findFirst as jest.Mock).mockResolvedValue(mockBookedSlot);
+      (prismaService.inspectionSlot.update as jest.Mock).mockResolvedValue({
+        ...mockSlot,
+        isBooked: false,
+        bookedById: null,
+        bookedAt: null,
+      });
+      (notificationsService.create as jest.Mock).mockRejectedValue(new Error('Notification failed'));
+
+      // Should not throw despite notification failure
+      const result = await service.cancelBooking(
+        'property-123',
+        'slot-456',
+        'booker-123',
+        UserRole.USER,
+      );
+      expect(result.isBooked).toBe(false);
     });
   });
 

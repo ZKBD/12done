@@ -3,9 +3,11 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
-import { PropertyStatus, UserRole } from '@prisma/client';
+import { PropertyStatus, UserRole, NotificationType } from '@prisma/client';
 import { PrismaService } from '@/database';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 import {
   CreateInspectionSlotDto,
   BulkInspectionSlotsDto,
@@ -15,7 +17,12 @@ import {
 
 @Injectable()
 export class InspectionService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(InspectionService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async createSlot(
     propertyId: string,
@@ -220,7 +227,35 @@ export class InspectionService {
       },
     });
 
-    // TODO: Send notification to property owner
+    // Send notification to property owner
+    try {
+      const bookerName = updatedSlot.bookedBy
+        ? `${updatedSlot.bookedBy.firstName} ${updatedSlot.bookedBy.lastName}`
+        : 'A user';
+      const formattedDate = new Date(updatedSlot.date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
+      await this.notifications.create(
+        property.ownerId,
+        NotificationType.INSPECTION_BOOKED,
+        'Inspection Booked',
+        `${bookerName} has booked an inspection for your property on ${formattedDate} at ${updatedSlot.startTime}.`,
+        {
+          propertyId,
+          slotId: updatedSlot.id,
+          bookedById: userId,
+          date: updatedSlot.date.toISOString(),
+          startTime: updatedSlot.startTime,
+          endTime: updatedSlot.endTime,
+        },
+      );
+    } catch (error) {
+      this.logger.error(`Failed to send inspection booking notification: ${error}`);
+    }
 
     return this.mapToResponseDto(updatedSlot);
   }
@@ -241,6 +276,15 @@ export class InspectionService {
 
     const slot = await this.prisma.inspectionSlot.findFirst({
       where: { id: slotId, propertyId },
+      include: {
+        bookedBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
     });
 
     if (!slot) {
@@ -261,6 +305,12 @@ export class InspectionService {
       throw new ForbiddenException('You cannot cancel this booking');
     }
 
+    // Store booker info before clearing
+    const originalBookerId = slot.bookedById;
+    const bookerName = slot.bookedBy
+      ? `${slot.bookedBy.firstName} ${slot.bookedBy.lastName}`
+      : 'The user';
+
     const updatedSlot = await this.prisma.inspectionSlot.update({
       where: { id: slotId },
       data: {
@@ -270,7 +320,56 @@ export class InspectionService {
       },
     });
 
-    // TODO: Send cancellation notification
+    // Send cancellation notifications
+    try {
+      const formattedDate = new Date(slot.date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
+      const isCancelledByOwner = requesterId === property.ownerId;
+      const isCancelledByBooker = requesterId === originalBookerId;
+
+      // Notify property owner if booker cancelled
+      if (isCancelledByBooker && originalBookerId !== property.ownerId) {
+        await this.notifications.create(
+          property.ownerId,
+          NotificationType.INSPECTION_CANCELLED,
+          'Inspection Cancelled',
+          `${bookerName} has cancelled their inspection on ${formattedDate} at ${slot.startTime}.`,
+          {
+            propertyId,
+            slotId: slot.id,
+            cancelledById: requesterId,
+            date: slot.date.toISOString(),
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+          },
+        );
+      }
+
+      // Notify booker if owner or admin cancelled
+      if ((isCancelledByOwner || requesterRole === UserRole.ADMIN) && originalBookerId) {
+        await this.notifications.create(
+          originalBookerId,
+          NotificationType.INSPECTION_CANCELLED,
+          'Inspection Cancelled',
+          `Your inspection scheduled for ${formattedDate} at ${slot.startTime} has been cancelled by the property owner.`,
+          {
+            propertyId,
+            slotId: slot.id,
+            cancelledById: requesterId,
+            date: slot.date.toISOString(),
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+          },
+        );
+      }
+    } catch (error) {
+      this.logger.error(`Failed to send inspection cancellation notification: ${error}`);
+    }
 
     return this.mapToResponseDto(updatedSlot);
   }
