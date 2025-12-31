@@ -218,7 +218,7 @@ describe('OfflineModeService', () => {
       (prisma.offlinePoiCache.update as jest.Mock).mockResolvedValue(mockCachedPoi);
       (prisma.offlineRegion.update as jest.Mock).mockResolvedValue(mockRegion);
 
-      const result = await service.preGenerateNarrations('user-1', 'region-1');
+      await service.preGenerateNarrations('user-1', 'region-1');
 
       expect(narrationService.generateNarration).toHaveBeenCalledTimes(3); // 3 voice styles
       expect(prisma.offlinePoiCache.update).toHaveBeenCalled();

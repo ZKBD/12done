@@ -184,7 +184,7 @@ export class OfflineModeService {
           });
           narrations[style] = narration.narration;
           additionalSize += narration.narration.length;
-        } catch (error) {
+        } catch (_error) {
           this.logger.warn(`Failed to generate ${style} narration for ${cachedPoi.placeId}`);
         }
       }
@@ -238,7 +238,7 @@ export class OfflineModeService {
     regionId: string,
   ): Promise<OfflineRegionResponseDto> {
     // Re-download data and extend expiry
-    const region = await this.downloadRegionData(userId, regionId);
+    await this.downloadRegionData(userId, regionId);
 
     // Update expiry date
     const expiresAt = new Date();

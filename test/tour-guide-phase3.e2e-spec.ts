@@ -15,7 +15,7 @@ describe('Tour Guide Phase 3 (E2E)', () => {
 
   let userToken: string;
   let otherUserToken: string;
-  let userId: string;
+  let _userId: string;
   let _otherUserId: string;
 
   // Test data IDs
@@ -58,7 +58,7 @@ describe('Tour Guide Phase 3 (E2E)', () => {
         status: 'ACTIVE',
       },
     });
-    userId = user.id;
+    _userId = user.id;
     userToken = jwtService.sign(
       { sub: user.id, email: user.email },
       { secret: configService.get('jwt.secret') },
