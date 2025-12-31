@@ -137,7 +137,7 @@ export default function PropertyDetailPage() {
       </div>
 
       {/* Image Gallery */}
-      <ImageGallery media={property.media} title={property.title} />
+      <ImageGallery media={property.media ?? []} title={property.title} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
         {/* Main Content */}
@@ -234,7 +234,7 @@ export default function PropertyDetailPage() {
                 </div>
                 <div>
                   <p className="font-medium">
-                    {property.owner.firstName} {property.owner.lastName}
+                    {property.owner?.firstName} {property.owner?.lastName}
                   </p>
                   <p className="text-sm text-muted-foreground">Property Owner</p>
                 </div>

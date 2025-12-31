@@ -129,8 +129,8 @@ export default function PropertyEditPage() {
     setSquareMeters(property.squareMeters?.toString() || '');
     setFloors(property.floors?.toString() || '');
     setYearBuilt(property.yearBuilt?.toString() || '');
-    setPetFriendly(property.petFriendly);
-    setNoAgents(property.noAgents);
+    setPetFriendly(property.petFriendly ?? false);
+    setNoAgents(property.noAgents ?? false);
     setFormInitialized(true);
   }
 
@@ -561,7 +561,7 @@ export default function PropertyEditPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <MediaUploader propertyId={propertyId} media={property.media} />
+              <MediaUploader propertyId={propertyId} media={property.media ?? []} />
             </CardContent>
           </Card>
         </TabsContent>
