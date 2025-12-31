@@ -589,6 +589,142 @@ describe('SearchController (e2e)', () => {
     });
   });
 
+  // ============ VOICE SEARCH (PROD-044) ============
+
+  describe('POST /api/voice-search/parse (PROD-044.3)', () => {
+    it('should parse simple city search', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/voice-search/parse')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ transcript: 'apartments in Budapest' })
+        .expect(200);
+
+      expect(response.body).toHaveProperty('originalText', 'apartments in Budapest');
+      expect(response.body).toHaveProperty('parsedCriteria');
+      expect(response.body.parsedCriteria.city?.value).toBe('Budapest');
+      expect(response.body).toHaveProperty('confidence');
+      expect(response.body).toHaveProperty('suggestedDisplayText');
+    });
+
+    it('should parse complex multi-criteria query', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/voice-search/parse')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ transcript: '3 bedroom apartment in Vienna under 400k' })
+        .expect(200);
+
+      expect(response.body.parsedCriteria.minBedrooms?.value).toBe(3);
+      expect(response.body.parsedCriteria.city?.value).toBe('Vienna');
+      expect(response.body.parsedCriteria.maxPrice?.value).toBe(400000);
+      expect(response.body.fieldCount).toBeGreaterThanOrEqual(3);
+    });
+
+    it('should parse listing type from "to rent"', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/voice-search/parse')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ transcript: 'house to rent in london' })
+        .expect(200);
+
+      expect(response.body.parsedCriteria.listingTypes?.value).toContain(
+        'LONG_TERM_RENT',
+      );
+      expect(response.body.parsedCriteria.city?.value).toBe('London');
+    });
+
+    it('should parse features like pet friendly', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/voice-search/parse')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ transcript: 'pet friendly new build apartment' })
+        .expect(200);
+
+      expect(response.body.parsedCriteria.petFriendly?.value).toBe(true);
+      expect(response.body.parsedCriteria.newlyBuilt?.value).toBe(true);
+    });
+
+    it('should return 0 confidence for unparseable text', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/voice-search/parse')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ transcript: 'hello world how are you' })
+        .expect(200);
+
+      expect(response.body.confidence).toBe(0);
+      expect(response.body.fieldCount).toBe(0);
+      expect(response.body.suggestedDisplayText).toBe('All properties');
+    });
+
+    it('should reject without authentication', () => {
+      return request(app.getHttpServer())
+        .post('/api/voice-search/parse')
+        .send({ transcript: 'apartments in budapest' })
+        .expect(401);
+    });
+
+    it('should reject empty transcript', () => {
+      return request(app.getHttpServer())
+        .post('/api/voice-search/parse')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ transcript: '' })
+        .expect(400);
+    });
+
+    it('should reject missing transcript', () => {
+      return request(app.getHttpServer())
+        .post('/api/voice-search/parse')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({})
+        .expect(400);
+    });
+  });
+
+  describe('POST /api/voice-search/to-query (PROD-044.4)', () => {
+    it('should convert transcript to query parameters', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/voice-search/to-query')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ transcript: '2 bed apartment in Budapest for sale under 300k' })
+        .expect(200);
+
+      expect(response.body).toHaveProperty('parsed');
+      expect(response.body).toHaveProperty('query');
+      expect(response.body.query.city).toBe('Budapest');
+      expect(response.body.query.minBedrooms).toBe(2);
+      expect(response.body.query.maxPrice).toBe(300000);
+      expect(response.body.query.listingTypes).toContain('FOR_SALE');
+    });
+
+    it('should include boolean features in query', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/voice-search/to-query')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ transcript: 'wheelchair accessible pet friendly flat' })
+        .expect(200);
+
+      expect(response.body.query.accessible).toBe(true);
+      expect(response.body.query.petFriendly).toBe(true);
+    });
+
+    it('should return empty query for unparseable text', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/voice-search/to-query')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ transcript: 'random text without property info' })
+        .expect(200);
+
+      expect(response.body.parsed.confidence).toBe(0);
+      expect(Object.keys(response.body.query).length).toBe(0);
+    });
+
+    it('should reject without authentication', () => {
+      return request(app.getHttpServer())
+        .post('/api/voice-search/to-query')
+        .send({ transcript: 'apartments' })
+        .expect(401);
+    });
+  });
+
   // ============ SEARCH AGENT CLEANUP ============
 
   describe('DELETE /api/search-agents/:id', () => {

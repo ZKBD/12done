@@ -15,10 +15,10 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 2101 | 0 | 2101 | 100% |
-| E2E Tests | 345 | 0 | 345 | 100% |
+| Unit Tests | 2163 | 0 | 2163 | 100% |
+| E2E Tests | 357 | 0 | 357 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **2451** | **0** | **2451** | **100%** |
+| **Total** | **2525** | **0** | **2525** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -418,14 +418,48 @@ Note: E2E tests require Docker/database to run.
 | PROD-043.10 | `Geo-based Search > should NOT find property outside polygon` | properties.e2e-spec.ts | E2E test of polygon exclusion | ✅ |
 | PROD-043.11 | `Geo-based Search > should combine geo filters with other filters` | properties.e2e-spec.ts | E2E test of combined geo + property filters | ✅ |
 
-### PROD-044 to PROD-047: Advanced Search Features (Phase 4)
+### PROD-044: Voice Search
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-044 | N/A | N/A | Voice search - Phase 4 feature | 🚧 |
-| PROD-045 | N/A | N/A | Visual search - Phase 4 feature | 🚧 |
-| PROD-046 | N/A | N/A | AR property discovery - Phase 4 feature | 🚧 |
-| PROD-047 | N/A | N/A | Lifestyle matching - Phase 4 feature | 🚧 |
+| PROD-044.1 | `parse > city extraction > should extract city from "apartments in Budapest"` | voice-search.service.spec.ts | Verifies city name extraction from natural language | ✅ |
+| PROD-044.2 | `parse > country extraction > should extract country from "property in Hungary"` | voice-search.service.spec.ts | Verifies country name extraction with ISO code mapping | ✅ |
+| PROD-044.3 | `parse > price extraction > should extract max price from "under 500k"` | voice-search.service.spec.ts | Verifies price parsing with abbreviations (k, million) | ✅ |
+| PROD-044.4 | `parse > price extraction > should extract price range from "between 200 and 500 thousand"` | voice-search.service.spec.ts | Verifies price range extraction | ✅ |
+| PROD-044.5 | `parse > bedroom extraction > should extract bedrooms from "3 bedroom apartment"` | voice-search.service.spec.ts | Verifies bedroom count extraction | ✅ |
+| PROD-044.6 | `parse > bathroom extraction > should extract bathrooms from "2 bathroom house"` | voice-search.service.spec.ts | Verifies bathroom count extraction | ✅ |
+| PROD-044.7 | `parse > listing type extraction > should extract FOR_SALE from "buy"` | voice-search.service.spec.ts | Verifies listing type detection from intent keywords | ✅ |
+| PROD-044.8 | `parse > listing type extraction > should extract LONG_TERM_RENT from "rent"` | voice-search.service.spec.ts | Verifies rental intent detection | ✅ |
+| PROD-044.9 | `parse > listing type extraction > should extract SHORT_TERM_RENT from "airbnb"` | voice-search.service.spec.ts | Verifies short-term rental detection | ✅ |
+| PROD-044.10 | `parse > feature extraction > should extract petFriendly from "pet friendly"` | voice-search.service.spec.ts | Verifies feature flag extraction | ✅ |
+| PROD-044.11 | `parse > feature extraction > should extract newlyBuilt from "new build"` | voice-search.service.spec.ts | Verifies new build detection | ✅ |
+| PROD-044.12 | `parse > feature extraction > should extract accessible from "wheelchair accessible"` | voice-search.service.spec.ts | Verifies accessibility detection | ✅ |
+| PROD-044.13 | `parse > square meters extraction > should extract size from "100 sqm apartment"` | voice-search.service.spec.ts | Verifies size extraction with units | ✅ |
+| PROD-044.14 | `parse > year built extraction > should extract min year from "built after 2010"` | voice-search.service.spec.ts | Verifies year range extraction | ✅ |
+| PROD-044.15 | `parse > complex queries > should parse multi-criteria query` | voice-search.service.spec.ts | Verifies combined parsing (bedrooms + city + price) | ✅ |
+| PROD-044.16 | `parse > normalization > should handle uppercase text` | voice-search.service.spec.ts | Verifies case-insensitive parsing | ✅ |
+| PROD-044.17 | `parse > confidence scoring > should return overall confidence between 0 and 1` | voice-search.service.spec.ts | Verifies confidence calculation | ✅ |
+| PROD-044.18 | `parse > confidence scoring > should return 0 confidence for unparseable text` | voice-search.service.spec.ts | Verifies fallback for unrecognized input | ✅ |
+| PROD-044.19 | `parse > display text generation > should generate display text` | voice-search.service.spec.ts | Verifies human-readable summary generation | ✅ |
+| PROD-044.20 | `parse > display text generation > should return "All properties" for empty parse` | voice-search.service.spec.ts | Verifies default display text | ✅ |
+| PROD-044.21 | `parse > edge cases > should handle empty string` | voice-search.service.spec.ts | Verifies graceful handling of empty input | ✅ |
+| PROD-044.22 | `parse > edge cases > should not extract invalid bedroom count` | voice-search.service.spec.ts | Verifies sanity checks (>10 bedrooms rejected) | ✅ |
+| PROD-044.23 | `toPropertyQuery > should convert parsed criteria to query object` | voice-search.service.spec.ts | Verifies conversion to PropertyQueryDto format | ✅ |
+| PROD-044.24 | `toPropertyQuery > should include listing types as array` | voice-search.service.spec.ts | Verifies listing types array format | ✅ |
+| PROD-044.25 | `POST /api/voice-search/parse > should parse simple city search` | search.e2e-spec.ts | E2E test of parse endpoint | ✅ |
+| PROD-044.26 | `POST /api/voice-search/parse > should parse complex multi-criteria query` | search.e2e-spec.ts | E2E test of complex parsing | ✅ |
+| PROD-044.27 | `POST /api/voice-search/parse > should reject without authentication` | search.e2e-spec.ts | E2E test of auth requirement | ✅ |
+| PROD-044.28 | `POST /api/voice-search/parse > should reject empty transcript` | search.e2e-spec.ts | E2E test of validation | ✅ |
+| PROD-044.29 | `POST /api/voice-search/to-query > should convert transcript to query parameters` | search.e2e-spec.ts | E2E test of to-query endpoint | ✅ |
+| PROD-044.30 | `POST /api/voice-search/to-query > should include boolean features in query` | search.e2e-spec.ts | E2E test of feature conversion | ✅ |
+
+### PROD-045 to PROD-047: Advanced Search Features (Future)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-045 | N/A | N/A | Visual search - Future feature | 🚧 |
+| PROD-046 | N/A | N/A | AR property discovery - Future feature | 🚧 |
+| PROD-047 | N/A | N/A | Lifestyle matching - Future feature | 🚧 |
 
 ### PROD-048: Open House Filtering
 
@@ -2566,7 +2600,8 @@ The following requirements do not yet have test coverage:
 | ~~PROD-029~~ | ~~AI Description Generation~~ | ✅ **COMPLETE** - AiDescriptionService with 5 tone styles (LUXURY, FAMILY_FRIENDLY, INVESTMENT_FOCUSED, MODERN_PROFESSIONAL, COZY_WELCOMING), rule-based text generation with property context, 3 endpoints (generate, save, apply); 23 unit tests |
 | ~~PROD-030~~ | ~~Virtual Staging~~ | ✅ **COMPLETE** - VirtualStagingService with room type (13 options) and style (12 options) parameters, mock AI provider integration, staging status tracking, before/after comparison, endpoints (POST /ai/staging, GET requests, DELETE staged, compare); 19 unit tests |
 | ~~PROD-031~~ | ~~Time-of-Day Photos~~ | ✅ **COMPLETE** - TimeOfDayPhotosService with time-of-day (6 options) and season (4 options) tagging, photo groups for same-angle linking, slider data API, filter by time/season, bulk tagging; 25 unit tests |
-| PROD-044-047 | Advanced Search Features (Voice, Visual, AR, Lifestyle) | Phase 4 features |
+| ~~PROD-044~~ | ~~Voice Search~~ | ✅ **COMPLETE** - VoiceSearchService with rule-based NLP parsing (cities, countries, prices, bedrooms, bathrooms, listing types, features, square meters, year built), confidence scoring, display text generation, PropertyQueryDto conversion; 2 endpoints (POST /voice-search/parse, POST /voice-search/to-query); 62 unit tests; 12 E2E tests |
+| PROD-045-047 | Advanced Search Features (Visual, AR, Lifestyle) | Future features |
 | ~~PROD-083~~ | ~~Mortgage Calculator~~ | ✅ **COMPLETE** - MortgageCalculatorService with principal+interest formula, amortization schedule (monthly/yearly breakdown), affordability calculation (DTI-based), scenario comparison, property-specific embedded calculator, 7 endpoints (calculate, amortization, affordability, compare, property calculate, property amortization, default scenarios); 27 unit tests |
 | ~~PROD-050~~ | ~~AI Recommendations~~ | ✅ **COMPLETE** - BrowsingHistoryService (view tracking, history retrieval), RecommendationsService (preference extraction from favorites/search agents, similarity calculation, scoring algorithm with 40% preference + 40% similarity + 20% popularity weights, explanation generation), RecommendationFeedback model, 4 endpoints (GET /recommendations, GET /recommendations/preferences, GET /recommendations/similar/:propertyId, POST /recommendations/:propertyId/feedback); 30 browsing history tests; 31 recommendation tests |
 | ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller); 47 E2E tests covering full API flow |

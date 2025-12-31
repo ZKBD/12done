@@ -18,10 +18,12 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { SearchAgentsService } from './search-agents.service';
 import { FavoritesService } from './favorites.service';
+import { VoiceSearchService } from './voice-search.service';
 import { JwtAuthGuard } from '@/modules/auth/guards';
 import { RolesGuard } from '@/common/guards';
 import { CurrentUser, CurrentUserData } from '@/common/decorators';
@@ -31,6 +33,8 @@ import {
   SearchAgentResponseDto,
   FavoritePropertyResponseDto,
   FavoriteStatsDto,
+  VoiceSearchDto,
+  VoiceSearchResponseDto,
 } from './dto';
 
 @ApiTags('search')
@@ -39,6 +43,7 @@ export class SearchController {
   constructor(
     private readonly searchAgentsService: SearchAgentsService,
     private readonly favoritesService: FavoritesService,
+    private readonly voiceSearchService: VoiceSearchService,
   ) {}
 
   // ============ SEARCH AGENTS (PROD-040, PROD-041) ============
@@ -165,6 +170,52 @@ export class SearchController {
     @Query('token') token: string,
   ): Promise<{ message: string; searchAgentName: string }> {
     return this.searchAgentsService.unsubscribe(token);
+  }
+
+  // ============ VOICE SEARCH (PROD-044) ============
+
+  @Post('voice-search/parse')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Parse voice transcript into search criteria (PROD-044.3)',
+    description:
+      'Parses natural language voice transcript into structured property search criteria with confidence scores.',
+  })
+  @ApiBody({ type: VoiceSearchDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Parsed search criteria',
+    type: VoiceSearchResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async parseVoiceSearch(
+    @Body() dto: VoiceSearchDto,
+  ): Promise<VoiceSearchResponseDto> {
+    return this.voiceSearchService.parse(dto.transcript);
+  }
+
+  @Post('voice-search/to-query')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Convert voice transcript to property query parameters (PROD-044.4)',
+    description:
+      'Parses voice transcript and returns PropertyQueryDto-compatible query parameters for direct use in property search.',
+  })
+  @ApiBody({ type: VoiceSearchDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Query parameters ready for property search',
+  })
+  async voiceSearchToQuery(
+    @Body() dto: VoiceSearchDto,
+  ): Promise<{ parsed: VoiceSearchResponseDto; query: Record<string, unknown> }> {
+    const parsed = this.voiceSearchService.parse(dto.transcript);
+    const query = this.voiceSearchService.toPropertyQuery(parsed);
+    return { parsed, query };
   }
 
   // ============ FAVORITES (PROD-049) ============
