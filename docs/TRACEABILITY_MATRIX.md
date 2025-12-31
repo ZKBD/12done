@@ -1034,6 +1034,44 @@ Note: E2E tests require Docker/database to run.
 | NFR-013.1 | Stripe Checkout Sessions used (no card data on server) | payments.service.ts | Architecture ensures PCI compliance | ✅ |
 | NFR-013.2 | Mock mode available for testing without Stripe keys | payments.service.ts | Enables testing without payment credentials | ✅ |
 
+### NFR-014: Multi-Factor Authentication (MFA)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| NFR-014.1 | `should be defined` | mfa.service.spec.ts | Verifies MFA service initialization | ✅ |
+| NFR-014.2 | `setupMfa > should generate secret, QR code, and backup codes for new setup` | mfa.service.spec.ts | Verifies TOTP secret generation and QR code creation | ✅ |
+| NFR-014.3 | `setupMfa > should throw NotFoundException if user not found` | mfa.service.spec.ts | Verifies user validation during setup | ✅ |
+| NFR-014.4 | `setupMfa > should throw BadRequestException if MFA is already enabled and verified` | mfa.service.spec.ts | Prevents duplicate MFA setup | ✅ |
+| NFR-014.5 | `setupMfa > should allow re-setup if previous setup was not verified` | mfa.service.spec.ts | Allows retry of incomplete MFA setup | ✅ |
+| NFR-014.6 | `verifySetup > should enable MFA when valid TOTP code is provided` | mfa.service.spec.ts | Verifies TOTP validation enables MFA | ✅ |
+| NFR-014.7 | `verifySetup > should throw NotFoundException if user not found` | mfa.service.spec.ts | Verifies user validation during verification | ✅ |
+| NFR-014.8 | `verifySetup > should throw BadRequestException if MFA setup not initiated` | mfa.service.spec.ts | Prevents verification without setup | ✅ |
+| NFR-014.9 | `verifySetup > should throw BadRequestException if MFA already verified` | mfa.service.spec.ts | Prevents duplicate verification | ✅ |
+| NFR-014.10 | `verifySetup > should throw UnauthorizedException for invalid TOTP code` | mfa.service.spec.ts | Rejects invalid TOTP codes | ✅ |
+| NFR-014.11 | `createPendingSession > should create a pending session with token and expiry` | mfa.service.spec.ts | Verifies MFA login session creation | ✅ |
+| NFR-014.12 | `createPendingSession > should clean up expired sessions for user` | mfa.service.spec.ts | Verifies session cleanup | ✅ |
+| NFR-014.13 | `verifyLogin > should return tokens for valid TOTP code` | mfa.service.spec.ts | Completes login with valid MFA | ✅ |
+| NFR-014.14 | `verifyLogin > should throw UnauthorizedException for invalid session token` | mfa.service.spec.ts | Rejects invalid MFA session tokens | ✅ |
+| NFR-014.15 | `verifyLogin > should throw UnauthorizedException for expired session` | mfa.service.spec.ts | Rejects expired MFA sessions | ✅ |
+| NFR-014.16 | `verifyLogin > should throw UnauthorizedException for invalid TOTP code` | mfa.service.spec.ts | Rejects invalid TOTP during login | ✅ |
+| NFR-014.17 | `verifyLogin > should allow login with valid backup code` | mfa.service.spec.ts | Verifies backup code authentication | ✅ |
+| NFR-014.18 | `getStatus > should return MFA status when enabled` | mfa.service.spec.ts | Returns correct enabled status | ✅ |
+| NFR-014.19 | `getStatus > should return disabled status when MFA not enabled` | mfa.service.spec.ts | Returns correct disabled status | ✅ |
+| NFR-014.20 | `getStatus > should throw NotFoundException if user not found` | mfa.service.spec.ts | Validates user for status check | ✅ |
+| NFR-014.21 | `regenerateBackupCodes > should generate new backup codes with valid password` | mfa.service.spec.ts | Allows backup code regeneration | ✅ |
+| NFR-014.22 | `regenerateBackupCodes > should throw NotFoundException if user not found` | mfa.service.spec.ts | Validates user for backup code regen | ✅ |
+| NFR-014.23 | `regenerateBackupCodes > should throw BadRequestException if MFA not enabled` | mfa.service.spec.ts | Requires MFA for backup regen | ✅ |
+| NFR-014.24 | `regenerateBackupCodes > should throw UnauthorizedException for invalid password` | mfa.service.spec.ts | Validates password for backup regen | ✅ |
+| NFR-014.25 | `disable > should disable MFA with valid password and TOTP code` | mfa.service.spec.ts | Allows MFA disabling with verification | ✅ |
+| NFR-014.26 | `disable > should throw NotFoundException if user not found` | mfa.service.spec.ts | Validates user for MFA disable | ✅ |
+| NFR-014.27 | `disable > should throw BadRequestException if MFA not enabled` | mfa.service.spec.ts | Prevents disabling already-disabled MFA | ✅ |
+| NFR-014.28 | `disable > should throw UnauthorizedException for invalid password` | mfa.service.spec.ts | Validates password for MFA disable | ✅ |
+| NFR-014.29 | `disable > should throw UnauthorizedException for invalid TOTP code` | mfa.service.spec.ts | Validates TOTP for MFA disable | ✅ |
+| NFR-014.30 | `isMfaEnabled > should return true when MFA is enabled` | mfa.service.spec.ts | Correctly detects MFA enabled | ✅ |
+| NFR-014.31 | `isMfaEnabled > should return false when MFA is not enabled` | mfa.service.spec.ts | Correctly detects MFA disabled | ✅ |
+| NFR-014.32 | `isMfaEnabled > should return false when user not found` | mfa.service.spec.ts | Handles missing user gracefully | ✅ |
+| NFR-014.33 | `backup code format > should generate backup codes without confusing characters` | mfa.service.spec.ts | Ensures backup codes are user-friendly | ✅ |
+
 ### Payment Controller Tests
 
 | Req ID | Test Case | Test File | Purpose | Status |

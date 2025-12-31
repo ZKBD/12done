@@ -449,6 +449,10 @@ model User {
   biometricEnabled     Boolean              @default(false)
   biometricCredentials BiometricCredential[]
 
+  // MFA Authentication (NFR-014)
+  mfaEnabled Boolean    @default(false)
+  mfaSecret  MfaSecret?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -3728,4 +3732,56 @@ model BiometricChallenge {
   @@index([challenge])
   @@index([deviceId])
   @@index([expiresAt])
+}
+
+// ============================================
+// MFA AUTHENTICATION (NFR-014)
+// ============================================
+
+// MFA Secret (NFR-014.1)
+// Stores encrypted TOTP secret for user
+model MfaSecret {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  encryptedSecret String @db.Text // AES-256-GCM encrypted TOTP secret
+
+  isVerified Boolean   @default(false) // Must verify before active
+  enabledAt  DateTime?
+
+  backupCodes MfaBackupCode[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// MFA Backup Codes (NFR-014.1)
+// One-time use recovery codes (bcrypt hashed)
+model MfaBackupCode {
+  id          String    @id @default(uuid())
+  mfaSecretId String
+  mfaSecret   MfaSecret @relation(fields: [mfaSecretId], references: [id], onDelete: Cascade)
+
+  codeHash String    // bcrypt hashed backup code
+  usedAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([mfaSecretId])
+}
+
+// MFA Pending Session (NFR-014.1)
+// Temporary session for MFA verification during login
+model MfaPendingSession {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique // Temporary session token
+  expiresAt DateTime // 5-minute expiry
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
 }

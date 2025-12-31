@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { UserStatus } from '@prisma/client';
 import { AuthService } from './auth.service';
+import { MfaService } from './mfa.service';
 import { PrismaService } from '@/database';
 import { MailService } from '@/mail';
 import * as hashUtil from '@/common/utils/hash.util';
@@ -139,6 +140,19 @@ describe('AuthService', () => {
             sendVerificationEmail: jest.fn(),
             sendWelcomeEmail: jest.fn(),
             sendPasswordResetEmail: jest.fn(),
+          },
+        },
+        {
+          provide: MfaService,
+          useValue: {
+            setupMfa: jest.fn(),
+            verifySetup: jest.fn(),
+            createPendingSession: jest.fn(),
+            verifyLogin: jest.fn(),
+            getStatus: jest.fn(),
+            regenerateBackupCodes: jest.fn(),
+            disable: jest.fn(),
+            isMfaEnabled: jest.fn(),
           },
         },
       ],
@@ -487,9 +501,12 @@ describe('AuthService', () => {
 
       const result = await service.login(loginDto);
 
-      expect(result.user.email).toBe(mockUser.email);
-      expect(result.tokens.accessToken).toBeDefined();
-      expect(result.tokens.refreshToken).toBeDefined();
+      expect('user' in result).toBe(true);
+      if ('user' in result) {
+        expect(result.user.email).toBe(mockUser.email);
+        expect(result.tokens.accessToken).toBeDefined();
+        expect(result.tokens.refreshToken).toBeDefined();
+      }
     });
 
     it('should normalize email to lowercase for login', async () => {

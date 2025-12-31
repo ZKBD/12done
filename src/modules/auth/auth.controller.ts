@@ -19,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { BiometricService } from './biometric.service';
+import { MfaService } from './mfa.service';
 import { JwtAuthGuard } from './guards';
 import { Public, CurrentUser, CurrentUserData } from '@/common/decorators';
 import {
@@ -42,6 +43,17 @@ import {
   BiometricDeviceListResponseDto,
   UpdateBiometricSettingsDto,
   BiometricSettingsResponseDto,
+  // MFA DTOs (NFR-014)
+  SetupMfaResponseDto,
+  VerifyMfaSetupDto,
+  VerifyMfaSetupResponseDto,
+  MfaPendingResponseDto,
+  VerifyMfaLoginDto,
+  MfaStatusResponseDto,
+  RegenerateBackupCodesDto,
+  BackupCodesResponseDto,
+  DisableMfaDto,
+  DisableMfaResponseDto,
 } from './dto';
 
 @ApiTags('auth')
@@ -51,6 +63,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly biometricService: BiometricService,
+    private readonly mfaService: MfaService,
   ) {}
 
   @Post('register')
@@ -106,13 +119,18 @@ export class AuthController {
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({
     status: 200,
-    description: 'Login successful',
+    description: 'Login successful (or MFA pending if enabled)',
     type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'MFA required - complete with /auth/mfa/verify-login',
+    type: MfaPendingResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials or unverified email' })
   async login(
     @Body() dto: LoginDto,
-  ): Promise<{ user: UserResponseDto; tokens: AuthTokensDto }> {
+  ): Promise<{ user: UserResponseDto; tokens: AuthTokensDto } | MfaPendingResponseDto> {
     return this.authService.login(dto);
   }
 
@@ -295,5 +313,106 @@ export class AuthController {
     @Body() dto: UpdateBiometricSettingsDto,
   ): Promise<BiometricSettingsResponseDto> {
     return this.biometricService.updateBiometricSettings(userId, dto.enabled);
+  }
+
+  // ============================================
+  // MFA Authentication Endpoints (NFR-014)
+  // ============================================
+
+  @Post('mfa/setup')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Begin MFA setup - generates QR code and backup codes' })
+  @ApiResponse({
+    status: 201,
+    description: 'MFA setup initiated',
+    type: SetupMfaResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'MFA already enabled' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async setupMfa(@CurrentUser('id') userId: string): Promise<SetupMfaResponseDto> {
+    return this.mfaService.setupMfa(userId);
+  }
+
+  @Post('mfa/verify-setup')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify MFA setup with TOTP code' })
+  @ApiResponse({
+    status: 200,
+    description: 'MFA enabled successfully',
+    type: VerifyMfaSetupResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'MFA setup not initiated' })
+  @ApiResponse({ status: 401, description: 'Invalid verification code' })
+  async verifyMfaSetup(
+    @CurrentUser('id') userId: string,
+    @Body() dto: VerifyMfaSetupDto,
+  ): Promise<VerifyMfaSetupResponseDto> {
+    return this.mfaService.verifySetup(userId, dto.code);
+  }
+
+  @Post('mfa/verify-login')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Complete login with MFA code' })
+  @ApiResponse({
+    status: 200,
+    description: 'Authentication successful',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Invalid MFA token or code' })
+  async verifyMfaLogin(
+    @Body() dto: VerifyMfaLoginDto,
+  ): Promise<{ user: { id: string; email: string }; tokens: AuthTokensDto }> {
+    return this.mfaService.verifyLogin(dto.mfaToken, dto.code);
+  }
+
+  @Get('mfa/status')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get MFA status for current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'MFA status',
+    type: MfaStatusResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getMfaStatus(@CurrentUser('id') userId: string): Promise<MfaStatusResponseDto> {
+    return this.mfaService.getStatus(userId);
+  }
+
+  @Post('mfa/backup-codes')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Regenerate backup codes (requires password)' })
+  @ApiResponse({
+    status: 200,
+    description: 'New backup codes generated',
+    type: BackupCodesResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'MFA not enabled' })
+  @ApiResponse({ status: 401, description: 'Invalid password' })
+  async regenerateBackupCodes(
+    @CurrentUser('id') userId: string,
+    @Body() dto: RegenerateBackupCodesDto,
+  ): Promise<BackupCodesResponseDto> {
+    return this.mfaService.regenerateBackupCodes(userId, dto.password);
+  }
+
+  @Delete('mfa')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Disable MFA (requires password and TOTP code)' })
+  @ApiResponse({
+    status: 200,
+    description: 'MFA disabled',
+    type: DisableMfaResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'MFA not enabled' })
+  @ApiResponse({ status: 401, description: 'Invalid password or code' })
+  async disableMfa(
+    @CurrentUser('id') userId: string,
+    @Body() dto: DisableMfaDto,
+  ): Promise<DisableMfaResponseDto> {
+    return this.mfaService.disable(userId, dto.password, dto.code);
   }
 }

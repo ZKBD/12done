@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { BiometricService } from './biometric.service';
+import { MfaService } from './mfa.service';
 import { JwtStrategy } from './strategies';
 import { JwtAuthGuard, BiometricRequiredGuard } from './guards';
 
@@ -23,7 +24,7 @@ import { JwtAuthGuard, BiometricRequiredGuard } from './guards';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, BiometricService, JwtStrategy, JwtAuthGuard, BiometricRequiredGuard],
-  exports: [AuthService, BiometricService, JwtAuthGuard, BiometricRequiredGuard],
+  providers: [MfaService, AuthService, BiometricService, JwtStrategy, JwtAuthGuard, BiometricRequiredGuard],
+  exports: [AuthService, BiometricService, MfaService, JwtAuthGuard, BiometricRequiredGuard],
 })
 export class AuthModule {}

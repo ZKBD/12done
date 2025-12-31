@@ -21,7 +21,9 @@ import {
   RefreshTokenDto,
   AuthTokensDto,
   UserResponseDto,
+  MfaPendingResponseDto,
 } from './dto';
+import { MfaService } from './mfa.service';
 
 @Injectable()
 export class AuthService {
@@ -33,6 +35,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private mailService: MailService,
+    private mfaService: MfaService,
   ) {
     this.accessTokenExpiresIn = this.parseExpiresIn(
       this.configService.get<string>('jwt.expiresIn') || '15m',
@@ -231,7 +234,9 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto): Promise<{ user: UserResponseDto; tokens: AuthTokensDto }> {
+  async login(
+    dto: LoginDto,
+  ): Promise<{ user: UserResponseDto; tokens: AuthTokensDto } | MfaPendingResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
@@ -255,6 +260,11 @@ export class AuthService {
 
     if (user.status === UserStatus.DELETED) {
       throw new UnauthorizedException('This account no longer exists');
+    }
+
+    // Check if MFA is enabled (NFR-014)
+    if (user.mfaEnabled) {
+      return this.mfaService.createPendingSession(user.id);
     }
 
     const tokens = await this.generateTokens(user.id, user.email, user.role, user.status);

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { BiometricService } from './biometric.service';
+import { MfaService } from './mfa.service';
 import { UserRole, UserStatus, VerificationStatus } from '@prisma/client';
 
 describe('AuthController', () => {
@@ -58,6 +59,19 @@ describe('AuthController', () => {
             updateBiometricSettings: jest.fn(),
             isBiometricRequired: jest.fn(),
             verifyForSensitiveAction: jest.fn(),
+          },
+        },
+        {
+          provide: MfaService,
+          useValue: {
+            setupMfa: jest.fn(),
+            verifySetup: jest.fn(),
+            createPendingSession: jest.fn(),
+            verifyLogin: jest.fn(),
+            getStatus: jest.fn(),
+            regenerateBackupCodes: jest.fn(),
+            disable: jest.fn(),
+            isMfaEnabled: jest.fn(),
           },
         },
       ],
@@ -192,8 +206,8 @@ describe('AuthController', () => {
       const result = await controller.login(loginDto);
 
       expect(authService.login).toHaveBeenCalledWith(loginDto);
-      expect(result.user).toEqual(mockUser);
-      expect(result.tokens).toEqual(mockTokens);
+      expect('user' in result && result.user).toEqual(mockUser);
+      expect('tokens' in result && result.tokens).toEqual(mockTokens);
     });
 
     it('should return user and tokens on success', async () => {
@@ -201,9 +215,12 @@ describe('AuthController', () => {
 
       const result = await controller.login(loginDto);
 
-      expect(result.user).toBeDefined();
-      expect(result.tokens.accessToken).toBeDefined();
-      expect(result.tokens.refreshToken).toBeDefined();
+      expect('user' in result).toBe(true);
+      if ('user' in result) {
+        expect(result.user).toBeDefined();
+        expect(result.tokens.accessToken).toBeDefined();
+        expect(result.tokens.refreshToken).toBeDefined();
+      }
     });
 
     it('should propagate service errors', async () => {
