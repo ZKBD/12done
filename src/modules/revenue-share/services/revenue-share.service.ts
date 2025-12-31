@@ -275,7 +275,7 @@ export class RevenueShareService {
         directInviterAmount: new Prisma.Decimal(directInviterAmount),
         upstreamNetworkAmount: new Prisma.Decimal(upstreamNetworkAmount),
         allUsersShareAmount: new Prisma.Decimal(allUsersShareAmount),
-        configSnapshot: config,
+        configSnapshot: config as unknown as Prisma.InputJsonValue,
         status: RevenueShareStatus.PENDING,
       },
     });
@@ -305,7 +305,7 @@ export class RevenueShareService {
         shareType: RevenueShareType.DIRECT_INVITER,
         amount: new Prisma.Decimal(directInviterAmount),
         currency: transaction.currency,
-        notes: `Commission for inviting ${transaction.payer.name || transaction.payer.email}`,
+        notes: `Commission for inviting ${transaction.payer.firstName || transaction.payer.email}`,
       });
     }
 
@@ -524,7 +524,7 @@ export class RevenueShareService {
         shares: {
           include: {
             wallet: {
-              include: { user: { select: { name: true, email: true } } },
+              include: { user: { select: { firstName: true, email: true } } },
             },
           },
         },
@@ -547,10 +547,11 @@ export class RevenueShareService {
       allUsersShareAmount: Number(distribution.allUsersShareAmount),
       status: distribution.status,
       processedAt: distribution.processedAt || undefined,
-      shares: distribution.shares.map((s) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      shares: (distribution as any).shares.map((s: any) => ({
         id: s.id,
         recipientId: s.recipientId,
-        recipientName: s.wallet?.user?.name || s.wallet?.user?.email,
+        recipientName: s.wallet?.user?.firstName || s.wallet?.user?.email,
         shareType: s.shareType,
         amount: Number(s.amount),
         currency: s.currency,
@@ -575,14 +576,15 @@ export class RevenueShareService {
         shares: {
           include: {
             wallet: {
-              include: { user: { select: { name: true, email: true } } },
+              include: { user: { select: { firstName: true, email: true } } },
             },
           },
         },
       },
     });
 
-    return distributions.map((d) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return distributions.map((d: any) => ({
       id: d.id,
       transactionId: d.transactionId,
       totalRevenue: Number(d.totalRevenue),
@@ -594,10 +596,11 @@ export class RevenueShareService {
       allUsersShareAmount: Number(d.allUsersShareAmount),
       status: d.status,
       processedAt: d.processedAt || undefined,
-      shares: d.shares.map((s) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      shares: d.shares.map((s: any) => ({
         id: s.id,
         recipientId: s.recipientId,
-        recipientName: s.wallet?.user?.name || s.wallet?.user?.email,
+        recipientName: s.wallet?.user?.firstName || s.wallet?.user?.email,
         shareType: s.shareType,
         amount: Number(s.amount),
         currency: s.currency,
@@ -659,7 +662,7 @@ export class RevenueShareService {
         amount: new Prisma.Decimal(dto.amount),
         currency: wallet.currency,
         payoutMethod: dto.payoutMethod,
-        payoutDetails: dto.payoutDetails,
+        payoutDetails: dto.payoutDetails as unknown as Prisma.InputJsonValue,
         status: PayoutStatus.PENDING,
       },
     });
