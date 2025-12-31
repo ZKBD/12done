@@ -408,7 +408,7 @@ export class NarrationService {
   /**
    * Guess architectural style (simplified)
    */
-  private guessStyle(poi: PoiResponseDto): string {
+  private guessStyle(_poi: PoiResponseDto): string {
     const styles = [
       'classical',
       'baroque',

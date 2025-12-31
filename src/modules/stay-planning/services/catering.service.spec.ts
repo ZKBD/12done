@@ -6,7 +6,6 @@ import { CateringQuoteStatus } from '../dto';
 
 describe('CateringService', () => {
   let service: CateringService;
-  let prisma: PrismaService;
 
   const mockUserId = 'user-123';
   const mockProviderId = 'provider-123';
@@ -137,7 +136,6 @@ describe('CateringService', () => {
     }).compile();
 
     service = module.get<CateringService>(CateringService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });

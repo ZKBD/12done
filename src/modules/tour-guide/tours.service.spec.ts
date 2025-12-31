@@ -7,8 +7,6 @@ import { NotFoundException, ForbiddenException, BadRequestException } from '@nes
 
 describe('ToursService', () => {
   let service: ToursService;
-  let prismaService: jest.Mocked<PrismaService>;
-  let poiService: jest.Mocked<PoiService>;
 
   const mockPrismaService = {
     customTour: {
@@ -76,8 +74,6 @@ describe('ToursService', () => {
     }).compile();
 
     service = module.get<ToursService>(ToursService);
-    prismaService = module.get(PrismaService);
-    poiService = module.get(PoiService);
   });
 
   afterEach(() => {
@@ -236,7 +232,7 @@ describe('ToursService', () => {
       mockPrismaService.tourStop.update.mockResolvedValue({});
       mockPrismaService.customTour.update.mockResolvedValue(mockTour);
 
-      const result = await service.addStop('user-123', 'tour-123', {
+      await service.addStop('user-123', 'tour-123', {
         placeId: 'place-2',
         placeName: 'Stop 2',
         latitude: 47.5,
@@ -272,7 +268,7 @@ describe('ToursService', () => {
       mockPrismaService.tourStop.findMany.mockResolvedValue([]);
       mockPrismaService.customTour.update.mockResolvedValue({ ...mockTour, stops: [] });
 
-      const result = await service.removeStop('user-123', 'tour-123', 'stop-1');
+      await service.removeStop('user-123', 'tour-123', 'stop-1');
 
       expect(mockPrismaService.tourStop.delete).toHaveBeenCalled();
     });
@@ -303,7 +299,7 @@ describe('ToursService', () => {
       mockPrismaService.tourStop.update.mockResolvedValue({});
       mockPrismaService.customTour.update.mockResolvedValue(mockTour);
 
-      const result = await service.reorderStops('user-123', 'tour-123', {
+      await service.reorderStops('user-123', 'tour-123', {
         stopIds: ['stop-2', 'stop-1'],
       });
 

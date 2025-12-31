@@ -11,7 +11,6 @@ import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('AiDescriptionService', () => {
   let service: AiDescriptionService;
-  let prismaService: jest.Mocked<PrismaService>;
 
   const mockPrismaService = {
     property: {
@@ -56,7 +55,6 @@ describe('AiDescriptionService', () => {
     }).compile();
 
     service = module.get<AiDescriptionService>(AiDescriptionService);
-    prismaService = module.get(PrismaService);
   });
 
   afterEach(() => {

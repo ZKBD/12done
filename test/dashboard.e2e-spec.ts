@@ -15,10 +15,10 @@ describe('Dashboard (E2E)', () => {
   let landlordToken: string;
   let otherUserToken: string;
   let landlordId: string;
-  let otherUserId: string;
+  let _otherUserId: string;
   let propertyId: string;
   let expenseId: string;
-  let leaseId: string;
+  let _leaseId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -73,7 +73,7 @@ describe('Dashboard (E2E)', () => {
         status: 'ACTIVE',
       },
     });
-    otherUserId = otherUser.id;
+    _otherUserId = otherUser.id;
     otherUserToken = jwtService.sign(
       { sub: otherUser.id, email: otherUser.email },
       { secret: configService.get('jwt.secret') },
@@ -122,7 +122,7 @@ describe('Dashboard (E2E)', () => {
         status: 'ACTIVE',
       },
     });
-    leaseId = lease.id;
+    _leaseId = lease.id;
 
     // Create rent payment
     await prisma.rentPayment.create({

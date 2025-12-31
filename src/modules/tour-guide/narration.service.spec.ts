@@ -6,7 +6,6 @@ import { NotFoundException } from '@nestjs/common';
 
 describe('NarrationService', () => {
   let service: NarrationService;
-  let poiService: jest.Mocked<PoiService>;
 
   const mockPoiService = {
     getPoiDetails: jest.fn(),
@@ -40,7 +39,6 @@ describe('NarrationService', () => {
     }).compile();
 
     service = module.get<NarrationService>(NarrationService);
-    poiService = module.get(PoiService);
   });
 
   afterEach(() => {

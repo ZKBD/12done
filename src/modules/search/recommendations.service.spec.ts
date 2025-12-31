@@ -143,7 +143,7 @@ describe('RecommendationsService', () => {
         'property-123',
       ]);
 
-      const result = await service.getRecommendations('user-123', {});
+      await service.getRecommendations('user-123', {});
 
       expect(prismaService.property.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -159,7 +159,7 @@ describe('RecommendationsService', () => {
         .mockResolvedValueOnce([mockFavorite]) // For extractPreferences
         .mockResolvedValueOnce([{ propertyId: 'property-123' }]); // For getFavoriteIds
 
-      const result = await service.getRecommendations('user-123', {});
+      await service.getRecommendations('user-123', {});
 
       expect(prismaService.property.findMany).toHaveBeenCalledWith(
         expect.objectContaining({

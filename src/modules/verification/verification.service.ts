@@ -2,17 +2,11 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '@/database/prisma.service';
 import { MailService } from '@/mail';
-import {
-  VerificationStatus,
-  UserRole,
-  DocumentType,
-  BackgroundCheckType,
-} from '@prisma/client';
+import { VerificationStatus } from '@prisma/client';
 import {
   SubmitVerificationDto,
   AdminReviewDto,

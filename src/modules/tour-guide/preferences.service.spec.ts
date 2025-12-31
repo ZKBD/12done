@@ -5,7 +5,6 @@ import { VoiceStyle, InterestCategory } from '@prisma/client';
 
 describe('PreferencesService', () => {
   let service: PreferencesService;
-  let prismaService: jest.Mocked<PrismaService>;
 
   const mockPrismaService = {
     tourPreferences: {
@@ -39,7 +38,6 @@ describe('PreferencesService', () => {
     }).compile();
 
     service = module.get<PreferencesService>(PreferencesService);
-    prismaService = module.get(PrismaService);
   });
 
   afterEach(() => {

@@ -5,7 +5,6 @@ import { PoiType } from '@prisma/client';
 
 describe('PoiService', () => {
   let service: PoiService;
-  let configService: ConfigService;
 
   const mockConfigService = {
     get: jest.fn(),
@@ -23,7 +22,6 @@ describe('PoiService', () => {
     }).compile();
 
     service = module.get<PoiService>(PoiService);
-    configService = module.get<ConfigService>(ConfigService);
   });
 
   afterEach(() => {

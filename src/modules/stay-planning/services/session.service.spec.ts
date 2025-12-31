@@ -6,7 +6,6 @@ import { Season, InterestCategory } from '../dto';
 
 describe('SessionService', () => {
   let service: SessionService;
-  let prisma: PrismaService;
 
   const mockUserId = 'user-123';
   const mockSessionId = 'session-123';
@@ -58,7 +57,6 @@ describe('SessionService', () => {
     }).compile();
 
     service = module.get<SessionService>(SessionService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });

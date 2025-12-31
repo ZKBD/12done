@@ -5,7 +5,6 @@ import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('NotesService', () => {
   let service: NotesService;
-  let prismaService: jest.Mocked<PrismaService>;
 
   const mockPrismaService = {
     userNote: {
@@ -41,7 +40,6 @@ describe('NotesService', () => {
     }).compile();
 
     service = module.get<NotesService>(NotesService);
-    prismaService = module.get(PrismaService);
   });
 
   afterEach(() => {

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsBoolean, IsOptional, IsString, IsIP } from 'class-validator';
+import { IsEnum, IsBoolean, IsOptional, IsString } from 'class-validator';
 import { BackgroundCheckType } from '@prisma/client';
 
 /**

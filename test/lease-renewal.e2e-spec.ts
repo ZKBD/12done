@@ -22,7 +22,7 @@ describe('LeaseRenewal (e2e)', () => {
   let tenantId: string;
   let propertyId: string;
   let leaseId: string;
-  let renewalId: string;
+  let _renewalId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -241,7 +241,7 @@ describe('LeaseRenewal (e2e)', () => {
 
       expect(response.body.status).toBe('OFFERED');
       expect(response.body.proposedRentAmount).toBe(1600);
-      renewalId = response.body.id;
+      _renewalId = response.body.id;
     });
 
     it('should return 403 when tenant tries to create offer', async () => {
@@ -343,7 +343,7 @@ describe('LeaseRenewal (e2e)', () => {
           offerSentAt: new Date(),
         },
       });
-      renewalId = renewal.id;
+      _renewalId = renewal.id;
     });
 
     it('should accept offer successfully (tenant)', async () => {
@@ -395,7 +395,7 @@ describe('LeaseRenewal (e2e)', () => {
           offerSentAt: new Date(),
         },
       });
-      renewalId = renewal.id;
+      _renewalId = renewal.id;
     });
 
     it('should decline offer successfully (tenant)', async () => {

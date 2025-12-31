@@ -10,7 +10,6 @@ import {
 
 describe('VerificationController', () => {
   let controller: VerificationController;
-  let service: jest.Mocked<VerificationService>;
 
   const mockVerificationService = {
     submitVerification: jest.fn(),
@@ -78,7 +77,6 @@ describe('VerificationController', () => {
     }).compile();
 
     controller = module.get<VerificationController>(VerificationController);
-    service = module.get(VerificationService);
   });
 
   afterEach(() => {

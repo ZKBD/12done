@@ -34,7 +34,6 @@ import { NotesService } from './notes.service';
 import {
   // POI
   NearbyPoiQueryDto,
-  PoiDetailsQueryDto,
   PoiResponseDto,
   // Narration
   NarrationRequestDto,

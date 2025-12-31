@@ -6,14 +6,11 @@ import {
   VerificationStatus,
   DocumentType,
   BackgroundCheckType,
-  UserRole,
 } from '@prisma/client';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('VerificationService', () => {
   let service: VerificationService;
-  let prismaService: jest.Mocked<PrismaService>;
-  let mailService: jest.Mocked<MailService>;
 
   const mockPrismaService = {
     verificationRequest: {
@@ -101,8 +98,6 @@ describe('VerificationService', () => {
     }).compile();
 
     service = module.get<VerificationService>(VerificationService);
-    prismaService = module.get(PrismaService);
-    mailService = module.get(MailService);
   });
 
   afterEach(() => {

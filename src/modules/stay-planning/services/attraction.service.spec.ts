@@ -6,7 +6,6 @@ import { AttractionCategory, AttractionBookingStatus } from '../dto';
 
 describe('AttractionService', () => {
   let service: AttractionService;
-  let prisma: PrismaService;
 
   const mockUserId = 'user-123';
   const mockAttractionId = 'attraction-123';
@@ -101,7 +100,6 @@ describe('AttractionService', () => {
     }).compile();
 
     service = module.get<AttractionService>(AttractionService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });

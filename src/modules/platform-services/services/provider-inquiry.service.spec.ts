@@ -9,8 +9,6 @@ import { InquiryStatus, PlatformProviderStatus, InsuranceType, MortgageProductTy
 describe('ProviderInquiryService', () => {
   let service: ProviderInquiryService;
   let prismaService: PrismaService;
-  let insuranceProviderService: InsuranceProviderService;
-  let mortgageProviderService: MortgageProviderService;
 
   const mockUserId = 'user-123';
   const mockProviderUserId = 'provider-user-123';
@@ -106,8 +104,6 @@ describe('ProviderInquiryService', () => {
 
     service = module.get<ProviderInquiryService>(ProviderInquiryService);
     prismaService = module.get<PrismaService>(PrismaService);
-    insuranceProviderService = module.get<InsuranceProviderService>(InsuranceProviderService);
-    mortgageProviderService = module.get<MortgageProviderService>(MortgageProviderService);
   });
 
   describe('createInsuranceInquiry', () => {
@@ -211,7 +207,7 @@ describe('ProviderInquiryService', () => {
         viewedAt: new Date(),
       } as any);
 
-      const result = await service.getInquiryById(mockInquiryId, mockProviderUserId);
+      await service.getInquiryById(mockInquiryId, mockProviderUserId);
 
       expect(prismaService.providerInquiry.update).toHaveBeenCalledWith(
         expect.objectContaining({

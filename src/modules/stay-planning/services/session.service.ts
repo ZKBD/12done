@@ -276,8 +276,8 @@ export class SessionService {
     session: any,
     days: number,
   ): ProposalResponseDto[] {
-    const interests = session.interests || [];
-    const pace = session.preferredPace || 'moderate';
+    const _interests = session.interests || [];
+    const _pace = session.preferredPace || 'moderate';
     const hasChildren = session.hasChildren || false;
     const budgetMax = session.budgetMax
       ? Number(session.budgetMax)

@@ -6,7 +6,6 @@ import { NotFoundException, ConflictException } from '@nestjs/common';
 
 describe('SavedPlacesService', () => {
   let service: SavedPlacesService;
-  let prismaService: jest.Mocked<PrismaService>;
 
   const mockPrismaService = {
     savedPlace: {
@@ -45,7 +44,6 @@ describe('SavedPlacesService', () => {
     }).compile();
 
     service = module.get<SavedPlacesService>(SavedPlacesService);
-    prismaService = module.get(PrismaService);
   });
 
   afterEach(() => {

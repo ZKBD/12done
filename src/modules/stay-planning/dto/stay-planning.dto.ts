@@ -13,7 +13,6 @@ import {
   IsUrl,
   IsInt,
   ArrayMinSize,
-  ArrayMaxSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';

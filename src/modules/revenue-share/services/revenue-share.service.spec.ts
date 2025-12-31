@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { RevenueShareService } from './revenue-share.service';
 import { PrismaService } from '@/database/prisma.service';
-import { RevenueShareStatus, PayoutStatus, UserStatus, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 describe('RevenueShareService', () => {
   let service: RevenueShareService;
@@ -667,7 +667,7 @@ describe('RevenueShareService', () => {
       mockPrismaService.revenueShare.createMany.mockResolvedValue({ count: 4 });
       mockPrismaService.revenueDistribution.update.mockResolvedValue({});
 
-      const result = await service.distributeRevenue('txn-1');
+      await service.distributeRevenue('txn-1');
 
       expect(mockPrismaService.revenueShare.createMany).toHaveBeenCalled();
     });
