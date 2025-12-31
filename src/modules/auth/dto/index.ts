@@ -6,3 +6,4 @@ export * from './forgot-password.dto';
 export * from './reset-password.dto';
 export * from './refresh-token.dto';
 export * from './auth-response.dto';
+export * from './biometric.dto';

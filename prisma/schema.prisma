@@ -318,6 +318,12 @@ enum ExpenseCategory {
   OTHER // Miscellaneous
 }
 
+// Biometric Authentication (PROD-011)
+enum BiometricDeviceType {
+  IOS
+  ANDROID
+}
+
 // ============================================
 // USER MANAGEMENT (PROD-001 to PROD-011)
 // ============================================
@@ -438,6 +444,10 @@ model User {
   tripPlans            TripPlan[]
   attractionBookings   AttractionBooking[]
   cateringQuotes       CateringQuote[]
+
+  // Biometric Authentication (PROD-011)
+  biometricEnabled     Boolean              @default(false)
+  biometricCredentials BiometricCredential[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3671,4 +3681,51 @@ model CateringQuote {
   @@index([propertyId])
   @@index([status])
   @@index([eventDate])
+}
+
+// ============================================
+// BIOMETRIC AUTHENTICATION (PROD-011)
+// ============================================
+
+// Biometric Credential (PROD-011.1, PROD-011.2)
+// Stores device-specific biometric credentials for authentication
+model BiometricCredential {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Device identification
+  deviceId   String              // Unique device identifier
+  deviceName String              // "iPhone 14 Pro", "Samsung Galaxy S23"
+  deviceType BiometricDeviceType // IOS, ANDROID
+
+  // Cryptographic credentials (WebAuthn-inspired)
+  publicKey    String @db.Text // Base64-encoded public key
+  credentialId String @unique  // Unique credential identifier
+
+  // Status
+  isActive   Boolean   @default(true)
+  enrolledAt DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  @@unique([userId, deviceId])
+  @@index([userId])
+  @@index([credentialId])
+}
+
+// Biometric Challenge (PROD-011.1)
+// Time-limited challenges for biometric authentication
+model BiometricChallenge {
+  id String @id @default(uuid())
+
+  challenge String   @unique // 32-byte random value (base64)
+  deviceId  String   // Target device
+  expiresAt DateTime // 5-minute expiry
+  usedAt    DateTime? // Mark as used when consumed
+
+  createdAt DateTime @default(now())
+
+  @@index([challenge])
+  @@index([deviceId])
+  @@index([expiresAt])
 }

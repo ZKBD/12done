@@ -1,8 +1,8 @@
 # Requirements Traceability Matrix
 
 **Project:** 12done.com
-**Last Updated:** 2025-12-30
-**Version:** 2.1
+**Last Updated:** 2025-12-31
+**Version:** 2.2
 
 This document traces requirements from the SRS to their implementing test cases and results. It must be updated whenever:
 - New requirements are added to the SRS
@@ -11,14 +11,14 @@ This document traces requirements from the SRS to their implementing test cases 
 
 ---
 
-## Test Run Summary (2025-12-30)
+## Test Run Summary (2025-12-31)
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 1537 | 0 | 1537 | 100% |
+| Unit Tests | 2029 | 0 | 2029 | 100% |
 | E2E Tests | 287 | 0 | 287 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **1829** | **0** | **1829** | **100%** |
+| **Total** | **2321** | **0** | **2321** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -146,7 +146,32 @@ Note: E2E tests require Docker/database to run.
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-011 | N/A | N/A | Biometric authentication - client-side implementation (P2) | 🚧 |
+| PROD-011.1 | `enrollDevice > should enroll new device` | biometric.service.spec.ts | Verifies device enrollment with public key | ✅ |
+| PROD-011.1 | `enrollDevice > should throw if device already enrolled` | biometric.service.spec.ts | Verifies duplicate device enrollment returns error | ✅ |
+| PROD-011.1 | `enrollDevice > should throw if public key is invalid` | biometric.service.spec.ts | Verifies invalid public key format is rejected | ✅ |
+| PROD-011.1 | `enrollDevice > should enable biometric for user` | biometric.service.spec.ts | Verifies user biometricEnabled is set on first enrollment | ✅ |
+| PROD-011.1 | `generateChallenge > should create challenge for device` | biometric.service.spec.ts | Verifies 32-byte random challenge generation | ✅ |
+| PROD-011.1 | `generateChallenge > should throw if device not enrolled` | biometric.service.spec.ts | Verifies challenge requires enrolled device | ✅ |
+| PROD-011.1 | `generateChallenge > should throw if device inactive` | biometric.service.spec.ts | Verifies inactive device cannot get challenge | ✅ |
+| PROD-011.1 | `authenticate > should verify signature and return tokens` | biometric.service.spec.ts | Verifies RSA-SHA256 signature verification | ✅ |
+| PROD-011.1 | `authenticate > should throw if signature invalid` | biometric.service.spec.ts | Verifies invalid signature is rejected | ✅ |
+| PROD-011.1 | `authenticate > should throw if challenge expired` | biometric.service.spec.ts | Verifies 5-minute challenge expiry | ✅ |
+| PROD-011.1 | `authenticate > should throw if challenge already used` | biometric.service.spec.ts | Verifies one-time challenge usage | ✅ |
+| PROD-011.1 | `authenticate > should throw if biometric disabled` | biometric.service.spec.ts | Verifies biometric must be enabled | ✅ |
+| PROD-011.2 | `getDevices > should return enrolled devices` | biometric.service.spec.ts | Verifies device list retrieval | ✅ |
+| PROD-011.2 | `updateDevice > should update device name` | biometric.service.spec.ts | Verifies device name update | ✅ |
+| PROD-011.2 | `updateDevice > should update device active status` | biometric.service.spec.ts | Verifies device deactivation | ✅ |
+| PROD-011.2 | `updateDevice > should throw if device not found` | biometric.service.spec.ts | Verifies error for non-existent device | ✅ |
+| PROD-011.2 | `removeDevice > should delete device` | biometric.service.spec.ts | Verifies device removal | ✅ |
+| PROD-011.2 | `removeDevice > should disable biometric if last device` | biometric.service.spec.ts | Verifies biometric auto-disable when no devices remain | ✅ |
+| PROD-011.3 | `updateBiometricSettings > should enable biometric` | biometric.service.spec.ts | Verifies biometricEnabled flag update | ✅ |
+| PROD-011.3 | `updateBiometricSettings > should throw if no devices` | biometric.service.spec.ts | Verifies cannot enable without enrolled devices | ✅ |
+| PROD-011.3 | `updateBiometricSettings > should disable biometric` | biometric.service.spec.ts | Verifies biometric can be disabled | ✅ |
+| PROD-011.4 | `authenticate > fallback to password always available` | biometric.service.spec.ts | Password auth always works via AuthService | ✅ |
+| PROD-011.5 | `isBiometricRequired > should return true for sensitive actions` | biometric.service.spec.ts | Verifies payment, profile changes require biometric | ✅ |
+| PROD-011.5 | `isBiometricRequired > should return false for non-sensitive actions` | biometric.service.spec.ts | Verifies regular actions don't require biometric | ✅ |
+| PROD-011.5 | `verifyForSensitiveAction > should verify biometric` | biometric.service.spec.ts | Verifies biometric re-verification for sensitive actions | ✅ |
+| PROD-011.5 | `verifyForSensitiveAction > should pass if biometric disabled` | biometric.service.spec.ts | Verifies fallback when biometric not enabled | ✅ |
 
 ---
 
@@ -2493,6 +2518,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-30 | Claude | Implemented Stay Planning (PROD-140-144): Prisma models (StayPlanningSession, TripPlan, TripDay, TripActivity, Attraction, AttractionBooking, CateringProvider, CateringMenu, CateringQuote with 9 enums), StayPlanningModule with 4 services (SessionService for wizard/proposals, TripPlanService for daily schedules/activities, AttractionService for attractions/bookings, CateringService for providers/quotes), 50+ API endpoints, distance calculation, AI proposal generation; 110 unit tests (18 session + 30 trip-plan + 35 attraction + 27 catering); Total tests now 1824 |
 | 2025-12-30 | Claude | Fixed Stay Planning tests (PROD-140-144): Aligned services with Prisma schema field names (title→name, sessionId→planningSessionId, etc.), fixed DTO enums to match Prisma (InterestCategory, TripPlanStatus, CateringQuoteStatus), updated test mocks with correct field names and future dates; All 115 stay-planning tests now pass; Updated matrix entries (removed isBookable filter, replaced with price level filter; replaced catering distance with pagination test); Total tests now 1829 |
 | 2025-12-31 | Claude | CI fixes: Added Prisma migration for virtual staging columns (isVirtuallyStaged, roomType, stagingStyle, timeOfDay, season, photoGroupId on PropertyMedia; VirtualStagingRequest table; RoomType/StagingStyle/TimeOfDay/Season/StagingStatus enums); Fixed revenue-share spec mock chain (3 findUnique calls needed); Added fetch/URLSearchParams to ESLint globals; Fixed AI maintenance appointment suggestions fallback; All 1964 unit tests + 529 E2E tests passing |
+| 2025-12-31 | Claude | Implemented Biometric Authentication (PROD-011.1-011.5): Prisma models (BiometricDeviceType enum, BiometricCredential for device storage, BiometricChallenge for time-limited challenges), BiometricService with challenge-response authentication (RSA-SHA256 signature verification), device enrollment/management, biometric settings, sensitive action verification; BiometricRequiredGuard for payment/profile/password actions; 7 controller endpoints at /auth/biometric/*; 34 unit tests; Total tests now 2029 |
 
 ---
 

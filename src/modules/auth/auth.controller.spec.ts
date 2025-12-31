@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { BiometricService } from './biometric.service';
 import { UserRole, UserStatus, VerificationStatus } from '@prisma/client';
 
 describe('AuthController', () => {
@@ -43,6 +44,20 @@ describe('AuthController', () => {
             forgotPassword: jest.fn(),
             resetPassword: jest.fn(),
             getMe: jest.fn(),
+          },
+        },
+        {
+          provide: BiometricService,
+          useValue: {
+            enrollDevice: jest.fn(),
+            generateChallenge: jest.fn(),
+            authenticate: jest.fn(),
+            getDevices: jest.fn(),
+            updateDevice: jest.fn(),
+            removeDevice: jest.fn(),
+            updateBiometricSettings: jest.fn(),
+            isBiometricRequired: jest.fn(),
+            verifyForSensitiveAction: jest.fn(),
           },
         },
       ],

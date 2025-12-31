@@ -3,6 +3,10 @@ import {
   Post,
   Body,
   Get,
+  Put,
+  Patch,
+  Delete,
+  Param,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -14,6 +18,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { BiometricService } from './biometric.service';
 import { JwtAuthGuard } from './guards';
 import { Public, CurrentUser, CurrentUserData } from '@/common/decorators';
 import {
@@ -28,13 +33,25 @@ import {
   MessageResponseDto,
   UserResponseDto,
   AuthTokensDto,
+  EnrollBiometricDto,
+  BiometricCredentialResponseDto,
+  BiometricChallengeRequestDto,
+  BiometricChallengeResponseDto,
+  BiometricAuthenticateDto,
+  UpdateBiometricDeviceDto,
+  BiometricDeviceListResponseDto,
+  UpdateBiometricSettingsDto,
+  BiometricSettingsResponseDto,
 } from './dto';
 
 @ApiTags('auth')
 @Controller('auth')
 @UseGuards(JwtAuthGuard)
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly biometricService: BiometricService,
+  ) {}
 
   @Post('register')
   @Public()
@@ -164,5 +181,119 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getMe(@CurrentUser() user: CurrentUserData): Promise<UserResponseDto> {
     return this.authService.getMe(user.id);
+  }
+
+  // Biometric Authentication Endpoints
+
+  @Post('biometric/enroll')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Enroll a device for biometric authentication' })
+  @ApiResponse({
+    status: 201,
+    description: 'Device enrolled successfully',
+    type: BiometricCredentialResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Device already enrolled' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async enrollBiometric(
+    @CurrentUser('id') userId: string,
+    @Body() dto: EnrollBiometricDto,
+  ): Promise<BiometricCredentialResponseDto> {
+    return this.biometricService.enrollDevice(userId, dto);
+  }
+
+  @Post('biometric/challenge')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request a challenge for biometric authentication' })
+  @ApiResponse({
+    status: 200,
+    description: 'Challenge generated',
+    type: BiometricChallengeResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Device not found' })
+  async getBiometricChallenge(
+    @Body() dto: BiometricChallengeRequestDto,
+  ): Promise<BiometricChallengeResponseDto> {
+    return this.biometricService.generateChallenge(dto);
+  }
+
+  @Post('biometric/authenticate')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Authenticate using biometric signature' })
+  @ApiResponse({
+    status: 200,
+    description: 'Authentication successful',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Invalid signature or expired challenge' })
+  async authenticateBiometric(
+    @Body() dto: BiometricAuthenticateDto,
+  ): Promise<{ user: { id: string; email: string }; tokens: AuthTokensDto }> {
+    return this.biometricService.authenticate(dto);
+  }
+
+  @Get('biometric/devices')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List enrolled biometric devices' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of enrolled devices',
+    type: BiometricDeviceListResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getBiometricDevices(
+    @CurrentUser('id') userId: string,
+  ): Promise<BiometricDeviceListResponseDto> {
+    return this.biometricService.getDevices(userId);
+  }
+
+  @Patch('biometric/devices/:id')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a biometric device' })
+  @ApiResponse({
+    status: 200,
+    description: 'Device updated',
+    type: BiometricCredentialResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Device not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async updateBiometricDevice(
+    @CurrentUser('id') userId: string,
+    @Param('id') credentialId: string,
+    @Body() dto: UpdateBiometricDeviceDto,
+  ): Promise<BiometricCredentialResponseDto> {
+    return this.biometricService.updateDevice(userId, credentialId, dto);
+  }
+
+  @Delete('biometric/devices/:id')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Remove a biometric device' })
+  @ApiResponse({ status: 204, description: 'Device removed' })
+  @ApiResponse({ status: 404, description: 'Device not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async removeBiometricDevice(
+    @CurrentUser('id') userId: string,
+    @Param('id') credentialId: string,
+  ): Promise<void> {
+    await this.biometricService.removeDevice(userId, credentialId);
+  }
+
+  @Put('biometric/settings')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update biometric settings' })
+  @ApiResponse({
+    status: 200,
+    description: 'Settings updated',
+    type: BiometricSettingsResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async updateBiometricSettings(
+    @CurrentUser('id') userId: string,
+    @Body() dto: UpdateBiometricSettingsDto,
+  ): Promise<BiometricSettingsResponseDto> {
+    return this.biometricService.updateBiometricSettings(userId, dto.enabled);
   }
 }
