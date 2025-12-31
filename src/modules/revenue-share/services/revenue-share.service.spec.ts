@@ -307,23 +307,25 @@ describe('RevenueShareService', () => {
       });
 
       it('should create distribution with correct amounts', async () => {
+        const mockDistribution = {
+          id: 'dist-1',
+          transactionId: 'txn-1',
+          totalRevenue: new Prisma.Decimal(250),
+          currency: 'EUR',
+          platformAmount: new Prisma.Decimal(75),
+          buyerRewardAmount: new Prisma.Decimal(25),
+          directInviterAmount: new Prisma.Decimal(50),
+          upstreamNetworkAmount: new Prisma.Decimal(50),
+          allUsersShareAmount: new Prisma.Decimal(50),
+          status: 'PROCESSED',
+          processedAt: new Date(),
+          shares: [],
+          createdAt: new Date(),
+        };
         mockPrismaService.revenueDistribution.findUnique
           .mockResolvedValueOnce(null) // First call - check existing
-          .mockResolvedValueOnce({ // Second call - after creation
-            id: 'dist-1',
-            transactionId: 'txn-1',
-            totalRevenue: new Prisma.Decimal(250),
-            currency: 'EUR',
-            platformAmount: new Prisma.Decimal(75),
-            buyerRewardAmount: new Prisma.Decimal(25),
-            directInviterAmount: new Prisma.Decimal(50),
-            upstreamNetworkAmount: new Prisma.Decimal(50),
-            allUsersShareAmount: new Prisma.Decimal(50),
-            status: 'PROCESSED',
-            processedAt: new Date(),
-            shares: [],
-            createdAt: new Date(),
-          });
+          .mockResolvedValueOnce(mockDistribution) // Second call - processDistribution
+          .mockResolvedValueOnce(mockDistribution); // Third call - getDistributionById
         mockPrismaService.transaction.findUnique.mockResolvedValue(mockTransaction);
         mockPrismaService.platformConfiguration.findFirst.mockResolvedValue(mockDefaultConfig);
         mockPrismaService.revenueDistribution.create.mockResolvedValue({
@@ -372,7 +374,7 @@ describe('RevenueShareService', () => {
               status: 'PROCESSED',
               createdAt: new Date(),
               wallet: {
-                user: { name: 'Test User', email: 'test@example.com' },
+                user: { firstName: 'Test', email: 'test@example.com' },
               },
             },
           ],
@@ -636,23 +638,25 @@ describe('RevenueShareService', () => {
   describe('Upstream Network Calculation', () => {
     it('should distribute to multiple upstream levels', async () => {
       // This tests the private method indirectly through distributeRevenue
+      const mockDistribution = {
+        id: 'dist-1',
+        transactionId: 'txn-1',
+        totalRevenue: new Prisma.Decimal(250),
+        currency: 'EUR',
+        platformAmount: new Prisma.Decimal(75),
+        buyerRewardAmount: new Prisma.Decimal(25),
+        directInviterAmount: new Prisma.Decimal(50),
+        upstreamNetworkAmount: new Prisma.Decimal(50),
+        allUsersShareAmount: new Prisma.Decimal(50),
+        status: 'PROCESSED',
+        processedAt: new Date(),
+        shares: [],
+        createdAt: new Date(),
+      };
       mockPrismaService.revenueDistribution.findUnique
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({
-          id: 'dist-1',
-          transactionId: 'txn-1',
-          totalRevenue: new Prisma.Decimal(250),
-          currency: 'EUR',
-          platformAmount: new Prisma.Decimal(75),
-          buyerRewardAmount: new Prisma.Decimal(25),
-          directInviterAmount: new Prisma.Decimal(50),
-          upstreamNetworkAmount: new Prisma.Decimal(50),
-          allUsersShareAmount: new Prisma.Decimal(50),
-          status: 'PROCESSED',
-          processedAt: new Date(),
-          shares: [],
-          createdAt: new Date(),
-        });
+        .mockResolvedValueOnce(null) // First call - check existing
+        .mockResolvedValueOnce(mockDistribution) // Second call - processDistribution
+        .mockResolvedValueOnce(mockDistribution); // Third call - getDistributionById
       mockPrismaService.transaction.findUnique.mockResolvedValue(mockTransaction);
       mockPrismaService.platformConfiguration.findFirst.mockResolvedValue(mockDefaultConfig);
       mockPrismaService.revenueDistribution.create.mockResolvedValue({ id: 'dist-1' });

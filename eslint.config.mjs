@@ -26,6 +26,9 @@ export default [
         setInterval: 'readonly',
         clearTimeout: 'readonly',
         clearInterval: 'readonly',
+        // Node.js 18+ globals
+        fetch: 'readonly',
+        URLSearchParams: 'readonly',
       },
     },
     plugins: {
