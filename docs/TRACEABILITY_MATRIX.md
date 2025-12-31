@@ -648,99 +648,99 @@ Note: E2E tests require Docker/database to run.
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-160.1 | `getPropertyValuation > should generate new valuation for property` | financial-tools.service.spec.ts | Verifies AI-powered valuation generation | ⏳ |
-| PROD-160.2 | `getPropertyValuation > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | Verifies property validation | ⏳ |
-| PROD-160.3 | `getPropertyValuation > should return cached valuation if recent` | financial-tools.service.spec.ts | Verifies 24-hour cache behavior | ⏳ |
-| PROD-160.4 | `getPropertyValuation > should use specified valuation method` | financial-tools.service.spec.ts | Verifies COMPARABLE/INCOME/COST methods | ⏳ |
+| PROD-160.1 | `getPropertyValuation > should generate new valuation for property` | financial-tools.service.spec.ts | ✅ |
+| PROD-160.2 | `getPropertyValuation > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | ✅ |
+| PROD-160.3 | `getPropertyValuation > should return cached valuation if recent` | financial-tools.service.spec.ts | ✅ |
+| PROD-160.4 | `getPropertyValuation > should use specified valuation method` | financial-tools.service.spec.ts | ✅ |
 
 ### PROD-161: Price Analytics
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-161.1 | `getPriceHistory > should return price history for property` | financial-tools.service.spec.ts | Verifies price history retrieval | ⏳ |
-| PROD-161.2 | `getPriceHistory > should create initial history entry if none exists` | financial-tools.service.spec.ts | Verifies automatic first entry creation | ⏳ |
-| PROD-161.3 | `getPriceHistory > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | Verifies property validation | ⏳ |
-| PROD-161.4 | `getPriceHistory > should filter by date range` | financial-tools.service.spec.ts | Verifies date filtering | ⏳ |
+| PROD-161.1 | `getPriceHistory > should return price history for property` | financial-tools.service.spec.ts | ✅ |
+| PROD-161.2 | `getPriceHistory > should create initial history entry if none exists` | financial-tools.service.spec.ts | ✅ |
+| PROD-161.3 | `getPriceHistory > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | ✅ |
+| PROD-161.4 | `getPriceHistory > should filter by date range` | financial-tools.service.spec.ts | ✅ |
 
 ### PROD-162: Investment Calculators
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-162.1 | `calculateRoi > should calculate ROI metrics correctly` | financial-tools.service.spec.ts | Verifies ROI calculation accuracy | ⏳ |
-| PROD-162.2 | `calculateRoi > should handle zero down payment` | financial-tools.service.spec.ts | Verifies default down payment handling | ⏳ |
-| PROD-162.3 | `calculateRoi > should apply vacancy rate to income` | financial-tools.service.spec.ts | Verifies vacancy rate application | ⏳ |
-| PROD-162.4 | `calculateMortgage > should calculate mortgage payment correctly` | financial-tools.service.spec.ts | Verifies mortgage calculation | ⏳ |
-| PROD-162.5 | `calculateMortgage > should include PMI when specified` | financial-tools.service.spec.ts | Verifies PMI inclusion | ⏳ |
-| PROD-162.6 | `calculateMortgage > should include escrow amounts` | financial-tools.service.spec.ts | Verifies escrow calculation | ⏳ |
-| PROD-162.7 | `calculateMortgage > should handle zero interest rate` | financial-tools.service.spec.ts | Verifies edge case handling | ⏳ |
-| PROD-162.8 | `calculateMortgage > should generate amortization summary by year` | financial-tools.service.spec.ts | Verifies amortization schedule | ⏳ |
+| PROD-162.1 | `calculateRoi > should calculate ROI metrics correctly` | financial-tools.service.spec.ts | ✅ |
+| PROD-162.2 | `calculateRoi > should handle zero down payment` | financial-tools.service.spec.ts | ✅ |
+| PROD-162.3 | `calculateRoi > should apply vacancy rate to income` | financial-tools.service.spec.ts | ✅ |
+| PROD-162.4 | `calculateMortgage > should calculate mortgage payment correctly` | financial-tools.service.spec.ts | ✅ |
+| PROD-162.5 | `calculateMortgage > should include PMI when specified` | financial-tools.service.spec.ts | ✅ |
+| PROD-162.6 | `calculateMortgage > should include escrow amounts` | financial-tools.service.spec.ts | ✅ |
+| PROD-162.7 | `calculateMortgage > should handle zero interest rate` | financial-tools.service.spec.ts | ✅ |
+| PROD-162.8 | `calculateMortgage > should generate amortization summary by year` | financial-tools.service.spec.ts | ✅ |
 
 ### PROD-163: Rental Yield Calculator
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-163.1 | `calculateRentalYield > should calculate gross and net yield` | financial-tools.service.spec.ts | Verifies yield calculation | ⏳ |
-| PROD-163.2 | `calculateRentalYield > should throw error for zero purchase price` | financial-tools.service.spec.ts | Verifies input validation | ⏳ |
-| PROD-163.3 | `calculateRentalYield > should handle zero expenses` | financial-tools.service.spec.ts | Verifies expense handling | ⏳ |
+| PROD-163.1 | `calculateRentalYield > should calculate gross and net yield` | financial-tools.service.spec.ts | ✅ |
+| PROD-163.2 | `calculateRentalYield > should throw error for zero purchase price` | financial-tools.service.spec.ts | ✅ |
+| PROD-163.3 | `calculateRentalYield > should handle zero expenses` | financial-tools.service.spec.ts | ✅ |
 
 ### PROD-164: Depreciation Calculator
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-164.1 | `calculateDepreciation > should calculate residential depreciation (27.5 years)` | financial-tools.service.spec.ts | Verifies residential depreciation | ⏳ |
-| PROD-164.2 | `calculateDepreciation > should calculate commercial depreciation (39 years)` | financial-tools.service.spec.ts | Verifies commercial depreciation | ⏳ |
-| PROD-164.3 | `calculateDepreciation > should include improvement costs in basis` | financial-tools.service.spec.ts | Verifies improvement cost handling | ⏳ |
-| PROD-164.4 | `calculateDepreciation > should use default land value of 20%` | financial-tools.service.spec.ts | Verifies default land value | ⏳ |
+| PROD-164.1 | `calculateDepreciation > should calculate residential depreciation (27.5 years)` | financial-tools.service.spec.ts | ✅ |
+| PROD-164.2 | `calculateDepreciation > should calculate commercial depreciation (39 years)` | financial-tools.service.spec.ts | ✅ |
+| PROD-164.3 | `calculateDepreciation > should include improvement costs in basis` | financial-tools.service.spec.ts | ✅ |
+| PROD-164.4 | `calculateDepreciation > should use default land value of 20%` | financial-tools.service.spec.ts | ✅ |
 
 ### PROD-165: Portfolio Tracker
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-165.1 | `createPortfolio > should create new portfolio` | financial-tools.service.spec.ts | Verifies portfolio creation | ⏳ |
-| PROD-165.2 | `getPortfolios > should return user portfolios` | financial-tools.service.spec.ts | Verifies portfolio listing | ⏳ |
-| PROD-165.3 | `getPortfolioById > should return portfolio with metrics` | financial-tools.service.spec.ts | Verifies portfolio retrieval | ⏳ |
-| PROD-165.4 | `getPortfolioById > should throw NotFoundException for non-existent portfolio` | financial-tools.service.spec.ts | Verifies portfolio validation | ⏳ |
-| PROD-165.5 | `deletePortfolio > should delete portfolio` | financial-tools.service.spec.ts | Verifies portfolio deletion | ⏳ |
-| PROD-165.6 | `deletePortfolio > should throw NotFoundException for non-existent portfolio` | financial-tools.service.spec.ts | Verifies deletion validation | ⏳ |
-| PROD-165.7 | `addPropertyToPortfolio > should add property to portfolio` | financial-tools.service.spec.ts | Verifies property addition | ⏳ |
-| PROD-165.8 | `addPropertyToPortfolio > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | Verifies property validation | ⏳ |
-| PROD-165.9 | `addPropertyToPortfolio > should throw BadRequestException if property already in portfolio` | financial-tools.service.spec.ts | Verifies duplicate prevention | ⏳ |
-| PROD-165.10 | `removePropertyFromPortfolio > should remove property from portfolio` | financial-tools.service.spec.ts | Verifies property removal | ⏳ |
-| PROD-165.11 | `removePropertyFromPortfolio > should throw NotFoundException if property not in portfolio` | financial-tools.service.spec.ts | Verifies removal validation | ⏳ |
+| PROD-165.1 | `createPortfolio > should create new portfolio` | financial-tools.service.spec.ts | ✅ |
+| PROD-165.2 | `getPortfolios > should return user portfolios` | financial-tools.service.spec.ts | ✅ |
+| PROD-165.3 | `getPortfolioById > should return portfolio with metrics` | financial-tools.service.spec.ts | ✅ |
+| PROD-165.4 | `getPortfolioById > should throw NotFoundException for non-existent portfolio` | financial-tools.service.spec.ts | ✅ |
+| PROD-165.5 | `deletePortfolio > should delete portfolio` | financial-tools.service.spec.ts | ✅ |
+| PROD-165.6 | `deletePortfolio > should throw NotFoundException for non-existent portfolio` | financial-tools.service.spec.ts | ✅ |
+| PROD-165.7 | `addPropertyToPortfolio > should add property to portfolio` | financial-tools.service.spec.ts | ✅ |
+| PROD-165.8 | `addPropertyToPortfolio > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | ✅ |
+| PROD-165.9 | `addPropertyToPortfolio > should throw BadRequestException if property already in portfolio` | financial-tools.service.spec.ts | ✅ |
+| PROD-165.10 | `removePropertyFromPortfolio > should remove property from portfolio` | financial-tools.service.spec.ts | ✅ |
+| PROD-165.11 | `removePropertyFromPortfolio > should throw NotFoundException if property not in portfolio` | financial-tools.service.spec.ts | ✅ |
 
 ### PROD-166: Loan Comparison
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-166.1 | `compareLoanOptions > should compare multiple loan options` | financial-tools.service.spec.ts | Verifies multi-loan comparison | ⏳ |
-| PROD-166.2 | `compareLoanOptions > should rank by total cost` | financial-tools.service.spec.ts | Verifies cost-based ranking | ⏳ |
-| PROD-166.3 | `compareLoanOptions > should calculate effective rate` | financial-tools.service.spec.ts | Verifies APR calculation | ⏳ |
+| PROD-166.1 | `compareLoanOptions > should compare multiple loan options` | financial-tools.service.spec.ts | ✅ |
+| PROD-166.2 | `compareLoanOptions > should rank by total cost` | financial-tools.service.spec.ts | ✅ |
+| PROD-166.3 | `compareLoanOptions > should calculate effective rate` | financial-tools.service.spec.ts | ✅ |
 
 ### PROD-167: Down Payment Assistance
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-167.1 | `findDownPaymentPrograms > should return matching programs` | financial-tools.service.spec.ts | Verifies program search | ⏳ |
-| PROD-167.2 | `findDownPaymentPrograms > should mark ineligible based on income` | financial-tools.service.spec.ts | Verifies income eligibility | ⏳ |
-| PROD-167.3 | `findDownPaymentPrograms > should mark ineligible for non-first-time buyers` | financial-tools.service.spec.ts | Verifies first-time buyer check | ⏳ |
+| PROD-167.1 | `findDownPaymentPrograms > should return matching programs` | financial-tools.service.spec.ts | ✅ |
+| PROD-167.2 | `findDownPaymentPrograms > should mark ineligible based on income` | financial-tools.service.spec.ts | ✅ |
+| PROD-167.3 | `findDownPaymentPrograms > should mark ineligible for non-first-time buyers` | financial-tools.service.spec.ts | ✅ |
 
 ### PROD-168: Tax Reporting
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-168.1 | `generateTaxReport > should generate tax report for year` | financial-tools.service.spec.ts | Verifies report generation | ⏳ |
-| PROD-168.2 | `generateTaxReport > should return existing report if already generated` | financial-tools.service.spec.ts | Verifies report caching | ⏳ |
-| PROD-168.3 | `getTaxReports > should return user tax reports` | financial-tools.service.spec.ts | Verifies report listing | ⏳ |
+| PROD-168.1 | `generateTaxReport > should generate tax report for year` | financial-tools.service.spec.ts | ✅ |
+| PROD-168.2 | `generateTaxReport > should return existing report if already generated` | financial-tools.service.spec.ts | ✅ |
+| PROD-168.3 | `getTaxReports > should return user tax reports` | financial-tools.service.spec.ts | ✅ |
 
 ### PROD-169: Cash Flow Projection
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-169.1 | `createCashFlowProjection > should create cash flow projection` | financial-tools.service.spec.ts | Verifies projection creation | ⏳ |
-| PROD-169.2 | `createCashFlowProjection > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | Verifies property validation | ⏳ |
-| PROD-169.3 | `createCashFlowProjection > should apply vacancy rate to income` | financial-tools.service.spec.ts | Verifies vacancy rate | ⏳ |
-| PROD-169.4 | `createCashFlowProjection > should apply growth rates over time` | financial-tools.service.spec.ts | Verifies growth rate application | ⏳ |
-| PROD-169.5 | `getCashFlowProjections > should return projections for property` | financial-tools.service.spec.ts | Verifies projection retrieval | ⏳ |
+| PROD-169.1 | `createCashFlowProjection > should create cash flow projection` | financial-tools.service.spec.ts | ✅ |
+| PROD-169.2 | `createCashFlowProjection > should throw NotFoundException for non-existent property` | financial-tools.service.spec.ts | ✅ |
+| PROD-169.3 | `createCashFlowProjection > should apply vacancy rate to income` | financial-tools.service.spec.ts | ✅ |
+| PROD-169.4 | `createCashFlowProjection > should apply growth rates over time` | financial-tools.service.spec.ts | ✅ |
+| PROD-169.5 | `getCashFlowProjections > should return projections for property` | financial-tools.service.spec.ts | ✅ |
 
 ---
 
@@ -750,57 +750,57 @@ Note: E2E tests require Docker/database to run.
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROFIT-001.1 | `getActiveConfig > should return active config if exists` | revenue-share.service.spec.ts | Verifies config retrieval | ⏳ |
-| PROFIT-001.2 | `getActiveConfig > should create default config if none exists` | revenue-share.service.spec.ts | Verifies default config creation | ⏳ |
-| PROFIT-001.3 | `updateConfig > should update config with valid percentages` | revenue-share.service.spec.ts | Verifies config update | ⏳ |
-| PROFIT-001.4 | `updateConfig > should throw error if %A + %B + %C != 100` | revenue-share.service.spec.ts | Validates percentage sum rule | ⏳ |
-| PROFIT-001.5 | `updateConfig > should throw error if %D + %E + %F != %B` | revenue-share.service.spec.ts | Validates network breakdown rule | ⏳ |
-| PROFIT-001.6 | `updateConfig > should validate network breakdown equals user network total` | revenue-share.service.spec.ts | Validates network percentage math | ⏳ |
+| PROFIT-001.1 | `getActiveConfig > should return active config if exists` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-001.2 | `getActiveConfig > should create default config if none exists` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-001.3 | `updateConfig > should update config with valid percentages` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-001.4 | `updateConfig > should throw error if %A + %B + %C != 100` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-001.5 | `updateConfig > should throw error if %D + %E + %F != %B` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-001.6 | `updateConfig > should validate network breakdown equals user network total` | revenue-share.service.spec.ts | ✅ |
 
 ### Wallet Management
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROFIT-002.1 | `getOrCreateWallet > should return existing wallet` | revenue-share.service.spec.ts | Verifies wallet retrieval | ⏳ |
-| PROFIT-002.2 | `getOrCreateWallet > should create wallet if none exists` | revenue-share.service.spec.ts | Verifies wallet auto-creation | ⏳ |
-| PROFIT-002.3 | `getWalletTransactions > should return transaction history` | revenue-share.service.spec.ts | Verifies transaction history | ⏳ |
-| PROFIT-002.4 | `getWalletTransactions > should return empty array if no wallet` | revenue-share.service.spec.ts | Handles missing wallet | ⏳ |
+| PROFIT-002.1 | `getOrCreateWallet > should return existing wallet` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-002.2 | `getOrCreateWallet > should create wallet if none exists` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-002.3 | `getWalletTransactions > should return transaction history` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-002.4 | `getWalletTransactions > should return empty array if no wallet` | revenue-share.service.spec.ts | ✅ |
 
 ### Revenue Distribution
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROFIT-003.1 | `distributeRevenue > should throw error if already distributed` | revenue-share.service.spec.ts | Prevents duplicate distribution | ⏳ |
-| PROFIT-003.2 | `distributeRevenue > should throw error if transaction not found` | revenue-share.service.spec.ts | Validates transaction exists | ⏳ |
-| PROFIT-003.3 | `distributeRevenue > should throw error if transaction not completed` | revenue-share.service.spec.ts | Validates transaction status | ⏳ |
-| PROFIT-003.4 | `distributeRevenue > should create distribution with correct amounts` | revenue-share.service.spec.ts | Verifies amount calculations | ⏳ |
-| PROFIT-003.5 | `getDistributionById > should return distribution with shares` | revenue-share.service.spec.ts | Verifies distribution retrieval | ⏳ |
-| PROFIT-003.6 | `getDistributionById > should throw error if distribution not found` | revenue-share.service.spec.ts | Handles missing distribution | ⏳ |
-| PROFIT-003.7 | `upstream network > should distribute to multiple upstream levels` | revenue-share.service.spec.ts | Verifies multi-level network shares | ⏳ |
+| PROFIT-003.1 | `distributeRevenue > should throw error if already distributed` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-003.2 | `distributeRevenue > should throw error if transaction not found` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-003.3 | `distributeRevenue > should throw error if transaction not completed` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-003.4 | `distributeRevenue > should create distribution with correct amounts` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-003.5 | `getDistributionById > should return distribution with shares` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-003.6 | `getDistributionById > should throw error if distribution not found` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-003.7 | `upstream network > should distribute to multiple upstream levels` | revenue-share.service.spec.ts | ✅ |
 
 ### Payout Management
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROFIT-004.1 | `requestPayout > should create payout request with valid amount` | revenue-share.service.spec.ts | Verifies payout creation | ⏳ |
-| PROFIT-004.2 | `requestPayout > should throw error if wallet not found` | revenue-share.service.spec.ts | Validates wallet exists | ⏳ |
-| PROFIT-004.3 | `requestPayout > should throw error if insufficient balance` | revenue-share.service.spec.ts | Validates sufficient balance | ⏳ |
-| PROFIT-004.4 | `requestPayout > should throw error if below minimum payout amount` | revenue-share.service.spec.ts | Validates minimum amount | ⏳ |
-| PROFIT-004.5 | `requestPayout > should throw error if pending payout exists` | revenue-share.service.spec.ts | Prevents duplicate pending requests | ⏳ |
-| PROFIT-004.6 | `processPayout > should process pending payout` | revenue-share.service.spec.ts | Verifies payout processing | ⏳ |
-| PROFIT-004.7 | `processPayout > should throw error if payout not found` | revenue-share.service.spec.ts | Handles missing payout | ⏳ |
-| PROFIT-004.8 | `processPayout > should throw error if payout not pending` | revenue-share.service.spec.ts | Validates payout status | ⏳ |
-| PROFIT-004.9 | `cancelPayout > should cancel own pending payout and refund` | revenue-share.service.spec.ts | Verifies cancellation and refund | ⏳ |
-| PROFIT-004.10 | `cancelPayout > should throw error if not owner` | revenue-share.service.spec.ts | Validates ownership | ⏳ |
-| PROFIT-004.11 | `cancelPayout > should throw error if payout not pending` | revenue-share.service.spec.ts | Validates payout status for cancel | ⏳ |
+| PROFIT-004.1 | `requestPayout > should create payout request with valid amount` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-004.2 | `requestPayout > should throw error if wallet not found` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-004.3 | `requestPayout > should throw error if insufficient balance` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-004.4 | `requestPayout > should throw error if below minimum payout amount` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-004.5 | `requestPayout > should throw error if pending payout exists` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-004.6 | `processPayout > should process pending payout` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-004.7 | `processPayout > should throw error if payout not found` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-004.8 | `processPayout > should throw error if payout not pending` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-004.9 | `cancelPayout > should cancel own pending payout and refund` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-004.10 | `cancelPayout > should throw error if not owner` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-004.11 | `cancelPayout > should throw error if payout not pending` | revenue-share.service.spec.ts | ✅ |
 
 ### Statistics
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROFIT-005.1 | `getRevenueStats > should return aggregated revenue stats` | revenue-share.service.spec.ts | Verifies platform-wide stats | ⏳ |
-| PROFIT-005.2 | `getUserEarningsStats > should return user earnings breakdown` | revenue-share.service.spec.ts | Verifies user-level stats | ⏳ |
-| PROFIT-005.3 | `getUserEarningsStats > should return zeros if no wallet` | revenue-share.service.spec.ts | Handles missing wallet | ⏳ |
+| PROFIT-005.1 | `getRevenueStats > should return aggregated revenue stats` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-005.2 | `getUserEarningsStats > should return user earnings breakdown` | revenue-share.service.spec.ts | ✅ |
+| PROFIT-005.3 | `getUserEarningsStats > should return zeros if no wallet` | revenue-share.service.spec.ts | ✅ |
 
 ---
 
