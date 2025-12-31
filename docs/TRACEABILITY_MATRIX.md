@@ -1480,10 +1480,12 @@ Note: E2E tests require Docker/database to run.
 
 | Test Type | Count | Status |
 |-----------|-------|--------|
-| Service Unit Tests | 18 | ✅ |
+| Service Unit Tests | 27 | ✅ |
 | Controller Unit Tests | 6 | ✅ |
-| E2E Tests | 15 | ✅ |
-| **Total** | **39** | ✅ |
+| E2E Tests | 22 | ✅ |
+| **Total** | **55** | ✅ |
+
+*Last verified: 2025-12-31*
 
 ---
 
@@ -1567,11 +1569,14 @@ Note: E2E tests require Docker/database to run.
 
 | Test Type | Count | Status |
 |-----------|-------|--------|
-| Service Unit Tests (LeasesService) | 25 | ✅ |
-| Service Unit Tests (RentReminderService) | 10 | ✅ |
-| Controller Unit Tests | 9 | ✅ |
-| E2E Tests | 15 | ✅ |
-| **Total** | **59** | ✅ |
+| Service Unit Tests (LeasesService) | 35 | ✅ |
+| Service Unit Tests (RentReminderService) | 19 | ✅ |
+| Service Unit Tests (LeaseRenewalService) | 30 | ✅ |
+| Controller Unit Tests | 15 | ✅ |
+| E2E Tests | 27 | ✅ |
+| **Total** | **126** | ✅ |
+
+*Last verified: 2025-12-31*
 
 ---
 
