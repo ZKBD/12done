@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PreferencesService } from './preferences.service';
 import { PrismaService } from '@/database/prisma.service';
-import { VoiceStyle, InterestCategory } from '@prisma/client';
+import { VoiceStyle, InterestCategory, PoiType } from '@prisma/client';
 
 describe('PreferencesService', () => {
   let service: PreferencesService;
@@ -11,6 +11,13 @@ describe('PreferencesService', () => {
       findUnique: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+    },
+    interestHistory: {
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      deleteMany: jest.fn(),
     },
   };
 
@@ -148,6 +155,163 @@ describe('PreferencesService', () => {
       const result = await service.getInterests('user-123');
 
       expect(result).toEqual([InterestCategory.HISTORY]);
+    });
+  });
+
+  // ============================================
+  // Interest History Tests (PROD-133)
+  // ============================================
+
+  describe('recordInterestUsage', () => {
+    const mockInterestHistory = {
+      id: 'history-1',
+      userId: 'user-123',
+      interest: InterestCategory.HISTORY,
+      queryCount: 1,
+      lastUsedAt: new Date(),
+      createdAt: new Date(),
+    };
+
+    it('should create new interest history entry', async () => {
+      mockPrismaService.interestHistory.findUnique.mockResolvedValue(null);
+      mockPrismaService.interestHistory.create.mockResolvedValue(mockInterestHistory);
+
+      const result = await service.recordInterestUsage('user-123', InterestCategory.HISTORY);
+
+      expect(result.interest).toBe(InterestCategory.HISTORY);
+      expect(result.queryCount).toBe(1);
+      expect(mockPrismaService.interestHistory.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          userId: 'user-123',
+          interest: InterestCategory.HISTORY,
+          queryCount: 1,
+        }),
+      });
+    });
+
+    it('should increment existing interest history entry', async () => {
+      const existingHistory = { ...mockInterestHistory, queryCount: 5 };
+      const updatedHistory = { ...mockInterestHistory, queryCount: 6 };
+
+      mockPrismaService.interestHistory.findUnique.mockResolvedValue(existingHistory);
+      mockPrismaService.interestHistory.update.mockResolvedValue(updatedHistory);
+
+      const result = await service.recordInterestUsage('user-123', InterestCategory.HISTORY);
+
+      expect(result.queryCount).toBe(6);
+      expect(mockPrismaService.interestHistory.update).toHaveBeenCalledWith({
+        where: {
+          userId_interest: {
+            userId: 'user-123',
+            interest: InterestCategory.HISTORY,
+          },
+        },
+        data: expect.objectContaining({
+          queryCount: { increment: 1 },
+        }),
+      });
+    });
+  });
+
+  describe('getInterestHistory', () => {
+    it('should return user interest history ordered by query count', async () => {
+      const mockHistories = [
+        { interest: InterestCategory.HISTORY, queryCount: 10, lastUsedAt: new Date() },
+        { interest: InterestCategory.ART, queryCount: 5, lastUsedAt: new Date() },
+        { interest: InterestCategory.FOOD, queryCount: 3, lastUsedAt: new Date() },
+      ];
+      mockPrismaService.interestHistory.findMany.mockResolvedValue(mockHistories);
+
+      const result = await service.getInterestHistory('user-123');
+
+      expect(result).toHaveLength(3);
+      expect(result[0].interest).toBe(InterestCategory.HISTORY);
+      expect(result[0].queryCount).toBe(10);
+      expect(mockPrismaService.interestHistory.findMany).toHaveBeenCalledWith({
+        where: { userId: 'user-123' },
+        orderBy: [{ queryCount: 'desc' }, { lastUsedAt: 'desc' }],
+      });
+    });
+
+    it('should return empty array if no history exists', async () => {
+      mockPrismaService.interestHistory.findMany.mockResolvedValue([]);
+
+      const result = await service.getInterestHistory('user-123');
+
+      expect(result).toHaveLength(0);
+    });
+  });
+
+  describe('getSuggestedInterests', () => {
+    it('should suggest interests based on POI type', async () => {
+      mockPrismaService.interestHistory.findMany.mockResolvedValue([]);
+
+      const result = await service.getSuggestedInterests('user-123', PoiType.MUSEUM);
+
+      expect(result.suggestions).toContain(InterestCategory.HISTORY);
+      expect(result.suggestions).toContain(InterestCategory.ART);
+      expect(result.suggestions).toContain(InterestCategory.CULTURE);
+      expect(result.basedOnPoiType).toBe(PoiType.MUSEUM);
+    });
+
+    it('should include user history in suggestions', async () => {
+      const mockHistories = [
+        { interest: InterestCategory.ARCHITECTURE, queryCount: 10, lastUsedAt: new Date() },
+      ];
+      mockPrismaService.interestHistory.findMany.mockResolvedValue(mockHistories);
+
+      const result = await service.getSuggestedInterests('user-123', PoiType.PARK);
+
+      expect(result.suggestions).toContain(InterestCategory.NATURE);
+      expect(result.suggestions).toContain(InterestCategory.ARCHITECTURE);
+    });
+
+    it('should return default interests when no POI type provided', async () => {
+      mockPrismaService.interestHistory.findMany.mockResolvedValue([]);
+
+      const result = await service.getSuggestedInterests('user-123', undefined, 5);
+
+      expect(result.suggestions.length).toBeLessThanOrEqual(5);
+      expect(result.suggestions).toContain(InterestCategory.HISTORY);
+      expect(result.basedOnPoiType).toBeUndefined();
+    });
+
+    it('should respect limit parameter', async () => {
+      mockPrismaService.interestHistory.findMany.mockResolvedValue([]);
+
+      const result = await service.getSuggestedInterests('user-123', PoiType.MUSEUM, 2);
+
+      expect(result.suggestions.length).toBeLessThanOrEqual(2);
+    });
+
+    it('should suggest interests for RESTAURANT POI type', async () => {
+      mockPrismaService.interestHistory.findMany.mockResolvedValue([]);
+
+      const result = await service.getSuggestedInterests('user-123', PoiType.RESTAURANT);
+
+      expect(result.suggestions).toContain(InterestCategory.FOOD);
+      expect(result.suggestions).toContain(InterestCategory.CULTURE);
+    });
+
+    it('should suggest interests for PARK POI type', async () => {
+      mockPrismaService.interestHistory.findMany.mockResolvedValue([]);
+
+      const result = await service.getSuggestedInterests('user-123', PoiType.PARK);
+
+      expect(result.suggestions).toContain(InterestCategory.NATURE);
+      expect(result.suggestions).toContain(InterestCategory.SPORTS);
+    });
+  });
+
+  describe('clearInterestHistory', () => {
+    it('should delete all interest history for user', async () => {
+      mockPrismaService.interestHistory.deleteMany.mockResolvedValue({ count: 5 });
+
+      await service.clearInterestHistory('user-123');
+
+      expect(mockPrismaService.interestHistory.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'user-123' },
+      });
     });
   });
 });

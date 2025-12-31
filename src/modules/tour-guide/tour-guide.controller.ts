@@ -22,7 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/guards';
 import { CurrentUser, CurrentUserData } from '@/common/decorators';
-import { PoiType } from '@prisma/client';
+import { PoiType, AmbientSoundCategory, InterestCategory } from '@prisma/client';
 
 import { PoiService } from './poi.service';
 import { NarrationService } from './narration.service';
@@ -30,6 +30,8 @@ import { PreferencesService } from './preferences.service';
 import { SavedPlacesService } from './saved-places.service';
 import { ToursService } from './tours.service';
 import { NotesService } from './notes.service';
+import { AmbientSoundsService } from './ambient-sounds.service';
+import { OfflineModeService } from './offline-mode.service';
 
 import {
   // POI
@@ -56,6 +58,20 @@ import {
   UpdateNoteDto,
   NoteResponseDto,
   NotePhotoDto,
+  // Ambient Sounds (PROD-128)
+  AmbientSoundResponseDto,
+  AmbientSoundQueryDto,
+  UpdateAmbientSoundPreferencesDto,
+  AmbientSoundPreferencesResponseDto,
+  // Offline Mode (PROD-129)
+  CreateOfflineRegionDto,
+  OfflineRegionResponseDto,
+  OfflineStorageResponseDto,
+  OfflinePoiDataResponseDto,
+  // Interest History (PROD-133)
+  InterestHistoryResponseDto,
+  SuggestedInterestsQueryDto,
+  SuggestedInterestsResponseDto,
 } from './dto';
 
 @ApiTags('tour-guide')
@@ -68,6 +84,8 @@ export class TourGuideController {
     private readonly savedPlacesService: SavedPlacesService,
     private readonly toursService: ToursService,
     private readonly notesService: NotesService,
+    private readonly ambientSoundsService: AmbientSoundsService,
+    private readonly offlineModeService: OfflineModeService,
   ) {}
 
   // ============================================
@@ -601,5 +619,362 @@ export class TourGuideController {
     @Param('id') id: string,
   ): Promise<void> {
     return this.notesService.deleteNote(user.id, id);
+  }
+
+  // ============================================
+  // Ambient Sounds Endpoints (PROD-128)
+  // ============================================
+
+  @Get('ambient-sounds')
+  @ApiOperation({
+    summary: 'Get ambient sounds (PROD-128)',
+    description: 'Get ambient sound library with optional filters',
+  })
+  @ApiQuery({ name: 'category', enum: AmbientSoundCategory, required: false })
+  @ApiResponse({
+    status: 200,
+    description: 'List of ambient sounds',
+    type: [AmbientSoundResponseDto],
+  })
+  async getAmbientSounds(@Query() query: AmbientSoundQueryDto): Promise<AmbientSoundResponseDto[]> {
+    return this.ambientSoundsService.getSounds(query);
+  }
+
+  @Get('ambient-sounds/categories')
+  @ApiOperation({
+    summary: 'Get ambient sound categories (PROD-128)',
+    description: 'Get list of all available ambient sound categories',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of categories',
+    schema: { type: 'array', items: { type: 'string', enum: Object.values(AmbientSoundCategory) } },
+  })
+  getAmbientSoundCategories(): AmbientSoundCategory[] {
+    return this.ambientSoundsService.getAvailableCategories();
+  }
+
+  @Get('ambient-sounds/for-poi/:poiType')
+  @ApiOperation({
+    summary: 'Get sounds for POI type (PROD-128)',
+    description: 'Get recommended ambient sounds for a specific POI type',
+  })
+  @ApiParam({ name: 'poiType', enum: PoiType })
+  @ApiResponse({
+    status: 200,
+    description: 'List of recommended sounds',
+    type: [AmbientSoundResponseDto],
+  })
+  async getSoundsForPoiType(@Param('poiType') poiType: PoiType): Promise<AmbientSoundResponseDto[]> {
+    return this.ambientSoundsService.getSoundsForPoiType(poiType);
+  }
+
+  @Get('ambient-sounds/preferences')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get ambient sound preferences (PROD-128)',
+    description: "Get user's ambient sound settings",
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Ambient sound preferences',
+    type: AmbientSoundPreferencesResponseDto,
+  })
+  async getAmbientSoundPreferences(
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<AmbientSoundPreferencesResponseDto> {
+    return this.ambientSoundsService.getPreferences(user.id);
+  }
+
+  @Put('ambient-sounds/preferences')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Update ambient sound preferences (PROD-128)',
+    description: 'Update ambient sound settings (enabled, volume)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Updated preferences',
+    type: AmbientSoundPreferencesResponseDto,
+  })
+  async updateAmbientSoundPreferences(
+    @CurrentUser() user: CurrentUserData,
+    @Body() dto: UpdateAmbientSoundPreferencesDto,
+  ): Promise<AmbientSoundPreferencesResponseDto> {
+    return this.ambientSoundsService.updatePreferences(user.id, dto);
+  }
+
+  @Get('ambient-sounds/:id')
+  @ApiOperation({
+    summary: 'Get ambient sound by ID (PROD-128)',
+    description: 'Get a specific ambient sound',
+  })
+  @ApiParam({ name: 'id', description: 'Sound ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Ambient sound details',
+    type: AmbientSoundResponseDto,
+  })
+  async getAmbientSoundById(@Param('id') id: string): Promise<AmbientSoundResponseDto> {
+    return this.ambientSoundsService.getSoundById(id);
+  }
+
+  // ============================================
+  // Interest History Endpoints (PROD-133)
+  // ============================================
+
+  @Get('preferences/interest-history')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get interest usage history (PROD-133)',
+    description: "Get user's interest query history",
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Interest usage history',
+    type: [InterestHistoryResponseDto],
+  })
+  async getInterestHistory(
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<InterestHistoryResponseDto[]> {
+    return this.preferencesService.getInterestHistory(user.id);
+  }
+
+  @Post('preferences/interest-history/:interest')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Record interest usage (PROD-133)',
+    description: 'Record that an interest was used in a query',
+  })
+  @ApiParam({ name: 'interest', enum: InterestCategory })
+  @ApiResponse({
+    status: 200,
+    description: 'Updated interest history',
+    type: InterestHistoryResponseDto,
+  })
+  async recordInterestUsage(
+    @CurrentUser() user: CurrentUserData,
+    @Param('interest') interest: InterestCategory,
+  ): Promise<InterestHistoryResponseDto> {
+    return this.preferencesService.recordInterestUsage(user.id, interest);
+  }
+
+  @Delete('preferences/interest-history')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Clear interest history (PROD-133)',
+    description: "Clear user's interest usage history",
+  })
+  @ApiResponse({ status: 204, description: 'History cleared' })
+  async clearInterestHistory(@CurrentUser() user: CurrentUserData): Promise<void> {
+    return this.preferencesService.clearInterestHistory(user.id);
+  }
+
+  @Get('preferences/suggested-interests')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get suggested interests (PROD-133)',
+    description: 'Get context-aware interest suggestions based on POI type and history',
+  })
+  @ApiQuery({ name: 'poiType', enum: PoiType, required: false })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({
+    status: 200,
+    description: 'Suggested interests',
+    type: SuggestedInterestsResponseDto,
+  })
+  async getSuggestedInterests(
+    @CurrentUser() user: CurrentUserData,
+    @Query() query: SuggestedInterestsQueryDto,
+  ): Promise<SuggestedInterestsResponseDto> {
+    return this.preferencesService.getSuggestedInterests(user.id, query.poiType, query.limit);
+  }
+
+  // ============================================
+  // Offline Mode Endpoints (PROD-129)
+  // ============================================
+
+  @Get('offline/regions')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get offline regions (PROD-129)',
+    description: "Get user's downloaded offline regions",
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of offline regions',
+    type: [OfflineRegionResponseDto],
+  })
+  async getOfflineRegions(
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<OfflineRegionResponseDto[]> {
+    return this.offlineModeService.getRegions(user.id);
+  }
+
+  @Post('offline/regions')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Create offline region (PROD-129)',
+    description: 'Create a new offline region for data download',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Created region',
+    type: OfflineRegionResponseDto,
+  })
+  @ApiResponse({ status: 409, description: 'Region with name already exists' })
+  async createOfflineRegion(
+    @CurrentUser() user: CurrentUserData,
+    @Body() dto: CreateOfflineRegionDto,
+  ): Promise<OfflineRegionResponseDto> {
+    return this.offlineModeService.createRegion(user.id, dto);
+  }
+
+  @Get('offline/regions/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get offline region details (PROD-129)',
+    description: 'Get a specific offline region',
+  })
+  @ApiParam({ name: 'id', description: 'Region ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Region details',
+    type: OfflineRegionResponseDto,
+  })
+  async getOfflineRegion(
+    @CurrentUser() user: CurrentUserData,
+    @Param('id') id: string,
+  ): Promise<OfflineRegionResponseDto> {
+    return this.offlineModeService.getRegion(user.id, id);
+  }
+
+  @Post('offline/regions/:id/download')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Download region data (PROD-129)',
+    description: 'Download and cache POI data for a region',
+  })
+  @ApiParam({ name: 'id', description: 'Region ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Region with downloaded data',
+    type: OfflineRegionResponseDto,
+  })
+  async downloadRegionData(
+    @CurrentUser() user: CurrentUserData,
+    @Param('id') id: string,
+  ): Promise<OfflineRegionResponseDto> {
+    return this.offlineModeService.downloadRegionData(user.id, id);
+  }
+
+  @Post('offline/regions/:id/narrations')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Pre-generate narrations (PROD-129)',
+    description: 'Pre-generate narrations for all POIs in a region',
+  })
+  @ApiParam({ name: 'id', description: 'Region ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Region with generated narrations',
+    type: OfflineRegionResponseDto,
+  })
+  async preGenerateNarrations(
+    @CurrentUser() user: CurrentUserData,
+    @Param('id') id: string,
+  ): Promise<OfflineRegionResponseDto> {
+    return this.offlineModeService.preGenerateNarrations(user.id, id);
+  }
+
+  @Post('offline/regions/:id/sync')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Sync region data (PROD-129)',
+    description: 'Refresh expired region data',
+  })
+  @ApiParam({ name: 'id', description: 'Region ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Synced region',
+    type: OfflineRegionResponseDto,
+  })
+  async syncRegion(
+    @CurrentUser() user: CurrentUserData,
+    @Param('id') id: string,
+  ): Promise<OfflineRegionResponseDto> {
+    return this.offlineModeService.syncRegion(user.id, id);
+  }
+
+  @Get('offline/regions/:id/pois')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get cached POIs (PROD-129)',
+    description: 'Get cached POI data for a region',
+  })
+  @ApiParam({ name: 'id', description: 'Region ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Cached POI data',
+    type: [OfflinePoiDataResponseDto],
+  })
+  async getRegionPois(
+    @CurrentUser() user: CurrentUserData,
+    @Param('id') id: string,
+  ): Promise<OfflinePoiDataResponseDto[]> {
+    return this.offlineModeService.getRegionPois(user.id, id);
+  }
+
+  @Delete('offline/regions/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Delete offline region (PROD-129)',
+    description: 'Delete an offline region and its cached data',
+  })
+  @ApiParam({ name: 'id', description: 'Region ID' })
+  @ApiResponse({ status: 204, description: 'Region deleted' })
+  async deleteOfflineRegion(
+    @CurrentUser() user: CurrentUserData,
+    @Param('id') id: string,
+  ): Promise<void> {
+    return this.offlineModeService.deleteRegion(user.id, id);
+  }
+
+  @Get('offline/storage')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get storage usage (PROD-129)',
+    description: 'Get offline data storage usage summary',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Storage usage summary',
+    type: OfflineStorageResponseDto,
+  })
+  async getStorageUsage(
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<OfflineStorageResponseDto> {
+    return this.offlineModeService.getStorageUsage(user.id);
   }
 }

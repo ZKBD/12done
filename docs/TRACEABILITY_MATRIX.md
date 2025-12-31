@@ -15,10 +15,10 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 2029 | 0 | 2029 | 100% |
-| E2E Tests | 287 | 0 | 287 | 100% |
+| Unit Tests | 2096 | 0 | 2096 | 100% |
+| E2E Tests | 345 | 0 | 345 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **2321** | **0** | **2321** | **100%** |
+| **Total** | **2446** | **0** | **2446** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -2244,20 +2244,59 @@ The AI Tour Guide module provides location-based tour narration with voice style
 |-----------|-------|--------|
 | PoiService Unit Tests | 14 | ✅ |
 | NarrationService Unit Tests | 21 | ✅ |
-| PreferencesService Unit Tests | 10 | ✅ |
+| PreferencesService Unit Tests | 20 | ✅ |
 | SavedPlacesService Unit Tests | 16 | ✅ |
 | ToursService Unit Tests | 21 | ✅ |
 | NotesService Unit Tests | 28 | ✅ |
-| **Total** | **106** | ✅ |
+| AmbientSoundsService Unit Tests | 26 | ✅ |
+| OfflineModeService Unit Tests | 21 | ✅ |
+| Phase 3 E2E Tests | 58 | ✅ |
+| **Total** | **225** | ✅ |
+
+### PROD-128: Ambient Sounds
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-128.1 | `getSounds > should return all sounds` | ambient-sounds.service.spec.ts | Verifies sound library listing | ✅ |
+| PROD-128.2 | `getSoundsByCategory > should filter by category` | ambient-sounds.service.spec.ts | Verifies category filtering | ✅ |
+| PROD-128.3 | `getSoundsForPoiType > should return sounds for POI type` | ambient-sounds.service.spec.ts | Verifies POI-to-sound mapping | ✅ |
+| PROD-128.4 | `getSoundById > should return sound by ID` | ambient-sounds.service.spec.ts | Verifies single sound retrieval | ✅ |
+| PROD-128.5 | `getPreferences > should return sound preferences` | ambient-sounds.service.spec.ts | Verifies preference retrieval | ✅ |
+| PROD-128.6 | `updatePreferences > should update preferences` | ambient-sounds.service.spec.ts | Verifies preference updates | ✅ |
+| PROD-128 | E2E: GET /tour-guide/ambient-sounds | tour-guide-phase3.e2e-spec.ts | End-to-end sound library tests (11 tests) | ✅ |
+
+### PROD-129: Offline Mode
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-129.1 | `createRegion > should create offline region` | offline-mode.service.spec.ts | Verifies region creation | ✅ |
+| PROD-129.2 | `createRegion > should reject duplicate name` | offline-mode.service.spec.ts | Verifies name uniqueness | ✅ |
+| PROD-129.3 | `getRegions > should return user regions` | offline-mode.service.spec.ts | Verifies region listing | ✅ |
+| PROD-129.4 | `getRegion > should return region details` | offline-mode.service.spec.ts | Verifies region retrieval | ✅ |
+| PROD-129.5 | `downloadRegionData > should cache POI data` | offline-mode.service.spec.ts | Verifies data download | ✅ |
+| PROD-129.6 | `getRegionPois > should return cached POIs` | offline-mode.service.spec.ts | Verifies cached data retrieval | ✅ |
+| PROD-129.7 | `preGenerateNarrations > should generate narrations` | offline-mode.service.spec.ts | Verifies narration pre-generation | ✅ |
+| PROD-129.8 | `syncRegion > should refresh data` | offline-mode.service.spec.ts | Verifies data sync | ✅ |
+| PROD-129.9 | `getStorageUsage > should calculate storage` | offline-mode.service.spec.ts | Verifies storage tracking | ✅ |
+| PROD-129.10 | `deleteRegion > should delete region and data` | offline-mode.service.spec.ts | Verifies region deletion | ✅ |
+| PROD-129 | E2E: /tour-guide/offline/* | tour-guide-phase3.e2e-spec.ts | End-to-end offline mode tests (23 tests) | ✅ |
+
+### PROD-133: Interest Queries Enhancement
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-133.1 | `recordInterestUsage > should track interest usage` | preferences.service.spec.ts | Verifies interest history tracking | ✅ |
+| PROD-133.2 | `getInterestHistory > should return usage history` | preferences.service.spec.ts | Verifies history retrieval | ✅ |
+| PROD-133.3 | `getSuggestedInterests > should return suggestions` | preferences.service.spec.ts | Verifies interest suggestions | ✅ |
+| PROD-133.4 | `getSuggestedInterests > should include POI-based suggestions` | preferences.service.spec.ts | Verifies context-aware suggestions | ✅ |
+| PROD-133.5 | `clearInterestHistory > should clear history` | preferences.service.spec.ts | Verifies history clearing | ✅ |
+| PROD-133 | E2E: /tour-guide/preferences/interest-history | tour-guide-phase3.e2e-spec.ts | End-to-end interest history tests (10 tests) | ✅ |
 
 ### Features Not Yet Implemented
 
 | Req ID | Title | Status |
 |--------|-------|--------|
-| PROD-126 | AR Integration | Phase 3 |
-| PROD-128 | Ambient Sounds | Phase 3 |
-| PROD-129 | Offline Mode | Phase 3 |
-| PROD-133 | Interest Queries | Partially covered by narration interests |
+| PROD-126 | AR Integration | Client-side only (mobile) |
 
 ---
 
@@ -2291,6 +2330,7 @@ The AI Tour Guide module provides location-based tour narration with voice style
 | **Dashboard (E2E)** | dashboard.e2e-spec.ts | 24 | Full landlord dashboard, expenses CRUD, filtering, authorization | ✅ |
 | **Tenant Portal (Unit)** | tenant-*.spec.ts | 21 | Tenant dashboard aggregation, document CRUD, authorization | ✅ |
 | **Tenant Portal (E2E)** | tenant-portal.e2e-spec.ts | 26 | Tenant dashboard, e-signature flow, payment link, documents CRUD | ✅ |
+| **Tour Guide Phase 3 (E2E)** | tour-guide-phase3.e2e-spec.ts | 58 | Ambient sounds, offline mode, interest history (PROD-128, 129, 133) | ✅ |
 
 ---
 

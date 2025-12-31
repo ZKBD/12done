@@ -429,6 +429,8 @@ model User {
   savedPlaces     SavedPlace[]
   customTours     CustomTour[]
   userNotes       UserNote[]
+  interestHistory InterestHistory[] // PROD-133
+  offlineRegions  OfflineRegion[]   // PROD-129
 
   // Identity Verification (PROD-008)
   verificationRequests VerificationRequest[]
@@ -2062,6 +2064,20 @@ enum PoiType {
   OTHER
 }
 
+// Ambient sound categories for immersive tour experience (PROD-128)
+enum AmbientSoundCategory {
+  BEACH
+  CITY
+  NATURE
+  PARK
+  MARKET
+  CAFE
+  MUSEUM
+  TRANSPORT
+  RAIN
+  NIGHT
+}
+
 // User's tour preferences (PROD-123, PROD-127, PROD-133)
 model TourPreferences {
   id String @id @default(uuid())
@@ -2080,6 +2096,10 @@ model TourPreferences {
   // Follow Me mode preference (PROD-125)
   followMeEnabled Boolean @default(true)
   poiRadius       Int     @default(100) // meters (PROD-121.5)
+
+  // Ambient sound settings (PROD-128)
+  ambientSoundEnabled Boolean @default(true)
+  ambientSoundVolume  Float   @default(0.3) // 0.0-1.0 volume level
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2198,6 +2218,90 @@ model UserNote {
   @@index([userId])
   @@index([placeId])
   @@index([userId, placeId])
+}
+
+// ============================================
+// PHASE 3: AI TOUR GUIDE ENHANCEMENTS
+// ============================================
+
+// Ambient Sound Library (PROD-128)
+model AmbientSound {
+  id          String               @id @default(uuid())
+  category    AmbientSoundCategory
+  name        String
+  description String?
+  audioUrl    String
+  duration    Int // Duration in seconds
+  loopable    Boolean              @default(true)
+  tags        String[] // e.g., ["waves", "seagulls", "relaxing"]
+
+  createdAt DateTime @default(now())
+
+  @@index([category])
+}
+
+// Interest Usage History for smart suggestions (PROD-133)
+model InterestHistory {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  interest   InterestCategory
+  queryCount Int              @default(1)
+  lastUsedAt DateTime         @default(now())
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, interest])
+  @@index([userId])
+}
+
+// Offline Region for downloadable tour data (PROD-129)
+model OfflineRegion {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String // e.g., "Budapest Downtown"
+  centerLat Float
+  centerLng Float
+  radiusKm  Float // Coverage radius in kilometers
+
+  poiCount  Int @default(0)
+  sizeBytes Int @default(0) // Estimated storage size
+
+  lastSyncedAt DateTime? // When data was last refreshed
+  expiresAt    DateTime // Data freshness expiry (e.g., 30 days from sync)
+
+  cachedPois OfflinePoiCache[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+// Cached POI data for offline use (PROD-129)
+model OfflinePoiCache {
+  id String @id @default(uuid())
+
+  regionId String
+  region   OfflineRegion @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  placeId String // Google Places ID
+  data    Json // Full POI details
+
+  // Pre-generated narrations for each voice style
+  narrations Json? // { FRIENDLY: "...", HISTORICAL: "...", PROFESSIONAL: "..." }
+
+  createdAt DateTime @default(now())
+
+  @@unique([regionId, placeId])
+  @@index([regionId])
+  @@index([placeId])
 }
 
 // ============================================

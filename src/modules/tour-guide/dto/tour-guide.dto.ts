@@ -16,7 +16,7 @@ import {
   ArrayMaxSize,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { VoiceStyle, PoiType, InterestCategory } from '@prisma/client';
+import { VoiceStyle, PoiType, InterestCategory, AmbientSoundCategory } from '@prisma/client';
 
 // ============================================
 // POI DTOs (PROD-121, PROD-122)
@@ -634,4 +634,204 @@ export class NoteResponseDto {
 
   @ApiProperty()
   updatedAt: Date;
+}
+
+// ============================================
+// Ambient Sounds DTOs (PROD-128)
+// ============================================
+
+export class AmbientSoundResponseDto {
+  @ApiProperty({ description: 'Sound ID' })
+  id: string;
+
+  @ApiProperty({ description: 'Sound category', enum: AmbientSoundCategory })
+  category: AmbientSoundCategory;
+
+  @ApiProperty({ description: 'Sound name' })
+  name: string;
+
+  @ApiPropertyOptional({ description: 'Sound description' })
+  description?: string;
+
+  @ApiProperty({ description: 'Audio file URL' })
+  audioUrl: string;
+
+  @ApiProperty({ description: 'Duration in seconds' })
+  duration: number;
+
+  @ApiProperty({ description: 'Whether the sound can loop' })
+  loopable: boolean;
+
+  @ApiProperty({ description: 'Tags for search/categorization', type: [String] })
+  tags: string[];
+}
+
+export class AmbientSoundQueryDto {
+  @ApiPropertyOptional({
+    description: 'Filter by sound category',
+    enum: AmbientSoundCategory,
+  })
+  @IsOptional()
+  @IsEnum(AmbientSoundCategory)
+  category?: AmbientSoundCategory;
+
+  @ApiPropertyOptional({
+    description: 'Filter by tags',
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
+  tags?: string[];
+
+  @ApiPropertyOptional({ description: 'Maximum results to return', default: 20 })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(50)
+  @Transform(({ value }) => parseInt(value, 10))
+  limit?: number = 20;
+}
+
+export class UpdateAmbientSoundPreferencesDto {
+  @ApiPropertyOptional({ description: 'Enable ambient sounds' })
+  @IsOptional()
+  @IsBoolean()
+  enabled?: boolean;
+
+  @ApiPropertyOptional({ description: 'Volume level (0.0 to 1.0)' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  volume?: number;
+}
+
+export class AmbientSoundPreferencesResponseDto {
+  @ApiProperty({ description: 'Whether ambient sounds are enabled' })
+  enabled: boolean;
+
+  @ApiProperty({ description: 'Volume level (0.0 to 1.0)' })
+  volume: number;
+}
+
+// ============================================
+// Offline Mode DTOs (PROD-129)
+// ============================================
+
+export class CreateOfflineRegionDto {
+  @ApiProperty({ description: 'Region name' })
+  @IsString()
+  @MaxLength(100)
+  name: string;
+
+  @ApiProperty({ description: 'Center latitude' })
+  @IsLatitude()
+  centerLat: number;
+
+  @ApiProperty({ description: 'Center longitude' })
+  @IsLongitude()
+  centerLng: number;
+
+  @ApiProperty({ description: 'Coverage radius in kilometers' })
+  @IsNumber()
+  @Min(1)
+  @Max(50)
+  radiusKm: number;
+}
+
+export class OfflineRegionResponseDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  centerLat: number;
+
+  @ApiProperty()
+  centerLng: number;
+
+  @ApiProperty()
+  radiusKm: number;
+
+  @ApiProperty({ description: 'Number of POIs cached' })
+  poiCount: number;
+
+  @ApiProperty({ description: 'Storage size in bytes' })
+  sizeBytes: number;
+
+  @ApiPropertyOptional({ description: 'Last sync timestamp' })
+  lastSyncedAt?: Date;
+
+  @ApiProperty({ description: 'Data expiry timestamp' })
+  expiresAt: Date;
+
+  @ApiProperty()
+  createdAt: Date;
+}
+
+export class OfflineStorageResponseDto {
+  @ApiProperty({ description: 'Total storage used in bytes' })
+  totalBytes: number;
+
+  @ApiProperty({ description: 'Number of offline regions' })
+  regionCount: number;
+
+  @ApiProperty({ description: 'Total POIs cached' })
+  totalPois: number;
+}
+
+export class OfflinePoiDataResponseDto {
+  @ApiProperty()
+  placeId: string;
+
+  @ApiProperty()
+  data: Record<string, unknown>;
+
+  @ApiPropertyOptional({ description: 'Pre-generated narrations by voice style' })
+  narrations?: Record<string, string>;
+
+  @ApiProperty()
+  createdAt: Date;
+}
+
+// ============================================
+// Interest History DTOs (PROD-133)
+// ============================================
+
+export class InterestHistoryResponseDto {
+  @ApiProperty({ description: 'Interest category', enum: InterestCategory })
+  interest: InterestCategory;
+
+  @ApiProperty({ description: 'Number of times queried' })
+  queryCount: number;
+
+  @ApiProperty({ description: 'Last time this interest was used' })
+  lastUsedAt: Date;
+}
+
+export class SuggestedInterestsQueryDto {
+  @ApiPropertyOptional({ description: 'POI type for context-aware suggestions', enum: PoiType })
+  @IsOptional()
+  @IsEnum(PoiType)
+  poiType?: PoiType;
+
+  @ApiPropertyOptional({ description: 'Maximum suggestions to return', default: 5 })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(10)
+  @Transform(({ value }) => parseInt(value, 10))
+  limit?: number = 5;
+}
+
+export class SuggestedInterestsResponseDto {
+  @ApiProperty({ description: 'Suggested interests', type: [String], enum: InterestCategory })
+  suggestions: InterestCategory[];
+
+  @ApiPropertyOptional({ description: 'POI type used for suggestions', enum: PoiType })
+  basedOnPoiType?: PoiType;
 }

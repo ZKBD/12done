@@ -6,4 +6,6 @@ export * from './preferences.service';
 export * from './saved-places.service';
 export * from './tours.service';
 export * from './notes.service';
+export * from './ambient-sounds.service';
+export * from './offline-mode.service';
 export * from './dto';

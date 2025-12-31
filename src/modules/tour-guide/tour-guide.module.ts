@@ -8,6 +8,8 @@ import { PreferencesService } from './preferences.service';
 import { SavedPlacesService } from './saved-places.service';
 import { ToursService } from './tours.service';
 import { NotesService } from './notes.service';
+import { AmbientSoundsService } from './ambient-sounds.service';
+import { OfflineModeService } from './offline-mode.service';
 
 @Module({
   imports: [ConfigModule],
@@ -19,6 +21,8 @@ import { NotesService } from './notes.service';
     SavedPlacesService,
     ToursService,
     NotesService,
+    AmbientSoundsService,
+    OfflineModeService,
   ],
   exports: [
     PoiService,
@@ -27,6 +31,8 @@ import { NotesService } from './notes.service';
     SavedPlacesService,
     ToursService,
     NotesService,
+    AmbientSoundsService,
+    OfflineModeService,
   ],
 })
 export class TourGuideModule {}

@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/database/prisma.service';
-import { VoiceStyle, InterestCategory } from '@prisma/client';
-import { UpdatePreferencesDto, PreferencesResponseDto } from './dto';
+import { VoiceStyle, InterestCategory, PoiType } from '@prisma/client';
+import {
+  UpdatePreferencesDto,
+  PreferencesResponseDto,
+  InterestHistoryResponseDto,
+  SuggestedInterestsResponseDto,
+} from './dto';
 
 @Injectable()
 export class PreferencesService {
@@ -110,5 +115,196 @@ export class PreferencesService {
       followMeEnabled: prefs.followMeEnabled,
       poiRadius: prefs.poiRadius,
     };
+  }
+
+  // ============================================
+  // Interest History Methods (PROD-133)
+  // ============================================
+
+  /**
+   * Record interest usage for smart suggestions (PROD-133)
+   */
+  async recordInterestUsage(
+    userId: string,
+    interest: InterestCategory,
+  ): Promise<InterestHistoryResponseDto> {
+    const existing = await this.prisma.interestHistory.findUnique({
+      where: {
+        userId_interest: {
+          userId,
+          interest,
+        },
+      },
+    });
+
+    let history;
+    if (existing) {
+      history = await this.prisma.interestHistory.update({
+        where: {
+          userId_interest: {
+            userId,
+            interest,
+          },
+        },
+        data: {
+          queryCount: { increment: 1 },
+          lastUsedAt: new Date(),
+        },
+      });
+    } else {
+      history = await this.prisma.interestHistory.create({
+        data: {
+          userId,
+          interest,
+          queryCount: 1,
+          lastUsedAt: new Date(),
+        },
+      });
+    }
+
+    this.logger.debug(`Recorded usage of interest ${interest} for user ${userId}`);
+
+    return {
+      interest: history.interest,
+      queryCount: history.queryCount,
+      lastUsedAt: history.lastUsedAt,
+    };
+  }
+
+  /**
+   * Get interest usage history (PROD-133)
+   */
+  async getInterestHistory(userId: string): Promise<InterestHistoryResponseDto[]> {
+    const history = await this.prisma.interestHistory.findMany({
+      where: { userId },
+      orderBy: [{ queryCount: 'desc' }, { lastUsedAt: 'desc' }],
+    });
+
+    return history.map((h) => ({
+      interest: h.interest,
+      queryCount: h.queryCount,
+      lastUsedAt: h.lastUsedAt,
+    }));
+  }
+
+  /**
+   * Get suggested interests based on POI type and user history (PROD-133)
+   */
+  async getSuggestedInterests(
+    userId: string,
+    poiType?: PoiType,
+    limit: number = 5,
+  ): Promise<SuggestedInterestsResponseDto> {
+    // Get user's most used interests
+    const userHistory = await this.prisma.interestHistory.findMany({
+      where: { userId },
+      orderBy: [{ queryCount: 'desc' }, { lastUsedAt: 'desc' }],
+      take: limit,
+    });
+
+    // POI type to relevant interests mapping
+    const poiInterestMapping: Record<PoiType, InterestCategory[]> = {
+      [PoiType.MUSEUM]: [
+        InterestCategory.HISTORY,
+        InterestCategory.ART,
+        InterestCategory.CULTURE,
+      ],
+      [PoiType.RESTAURANT]: [
+        InterestCategory.FOOD,
+        InterestCategory.CULTURE,
+      ],
+      [PoiType.PARK]: [
+        InterestCategory.NATURE,
+        InterestCategory.SPORTS,
+        InterestCategory.FAMILY,
+      ],
+      [PoiType.LANDMARK]: [
+        InterestCategory.HISTORY,
+        InterestCategory.ARCHITECTURE,
+        InterestCategory.CULTURE,
+      ],
+      [PoiType.HOTEL]: [
+        InterestCategory.FOOD,
+        InterestCategory.CULTURE,
+      ],
+      [PoiType.SHOP]: [
+        InterestCategory.SHOPPING,
+        InterestCategory.CULTURE,
+      ],
+      [PoiType.ENTERTAINMENT]: [
+        InterestCategory.NIGHTLIFE,
+        InterestCategory.CULTURE,
+        InterestCategory.ART,
+      ],
+      [PoiType.TRANSPORT]: [
+        InterestCategory.HISTORY,
+        InterestCategory.ARCHITECTURE,
+      ],
+      [PoiType.BUILDING]: [
+        InterestCategory.ARCHITECTURE,
+        InterestCategory.HISTORY,
+      ],
+      [PoiType.HEALTHCARE]: [
+        InterestCategory.FAMILY,
+        InterestCategory.CULTURE,
+      ],
+      [PoiType.EDUCATION]: [
+        InterestCategory.HISTORY,
+        InterestCategory.CULTURE,
+      ],
+      [PoiType.OTHER]: [
+        InterestCategory.CULTURE,
+        InterestCategory.HISTORY,
+      ],
+    };
+
+    let suggestions: InterestCategory[] = [];
+
+    // If POI type is provided, get relevant interests for that POI
+    if (poiType && poiInterestMapping[poiType]) {
+      suggestions = [...poiInterestMapping[poiType]];
+    }
+
+    // Add user's frequently used interests that aren't already suggested
+    const userInterests = userHistory.map((h) => h.interest);
+    for (const interest of userInterests) {
+      if (!suggestions.includes(interest)) {
+        suggestions.push(interest);
+      }
+    }
+
+    // If still not enough suggestions, add some default popular interests
+    const defaultInterests: InterestCategory[] = [
+      InterestCategory.HISTORY,
+      InterestCategory.CULTURE,
+      InterestCategory.FOOD,
+      InterestCategory.NATURE,
+      InterestCategory.ART,
+    ];
+
+    for (const interest of defaultInterests) {
+      if (!suggestions.includes(interest) && suggestions.length < limit) {
+        suggestions.push(interest);
+      }
+    }
+
+    // Limit to requested number
+    suggestions = suggestions.slice(0, limit);
+
+    return {
+      suggestions,
+      basedOnPoiType: poiType,
+    };
+  }
+
+  /**
+   * Clear interest history for a user (PROD-133)
+   */
+  async clearInterestHistory(userId: string): Promise<void> {
+    await this.prisma.interestHistory.deleteMany({
+      where: { userId },
+    });
+
+    this.logger.log(`Cleared interest history for user ${userId}`);
   }
 }
