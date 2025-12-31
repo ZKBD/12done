@@ -15,10 +15,10 @@ This document traces requirements from the SRS to their implementing test cases 
 
 | Test Type | Passed | Failed | Total | Pass Rate |
 |-----------|--------|--------|-------|-----------|
-| Unit Tests | 2096 | 0 | 2096 | 100% |
+| Unit Tests | 2101 | 0 | 2101 | 100% |
 | E2E Tests | 345 | 0 | 345 | 100% |
 | Browser Tests | 5 | 0 | 5 | 100% |
-| **Total** | **2446** | **0** | **2446** | **100%** |
+| **Total** | **2451** | **0** | **2451** | **100%** |
 
 All tests passing locally and in CI.
 
@@ -234,6 +234,11 @@ Note: E2E tests require Docker/database to run.
 | PROD-025.4 | `bookSlot > books inspection` | inspection.service.spec.ts | Verifies slot can be booked | ✅ |
 | PROD-025.5 | `cancelBooking > cancels inspection` | inspection.service.spec.ts | Verifies booking can be cancelled | ✅ |
 | PROD-025.6 | `bookInspection > controller endpoint` | properties.controller.spec.ts | Verifies booking endpoint | ✅ |
+| PROD-025.7 | `bookSlot > should send notification to property owner when slot is booked` | inspection.service.spec.ts | Verifies owner receives INSPECTION_BOOKED notification | ✅ |
+| PROD-025.8 | `bookSlot > should not fail if notification fails` | inspection.service.spec.ts | Verifies booking succeeds even if notification fails | ✅ |
+| PROD-025.9 | `cancelBooking > should send notification to property owner when booker cancels` | inspection.service.spec.ts | Verifies owner receives INSPECTION_CANCELLED notification when booker cancels | ✅ |
+| PROD-025.10 | `cancelBooking > should send notification to booker when owner cancels` | inspection.service.spec.ts | Verifies booker receives INSPECTION_CANCELLED notification when owner cancels | ✅ |
+| PROD-025.11 | `cancelBooking > should not fail if cancellation notification fails` | inspection.service.spec.ts | Verifies cancellation succeeds even if notification fails | ✅ |
 
 ### PROD-026: No Agents Tag
 
