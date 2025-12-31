@@ -184,7 +184,7 @@ export class OfflineModeService {
           });
           narrations[style] = narration.narration;
           additionalSize += narration.narration.length;
-        } catch (_error) {
+        } catch {
           this.logger.warn(`Failed to generate ${style} narration for ${cachedPoi.placeId}`);
         }
       }

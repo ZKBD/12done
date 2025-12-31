@@ -236,7 +236,7 @@ export class SearchAgentsService {
    */
   private async sendInstantNotification(
     agent: { id: string; name: string; unsubscribeToken: string | null; user: { email: string; firstName: string } },
-    property: { id: string },
+    _property: { id: string },
   ): Promise<void> {
     try {
       const searchUrl = `/search?agentId=${agent.id}`;
