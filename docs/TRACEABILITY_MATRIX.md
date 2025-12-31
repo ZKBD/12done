@@ -2367,7 +2367,8 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | Browser Tests | CI Status | Notes |
 |------|------------|-----------|---------------|-----------|-------|
-| 2025-12-30 | ✅ 1157 passed | ✅ 279 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-083 Mortgage Calculator (27 unit tests) |
+| 2025-12-31 | ✅ 1964 passed | ✅ 529 passed | ✅ 5 passed | ✅ Passing | CI fixes: Prisma migration for virtual staging, revenue-share spec fixes, ESLint globals |
+| 2025-12-30 | ✅ 1157 passed | ✅ 279 passed | ✅ 5 passed | ✅ Passing | Implemented PROD-083 Mortgage Calculator (27 unit tests) |
 | 2025-12-30 | ✅ 1130 passed | ✅ 279 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-030-031 Virtual Staging & Time-of-Day Photos (44 unit tests) |
 | 2025-12-30 | ✅ 1086 passed | ✅ 279 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-108 Predictive Maintenance (36 unit + 22 E2E) |
 | 2025-12-30 | ✅ 1050 passed | ✅ 257 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-106 Tenant Portal (37 unit + 26 E2E) |
@@ -2491,6 +2492,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-30 | Claude | Implemented Split Payments & Escrow Services (PROD-096-097): SplitPaymentService with participant payment links, email notifications, reminders, and cancellation (27 tests); EscrowService with milestone-based releases, threshold-based escrow, funding workflow, and dispute resolution (47 tests); PaymentsController updated with 20+ endpoints for both features; Fixed payments.controller.spec.ts with SplitPaymentService and EscrowService mocks; Total tests now 1639 |
 | 2025-12-30 | Claude | Implemented Stay Planning (PROD-140-144): Prisma models (StayPlanningSession, TripPlan, TripDay, TripActivity, Attraction, AttractionBooking, CateringProvider, CateringMenu, CateringQuote with 9 enums), StayPlanningModule with 4 services (SessionService for wizard/proposals, TripPlanService for daily schedules/activities, AttractionService for attractions/bookings, CateringService for providers/quotes), 50+ API endpoints, distance calculation, AI proposal generation; 110 unit tests (18 session + 30 trip-plan + 35 attraction + 27 catering); Total tests now 1824 |
 | 2025-12-30 | Claude | Fixed Stay Planning tests (PROD-140-144): Aligned services with Prisma schema field names (title→name, sessionId→planningSessionId, etc.), fixed DTO enums to match Prisma (InterestCategory, TripPlanStatus, CateringQuoteStatus), updated test mocks with correct field names and future dates; All 115 stay-planning tests now pass; Updated matrix entries (removed isBookable filter, replaced with price level filter; replaced catering distance with pagination test); Total tests now 1829 |
+| 2025-12-31 | Claude | CI fixes: Added Prisma migration for virtual staging columns (isVirtuallyStaged, roomType, stagingStyle, timeOfDay, season, photoGroupId on PropertyMedia; VirtualStagingRequest table; RoomType/StagingStyle/TimeOfDay/Season/StagingStatus enums); Fixed revenue-share spec mock chain (3 findUnique calls needed); Added fetch/URLSearchParams to ESLint globals; Fixed AI maintenance appointment suggestions fallback; All 1964 unit tests + 529 E2E tests passing |
 
 ---
 
