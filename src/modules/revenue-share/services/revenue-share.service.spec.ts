@@ -8,7 +8,7 @@ describe('RevenueShareService', () => {
   let service: RevenueShareService;
   // prisma is mocked via mockPrismaService
 
-  const mockPrismaService: Record<string, unknown> = {
+  const mockPrismaService = {
     platformConfiguration: {
       findFirst: jest.fn(),
       create: jest.fn(),
@@ -18,6 +18,7 @@ describe('RevenueShareService', () => {
       findUnique: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      count: jest.fn(),
     },
     walletTransaction: {
       findMany: jest.fn(),
@@ -50,7 +51,8 @@ describe('RevenueShareService', () => {
       update: jest.fn(),
       aggregate: jest.fn(),
     },
-    $transaction: jest.fn((callback) => callback(mockPrismaService)),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $transaction: jest.fn((callback: (tx: any) => any) => callback(mockPrismaService)),
   };
 
   const mockDefaultConfig = {
