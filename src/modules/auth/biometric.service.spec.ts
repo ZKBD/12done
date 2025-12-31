@@ -14,7 +14,7 @@ import { PrismaService } from '@/database';
 describe('BiometricService', () => {
   let service: BiometricService;
   let prismaService: jest.Mocked<PrismaService>;
-  let jwtService: jest.Mocked<JwtService>;
+  let _jwtService: jest.Mocked<JwtService>;
 
   const mockUser = {
     id: 'user-123',
@@ -109,7 +109,7 @@ describe('BiometricService', () => {
 
     service = module.get<BiometricService>(BiometricService);
     prismaService = module.get(PrismaService);
-    jwtService = module.get(JwtService);
+    _jwtService = module.get(JwtService);
   });
 
   afterEach(() => {
