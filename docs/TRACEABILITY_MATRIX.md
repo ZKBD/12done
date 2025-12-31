@@ -363,6 +363,29 @@ Note: E2E tests require Docker/database to run.
 | PROD-041.4 | `Search Agent Notifications > should create notification when property is published` | search.e2e-spec.ts | E2E test of notification creation on property publish | ✅ |
 | PROD-041.5 | `Search Agent Notifications > should update lastTriggeredAt on search agent` | search.e2e-spec.ts | Verifies search agent timestamp update | ✅ |
 | PROD-041.6 | `Search Agent Notifications > should NOT create notification for non-matching property` | search.e2e-spec.ts | Verifies criteria matching works correctly | ✅ |
+| PROD-041.7 | `notification frequency (PROD-041) > should create agent with default INSTANT frequency` | search-agents.service.spec.ts | Verifies default frequency is INSTANT | ⏳ |
+| PROD-041.8 | `notification frequency (PROD-041) > should create agent with DAILY_DIGEST frequency` | search-agents.service.spec.ts | Verifies DAILY_DIGEST frequency can be set | ⏳ |
+| PROD-041.9 | `notification frequency (PROD-041) > should create agent with WEEKLY_DIGEST frequency` | search-agents.service.spec.ts | Verifies WEEKLY_DIGEST frequency can be set | ⏳ |
+| PROD-041.10 | `notification frequency (PROD-041) > should generate unsubscribe token on create` | search-agents.service.spec.ts | Verifies unsubscribe token is generated | ⏳ |
+| PROD-041.11 | `notification frequency (PROD-041) > should return notificationFrequency in response DTO` | search-agents.service.spec.ts | Verifies response includes frequency field | ⏳ |
+| PROD-041.12 | `checkAgainstNewProperty with digest frequency > should queue for digest when frequency is DAILY_DIGEST` | search-agents.service.spec.ts | Verifies daily digest queuing | ⏳ |
+| PROD-041.13 | `checkAgainstNewProperty with digest frequency > should queue for digest when frequency is WEEKLY_DIGEST` | search-agents.service.spec.ts | Verifies weekly digest queuing | ⏳ |
+| PROD-041.14 | `checkAgainstNewProperty with digest frequency > should send instant email when frequency is INSTANT` | search-agents.service.spec.ts | Verifies instant notification behavior | ⏳ |
+| PROD-041.15 | `checkAgainstNewProperty with digest frequency > should include unsubscribeUrl in instant notification` | search-agents.service.spec.ts | Verifies unsubscribe URL in emails | ⏳ |
+| PROD-041.16 | `unsubscribe (PROD-041.7) > should unsubscribe with valid token` | search-agents.service.spec.ts | Verifies successful unsubscribe | ⏳ |
+| PROD-041.17 | `unsubscribe (PROD-041.7) > should throw NotFoundException with invalid token` | search-agents.service.spec.ts | Verifies invalid token handling | ⏳ |
+| PROD-041.18 | `unsubscribe (PROD-041.7) > should query by unsubscribeToken` | search-agents.service.spec.ts | Verifies token lookup | ⏳ |
+| PROD-041.19 | `sendDailyDigests > should call sendDigests with DAILY_DIGEST frequency` | search-agent-digest.service.spec.ts | Verifies daily digest cron job | ⏳ |
+| PROD-041.20 | `sendWeeklyDigests > should call sendDigests with WEEKLY_DIGEST frequency` | search-agent-digest.service.spec.ts | Verifies weekly digest cron job | ⏳ |
+| PROD-041.21 | `sendDigests > should find active agents with pending matches` | search-agent-digest.service.spec.ts | Verifies agent query for digests | ⏳ |
+| PROD-041.22 | `sendDigests > should send digest email with correct properties` | search-agent-digest.service.spec.ts | Verifies digest email content | ⏳ |
+| PROD-041.23 | `sendDigests > should mark matches as notified after sending` | search-agent-digest.service.spec.ts | Verifies match status update | ⏳ |
+| PROD-041.24 | `sendDigests > should return count of digests sent` | search-agent-digest.service.spec.ts | Verifies return value | ⏳ |
+| PROD-041.25 | `sendDigests > should not send if no agents with pending matches` | search-agent-digest.service.spec.ts | Verifies empty handling | ⏳ |
+| PROD-041.26 | `sendDigests > should continue processing other agents if one fails` | search-agent-digest.service.spec.ts | Verifies error resilience | ⏳ |
+| PROD-041.27 | `sendDigests > should format property prices correctly` | search-agent-digest.service.spec.ts | Verifies price formatting | ⏳ |
+| PROD-041.28 | `cleanupOldMatches > should delete matches notified more than 30 days ago` | search-agent-digest.service.spec.ts | Verifies old match cleanup | ⏳ |
+| PROD-041.29 | `cleanupOldMatches > should not delete unnotified matches` | search-agent-digest.service.spec.ts | Verifies pending match protection | ⏳ |
 
 ### PROD-042: Advanced Filters
 
@@ -2557,6 +2580,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-30 | Claude | Fixed Stay Planning tests (PROD-140-144): Aligned services with Prisma schema field names (title→name, sessionId→planningSessionId, etc.), fixed DTO enums to match Prisma (InterestCategory, TripPlanStatus, CateringQuoteStatus), updated test mocks with correct field names and future dates; All 115 stay-planning tests now pass; Updated matrix entries (removed isBookable filter, replaced with price level filter; replaced catering distance with pagination test); Total tests now 1829 |
 | 2025-12-31 | Claude | CI fixes: Added Prisma migration for virtual staging columns (isVirtuallyStaged, roomType, stagingStyle, timeOfDay, season, photoGroupId on PropertyMedia; VirtualStagingRequest table; RoomType/StagingStyle/TimeOfDay/Season/StagingStatus enums); Fixed revenue-share spec mock chain (3 findUnique calls needed); Added fetch/URLSearchParams to ESLint globals; Fixed AI maintenance appointment suggestions fallback; All 1964 unit tests + 529 E2E tests passing |
 | 2025-12-31 | Claude | Implemented Biometric Authentication (PROD-011.1-011.5): Prisma models (BiometricDeviceType enum, BiometricCredential for device storage, BiometricChallenge for time-limited challenges), BiometricService with challenge-response authentication (RSA-SHA256 signature verification), device enrollment/management, biometric settings, sensitive action verification; BiometricRequiredGuard for payment/profile/password actions; 7 controller endpoints at /auth/biometric/*; 34 unit tests; Total tests now 2029 |
+| 2025-12-31 | Claude | Enhanced Search Agent Notifications (PROD-041.7-041.29): NotificationFrequency enum (INSTANT, DAILY_DIGEST, WEEKLY_DIGEST), SearchAgentMatch model for digest accumulation, SearchAgentDigestService with @Cron jobs (daily 9 AM, weekly Monday 9 AM, cleanup 2 AM), unsubscribeToken generation, one-click unsubscribe endpoint at GET /search-agents/unsubscribe, search-digest.hbs email template; 23 new unit tests (12 search-agents + 11 digest); Total tests TBD |
 
 ---
 

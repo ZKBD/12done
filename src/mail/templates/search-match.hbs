@@ -41,6 +41,11 @@
 
   <div class="footer">
     <p>&copy; {{year}} 12done.com. All rights reserved.</p>
+    {{#if unsubscribeUrl}}
+    <p style="margin-top: 16px;">
+      <a href="{{unsubscribeUrl}}" style="color: #999; font-size: 11px;">Unsubscribe from these notifications</a>
+    </p>
+    {{/if}}
   </div>
 </body>
 </html>

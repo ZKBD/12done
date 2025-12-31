@@ -4,7 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { UserRole, PropertyStatus, ListingType, Prisma } from '@prisma/client';
+import { UserRole, PropertyStatus, ListingType, Prisma, NotificationFrequency } from '@prisma/client';
 import { SearchAgentsService } from './search-agents.service';
 import { PrismaService } from '@/database';
 import { MailService } from '@/mail';
@@ -26,6 +26,8 @@ describe('SearchAgentsService', () => {
     },
     emailNotifications: true,
     inAppNotifications: true,
+    notificationFrequency: NotificationFrequency.INSTANT,
+    unsubscribeToken: 'token-abc-123',
     isActive: true,
     lastTriggeredAt: null,
     createdAt: new Date(),
@@ -70,6 +72,9 @@ describe('SearchAgentsService', () => {
             },
             notification: {
               create: jest.fn(),
+            },
+            searchAgentMatch: {
+              upsert: jest.fn(),
             },
           },
         },
@@ -446,6 +451,7 @@ describe('SearchAgentsService', () => {
         mockSearchAgent.name,
         1,
         expect.any(String),
+        expect.any(String), // unsubscribeUrl (PROD-041)
       );
     });
 
@@ -688,6 +694,238 @@ describe('SearchAgentsService', () => {
       await service.checkAgainstNewProperty('property-123');
 
       expect(prismaService.searchAgent.update).not.toHaveBeenCalled();
+    });
+  });
+
+  // ============ PROD-041: Notification Frequency Tests ============
+
+  describe('notification frequency (PROD-041)', () => {
+    const createDto = {
+      name: 'Budapest Apartments',
+      criteria: { city: 'Budapest' },
+    };
+
+    it('should create agent with default INSTANT frequency', async () => {
+      (prismaService.searchAgent.count as jest.Mock).mockResolvedValue(0);
+      (prismaService.searchAgent.create as jest.Mock).mockResolvedValue(mockSearchAgent);
+
+      await service.create(createDto, 'user-123');
+
+      expect(prismaService.searchAgent.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            notificationFrequency: NotificationFrequency.INSTANT,
+          }),
+        }),
+      );
+    });
+
+    it('should create agent with DAILY_DIGEST frequency', async () => {
+      (prismaService.searchAgent.count as jest.Mock).mockResolvedValue(0);
+      (prismaService.searchAgent.create as jest.Mock).mockResolvedValue({
+        ...mockSearchAgent,
+        notificationFrequency: NotificationFrequency.DAILY_DIGEST,
+      });
+
+      await service.create(
+        { ...createDto, notificationFrequency: NotificationFrequency.DAILY_DIGEST },
+        'user-123',
+      );
+
+      expect(prismaService.searchAgent.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            notificationFrequency: NotificationFrequency.DAILY_DIGEST,
+          }),
+        }),
+      );
+    });
+
+    it('should create agent with WEEKLY_DIGEST frequency', async () => {
+      (prismaService.searchAgent.count as jest.Mock).mockResolvedValue(0);
+      (prismaService.searchAgent.create as jest.Mock).mockResolvedValue({
+        ...mockSearchAgent,
+        notificationFrequency: NotificationFrequency.WEEKLY_DIGEST,
+      });
+
+      await service.create(
+        { ...createDto, notificationFrequency: NotificationFrequency.WEEKLY_DIGEST },
+        'user-123',
+      );
+
+      expect(prismaService.searchAgent.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            notificationFrequency: NotificationFrequency.WEEKLY_DIGEST,
+          }),
+        }),
+      );
+    });
+
+    it('should generate unsubscribe token on create', async () => {
+      (prismaService.searchAgent.count as jest.Mock).mockResolvedValue(0);
+      (prismaService.searchAgent.create as jest.Mock).mockResolvedValue(mockSearchAgent);
+
+      await service.create(createDto, 'user-123');
+
+      expect(prismaService.searchAgent.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            unsubscribeToken: expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('should return notificationFrequency in response DTO', async () => {
+      (prismaService.searchAgent.count as jest.Mock).mockResolvedValue(0);
+      (prismaService.searchAgent.create as jest.Mock).mockResolvedValue(mockSearchAgent);
+
+      const result = await service.create(createDto, 'user-123');
+
+      expect(result.notificationFrequency).toBe(NotificationFrequency.INSTANT);
+    });
+  });
+
+  describe('checkAgainstNewProperty with digest frequency (PROD-041)', () => {
+    const mockUser = {
+      id: 'user-123',
+      email: 'user@example.com',
+      firstName: 'John',
+    };
+
+    it('should queue for digest when frequency is DAILY_DIGEST', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue(mockProperty);
+      (prismaService.searchAgent.findMany as jest.Mock).mockResolvedValue([
+        {
+          ...mockSearchAgent,
+          notificationFrequency: NotificationFrequency.DAILY_DIGEST,
+          user: mockUser,
+        },
+      ]);
+      (prismaService.searchAgent.update as jest.Mock).mockResolvedValue(mockSearchAgent);
+      (prismaService.searchAgentMatch.upsert as jest.Mock).mockResolvedValue({});
+
+      await service.checkAgainstNewProperty('property-123');
+
+      expect(prismaService.searchAgentMatch.upsert).toHaveBeenCalledWith({
+        where: {
+          searchAgentId_propertyId: {
+            searchAgentId: mockSearchAgent.id,
+            propertyId: 'property-123',
+          },
+        },
+        create: expect.objectContaining({
+          searchAgentId: mockSearchAgent.id,
+          propertyId: 'property-123',
+        }),
+        update: {},
+      });
+      expect(mailService.sendSearchAgentMatchEmail).not.toHaveBeenCalled();
+    });
+
+    it('should queue for digest when frequency is WEEKLY_DIGEST', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue(mockProperty);
+      (prismaService.searchAgent.findMany as jest.Mock).mockResolvedValue([
+        {
+          ...mockSearchAgent,
+          notificationFrequency: NotificationFrequency.WEEKLY_DIGEST,
+          user: mockUser,
+        },
+      ]);
+      (prismaService.searchAgent.update as jest.Mock).mockResolvedValue(mockSearchAgent);
+      (prismaService.searchAgentMatch.upsert as jest.Mock).mockResolvedValue({});
+
+      await service.checkAgainstNewProperty('property-123');
+
+      expect(prismaService.searchAgentMatch.upsert).toHaveBeenCalled();
+      expect(mailService.sendSearchAgentMatchEmail).not.toHaveBeenCalled();
+    });
+
+    it('should send instant email when frequency is INSTANT', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue(mockProperty);
+      (prismaService.searchAgent.findMany as jest.Mock).mockResolvedValue([
+        {
+          ...mockSearchAgent,
+          notificationFrequency: NotificationFrequency.INSTANT,
+          user: mockUser,
+        },
+      ]);
+      (prismaService.searchAgent.update as jest.Mock).mockResolvedValue(mockSearchAgent);
+
+      await service.checkAgainstNewProperty('property-123');
+
+      expect(mailService.sendSearchAgentMatchEmail).toHaveBeenCalledWith(
+        mockUser.email,
+        mockUser.firstName,
+        mockSearchAgent.name,
+        1,
+        expect.any(String),
+        expect.any(String), // unsubscribeUrl
+      );
+      expect(prismaService.searchAgentMatch.upsert).not.toHaveBeenCalled();
+    });
+
+    it('should include unsubscribeUrl in instant notification', async () => {
+      (prismaService.property.findUnique as jest.Mock).mockResolvedValue(mockProperty);
+      (prismaService.searchAgent.findMany as jest.Mock).mockResolvedValue([
+        {
+          ...mockSearchAgent,
+          notificationFrequency: NotificationFrequency.INSTANT,
+          unsubscribeToken: 'my-token-123',
+          user: mockUser,
+        },
+      ]);
+      (prismaService.searchAgent.update as jest.Mock).mockResolvedValue(mockSearchAgent);
+
+      await service.checkAgainstNewProperty('property-123');
+
+      expect(mailService.sendSearchAgentMatchEmail).toHaveBeenCalledWith(
+        mockUser.email,
+        mockUser.firstName,
+        mockSearchAgent.name,
+        1,
+        expect.any(String),
+        '/search-agents/unsubscribe?token=my-token-123',
+      );
+    });
+  });
+
+  describe('unsubscribe (PROD-041.7)', () => {
+    it('should unsubscribe with valid token', async () => {
+      (prismaService.searchAgent.findUnique as jest.Mock).mockResolvedValue(mockSearchAgent);
+      (prismaService.searchAgent.update as jest.Mock).mockResolvedValue({
+        ...mockSearchAgent,
+        emailNotifications: false,
+      });
+
+      const result = await service.unsubscribe('token-abc-123');
+
+      expect(result.message).toContain('Successfully unsubscribed');
+      expect(result.searchAgentName).toBe(mockSearchAgent.name);
+      expect(prismaService.searchAgent.update).toHaveBeenCalledWith({
+        where: { id: mockSearchAgent.id },
+        data: { emailNotifications: false },
+      });
+    });
+
+    it('should throw NotFoundException with invalid token', async () => {
+      (prismaService.searchAgent.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.unsubscribe('invalid-token')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should query by unsubscribeToken', async () => {
+      (prismaService.searchAgent.findUnique as jest.Mock).mockResolvedValue(mockSearchAgent);
+      (prismaService.searchAgent.update as jest.Mock).mockResolvedValue(mockSearchAgent);
+
+      await service.unsubscribe('my-unique-token');
+
+      expect(prismaService.searchAgent.findUnique).toHaveBeenCalledWith({
+        where: { unsubscribeToken: 'my-unique-token' },
+      });
     });
   });
 });

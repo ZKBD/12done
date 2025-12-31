@@ -3,10 +3,12 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
-import { UserRole, Prisma, PropertyStatus, ListingType } from '@prisma/client';
+import { UserRole, Prisma, PropertyStatus, ListingType, NotificationFrequency } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { MailService } from '@/mail';
+import { generateSecureToken } from '@/common/utils';
 import {
   CreateSearchAgentDto,
   UpdateSearchAgentDto,
@@ -17,6 +19,7 @@ import {
 @Injectable()
 export class SearchAgentsService {
   private readonly MAX_SEARCH_AGENTS = 10;
+  private readonly logger = new Logger(SearchAgentsService.name);
 
   constructor(
     private prisma: PrismaService,
@@ -45,6 +48,8 @@ export class SearchAgentsService {
         criteria: dto.criteria as Prisma.InputJsonValue,
         emailNotifications: dto.emailNotifications ?? true,
         inAppNotifications: dto.inAppNotifications ?? true,
+        notificationFrequency: dto.notificationFrequency ?? NotificationFrequency.INSTANT,
+        unsubscribeToken: generateSecureToken(),
         isActive: true,
       },
     });
@@ -111,6 +116,9 @@ export class SearchAgentsService {
         }),
         ...(dto.inAppNotifications !== undefined && {
           inAppNotifications: dto.inAppNotifications,
+        }),
+        ...(dto.notificationFrequency !== undefined && {
+          notificationFrequency: dto.notificationFrequency,
         }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
       },
@@ -204,44 +212,118 @@ export class SearchAgentsService {
           data: { lastTriggeredAt: new Date() },
         });
 
-        // Send email notification (don't let email failures block in-app notifications)
+        // Handle email notification based on frequency
         if (agent.emailNotifications) {
-          try {
-            const searchUrl = `/search?agentId=${agent.id}`;
-            await this.mailService.sendSearchAgentMatchEmail(
-              agent.user.email,
-              agent.user.firstName,
-              agent.name,
-              1,
-              searchUrl,
-            );
-          } catch (error) {
-            // Log but don't fail - email is not critical
-            console.error(`Failed to send search agent match email to ${agent.user.email}:`, error);
+          if (agent.notificationFrequency === NotificationFrequency.INSTANT) {
+            // Send immediate email notification
+            await this.sendInstantNotification(agent, property);
+          } else {
+            // Queue for digest (DAILY_DIGEST or WEEKLY_DIGEST)
+            await this.queueForDigest(agent.id, propertyId);
           }
         }
 
-        // Create in-app notification
+        // Create in-app notification (always immediate, regardless of frequency)
         if (agent.inAppNotifications) {
-          try {
-            await this.prisma.notification.create({
-              data: {
-                userId: agent.userId,
-                type: 'SEARCH_AGENT_MATCH',
-                title: `New match for "${agent.name}"`,
-                message: `A new property matching your saved search has been listed.`,
-                data: {
-                  searchAgentId: agent.id,
-                  propertyId: property.id,
-                },
-              },
-            });
-          } catch (error) {
-            console.error(`Failed to create in-app notification for user ${agent.userId}:`, error);
-          }
+          await this.createInAppNotification(agent, property);
         }
       }
     }
+  }
+
+  /**
+   * Send instant email notification for a matched property
+   */
+  private async sendInstantNotification(
+    agent: { id: string; name: string; unsubscribeToken: string | null; user: { email: string; firstName: string } },
+    property: { id: string },
+  ): Promise<void> {
+    try {
+      const searchUrl = `/search?agentId=${agent.id}`;
+      const unsubscribeUrl = agent.unsubscribeToken
+        ? `/search-agents/unsubscribe?token=${agent.unsubscribeToken}`
+        : undefined;
+
+      await this.mailService.sendSearchAgentMatchEmail(
+        agent.user.email,
+        agent.user.firstName,
+        agent.name,
+        1,
+        searchUrl,
+        unsubscribeUrl,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to send search agent match email to ${agent.user.email}:`, error);
+    }
+  }
+
+  /**
+   * Queue a property match for digest notification
+   */
+  private async queueForDigest(searchAgentId: string, propertyId: string): Promise<void> {
+    try {
+      await this.prisma.searchAgentMatch.upsert({
+        where: {
+          searchAgentId_propertyId: { searchAgentId, propertyId },
+        },
+        create: {
+          searchAgentId,
+          propertyId,
+          matchedAt: new Date(),
+        },
+        update: {}, // No update if already exists
+      });
+    } catch (error) {
+      this.logger.error(`Failed to queue digest match for agent ${searchAgentId}:`, error);
+    }
+  }
+
+  /**
+   * Create in-app notification for a matched property
+   */
+  private async createInAppNotification(
+    agent: { id: string; userId: string; name: string },
+    property: { id: string },
+  ): Promise<void> {
+    try {
+      await this.prisma.notification.create({
+        data: {
+          userId: agent.userId,
+          type: 'SEARCH_AGENT_MATCH',
+          title: `New match for "${agent.name}"`,
+          message: `A new property matching your saved search has been listed.`,
+          data: {
+            searchAgentId: agent.id,
+            propertyId: property.id,
+          },
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to create in-app notification for user ${agent.userId}:`, error);
+    }
+  }
+
+  /**
+   * Unsubscribe from email notifications via token (PROD-041.7)
+   */
+  async unsubscribe(token: string): Promise<{ message: string; searchAgentName: string }> {
+    const agent = await this.prisma.searchAgent.findUnique({
+      where: { unsubscribeToken: token },
+    });
+
+    if (!agent) {
+      throw new NotFoundException('Invalid or expired unsubscribe token');
+    }
+
+    await this.prisma.searchAgent.update({
+      where: { id: agent.id },
+      data: { emailNotifications: false },
+    });
+
+    return {
+      message: 'Successfully unsubscribed from email notifications',
+      searchAgentName: agent.name,
+    };
   }
 
   /**
@@ -460,6 +542,7 @@ export class SearchAgentsService {
     criteria: Prisma.JsonValue;
     emailNotifications: boolean;
     inAppNotifications: boolean;
+    notificationFrequency: NotificationFrequency;
     isActive: boolean;
     lastTriggeredAt: Date | null;
     createdAt: Date;
@@ -472,6 +555,7 @@ export class SearchAgentsService {
       criteria: agent.criteria as SearchCriteriaDto,
       emailNotifications: agent.emailNotifications,
       inAppNotifications: agent.inAppNotifications,
+      notificationFrequency: agent.notificationFrequency,
       isActive: agent.isActive,
       lastTriggeredAt: agent.lastTriggeredAt || undefined,
       createdAt: agent.createdAt,

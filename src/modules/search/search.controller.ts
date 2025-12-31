@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -16,6 +17,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { SearchAgentsService } from './search-agents.service';
@@ -152,6 +154,17 @@ export class SearchController {
     @CurrentUser() user: CurrentUserData,
   ): Promise<{ propertyIds: string[]; count: number }> {
     return this.searchAgentsService.runSearch(id, user.id, user.role as UserRole);
+  }
+
+  @Get('search-agents/unsubscribe')
+  @ApiOperation({ summary: 'Unsubscribe from search agent email notifications (PROD-041.7)' })
+  @ApiQuery({ name: 'token', description: 'Unsubscribe token from email link' })
+  @ApiResponse({ status: 200, description: 'Successfully unsubscribed' })
+  @ApiResponse({ status: 404, description: 'Invalid or expired token' })
+  async unsubscribeFromSearchAgent(
+    @Query('token') token: string,
+  ): Promise<{ message: string; searchAgentName: string }> {
+    return this.searchAgentsService.unsubscribe(token);
   }
 
   // ============ FAVORITES (PROD-049) ============

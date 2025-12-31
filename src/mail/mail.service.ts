@@ -145,6 +145,7 @@ export class MailService {
     searchAgentName: string,
     matchCount: number,
     searchUrl: string,
+    unsubscribeUrl?: string,
   ): Promise<void> {
     await this.sendMail({
       to: email,
@@ -154,7 +155,41 @@ export class MailService {
         firstName,
         searchAgentName,
         matchCount,
-        searchUrl,
+        searchUrl: `${this.frontendUrl}${searchUrl}`,
+        unsubscribeUrl: unsubscribeUrl ? `${this.frontendUrl}${unsubscribeUrl}` : undefined,
+      },
+    });
+  }
+
+  async sendSearchAgentDigestEmail(
+    email: string,
+    firstName: string,
+    searchAgentName: string,
+    matchCount: number,
+    properties: Array<{
+      id: string;
+      title: string;
+      city: string;
+      price: string;
+      bedrooms?: number;
+      bathrooms?: number;
+      squareMeters?: number;
+      imageUrl?: string;
+    }>,
+    searchUrl: string,
+    unsubscribeUrl?: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `${matchCount} new ${matchCount === 1 ? 'property' : 'properties'} for "${searchAgentName}" - 12done.com`,
+      template: 'search-digest',
+      context: {
+        firstName,
+        searchAgentName,
+        matchCount,
+        properties: properties.slice(0, 10), // Limit to 10 in email
+        searchUrl: `${this.frontendUrl}${searchUrl}`,
+        unsubscribeUrl: unsubscribeUrl ? `${this.frontendUrl}${unsubscribeUrl}` : undefined,
       },
     });
   }

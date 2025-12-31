@@ -149,6 +149,13 @@ enum NotificationType {
   MESSAGE_RECEIVED
 }
 
+// Notification Frequency (PROD-041)
+enum NotificationFrequency {
+  INSTANT
+  DAILY_DIGEST
+  WEEKLY_DIGEST
+}
+
 // ============================================
 // NEGOTIATIONS & TRANSACTIONS (PROD-090 to PROD-095)
 // ============================================
@@ -701,6 +708,9 @@ model Property {
   tripPlans            TripPlan[]
   cateringQuotes       CateringQuote[]
 
+  // Search Agent Matches (PROD-041)
+  searchAgentMatches SearchAgentMatch[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -933,8 +943,13 @@ model SearchAgent {
   criteria Json
 
   // Notifications (PROD-041)
-  emailNotifications Boolean @default(true)
-  inAppNotifications Boolean @default(true)
+  emailNotifications    Boolean               @default(true)
+  inAppNotifications    Boolean               @default(true)
+  notificationFrequency NotificationFrequency @default(INSTANT)
+  unsubscribeToken      String?               @unique
+
+  // Relations for digest matches (PROD-041)
+  pendingMatches SearchAgentMatch[]
 
   isActive        Boolean   @default(true)
   lastTriggeredAt DateTime?
@@ -943,6 +958,22 @@ model SearchAgent {
 
   @@index([userId])
   @@index([isActive])
+  @@index([notificationFrequency])
+}
+
+// Search Agent Match - Pending digest notifications (PROD-041)
+model SearchAgentMatch {
+  id            String      @id @default(uuid())
+  searchAgentId String
+  searchAgent   SearchAgent @relation(fields: [searchAgentId], references: [id], onDelete: Cascade)
+  propertyId    String
+  property      Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  matchedAt     DateTime    @default(now())
+  notifiedAt    DateTime? // null = pending, set = sent in digest
+
+  @@unique([searchAgentId, propertyId])
+  @@index([searchAgentId])
+  @@index([notifiedAt])
 }
 
 // Favorite Properties (PROD-049)

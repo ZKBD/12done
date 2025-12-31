@@ -4,10 +4,12 @@ import {
   IsOptional,
   IsBoolean,
   IsObject,
+  IsEnum,
   MaxLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { NotificationFrequency } from '@prisma/client';
 
 export class SearchCriteriaDto {
   @ApiPropertyOptional({ description: 'Search text query' })
@@ -121,6 +123,16 @@ export class CreateSearchAgentDto {
   @IsBoolean()
   @Type(() => Boolean)
   inAppNotifications?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Notification frequency for email notifications',
+    enum: NotificationFrequency,
+    default: NotificationFrequency.INSTANT,
+    example: 'INSTANT',
+  })
+  @IsOptional()
+  @IsEnum(NotificationFrequency)
+  notificationFrequency?: NotificationFrequency;
 }
 
 export class UpdateSearchAgentDto {
@@ -167,6 +179,15 @@ export class UpdateSearchAgentDto {
   @IsBoolean()
   @Type(() => Boolean)
   isActive?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Notification frequency for email notifications',
+    enum: NotificationFrequency,
+    example: 'DAILY_DIGEST',
+  })
+  @IsOptional()
+  @IsEnum(NotificationFrequency)
+  notificationFrequency?: NotificationFrequency;
 }
 
 export class SearchAgentResponseDto {
@@ -187,6 +208,9 @@ export class SearchAgentResponseDto {
 
   @ApiProperty()
   inAppNotifications: boolean;
+
+  @ApiProperty({ enum: NotificationFrequency })
+  notificationFrequency: NotificationFrequency;
 
   @ApiProperty()
   isActive: boolean;

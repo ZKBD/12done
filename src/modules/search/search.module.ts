@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { SearchController } from './search.controller';
 import { RecommendationsController } from './recommendations.controller';
 import { SearchAgentsService } from './search-agents.service';
+import { SearchAgentDigestService } from './search-agent-digest.service';
 import { FavoritesService } from './favorites.service';
 import { BrowsingHistoryService } from './browsing-history.service';
 import { RecommendationsService } from './recommendations.service';
@@ -12,12 +13,14 @@ import { MailModule } from '@/mail';
   controllers: [SearchController, RecommendationsController],
   providers: [
     SearchAgentsService,
+    SearchAgentDigestService,
     FavoritesService,
     BrowsingHistoryService,
     RecommendationsService,
   ],
   exports: [
     SearchAgentsService,
+    SearchAgentDigestService,
     FavoritesService,
     BrowsingHistoryService,
     RecommendationsService,

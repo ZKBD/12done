@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your property digest</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #4F46E5; }
+    .logo { font-size: 24px; font-weight: bold; color: #4F46E5; }
+    .content { padding: 30px 0; }
+    .button { display: inline-block; background: #4F46E5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+    .property-card { border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px; margin: 16px 0; }
+    .property-image { width: 100%; max-width: 200px; height: 120px; border-radius: 4px; object-fit: cover; margin-bottom: 12px; }
+    .property-title { font-weight: 600; color: #111; margin: 0 0 4px 0; font-size: 16px; }
+    .property-location { color: #666; font-size: 14px; margin: 0 0 8px 0; }
+    .property-price { color: #4F46E5; font-weight: 600; font-size: 18px; margin: 0 0 4px 0; }
+    .property-specs { color: #666; font-size: 13px; margin: 0; }
+    .match-summary { background: #F0FDF4; border: 1px solid #22C55E; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; }
+    .match-count { font-size: 36px; font-weight: bold; color: #22C55E; }
+    .footer { text-align: center; padding: 20px 0; color: #666; font-size: 12px; border-top: 1px solid #eee; margin-top: 30px; }
+    .unsubscribe { color: #999; font-size: 11px; margin-top: 16px; }
+    .unsubscribe a { color: #999; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">12done.com</div>
+  </div>
+
+  <div class="content">
+    <h1>Your Property Digest</h1>
+
+    <p>Hi {{firstName}},</p>
+
+    <p>Here are the latest matches for your saved search "<strong>{{searchAgentName}}</strong>":</p>
+
+    <div class="match-summary">
+      <div class="match-count">{{matchCount}}</div>
+      <p style="margin: 0;">new {{#if (eq matchCount 1)}}property{{else}}properties{{/if}} found</p>
+    </div>
+
+    {{#each properties}}
+    <div class="property-card">
+      {{#if imageUrl}}
+      <img src="{{imageUrl}}" alt="{{title}}" class="property-image" />
+      {{/if}}
+      <h3 class="property-title">{{title}}</h3>
+      <p class="property-location">{{city}}</p>
+      <p class="property-price">{{price}}</p>
+      <p class="property-specs">
+        {{#if bedrooms}}{{bedrooms}} bed{{#if (gt bedrooms 1)}}s{{/if}}{{/if}}
+        {{#if bathrooms}} &middot; {{bathrooms}} bath{{#if (gt bathrooms 1)}}s{{/if}}{{/if}}
+        {{#if squareMeters}} &middot; {{squareMeters}} m&sup2;{{/if}}
+      </p>
+    </div>
+    {{/each}}
+
+    <p style="text-align: center;">
+      <a href="{{searchUrl}}" class="button">View All Matches</a>
+    </p>
+
+    <p style="color: #666; font-size: 14px;">You're receiving this digest because you have digest notifications enabled for this search agent.</p>
+  </div>
+
+  <div class="footer">
+    <p>&copy; {{year}} 12done.com. All rights reserved.</p>
+    {{#if unsubscribeUrl}}
+    <div class="unsubscribe">
+      <a href="{{unsubscribeUrl}}">Unsubscribe from these notifications</a> |
+      <a href="{{frontendUrl}}/settings/notifications">Manage preferences</a>
+    </div>
+    {{/if}}
+  </div>
+</body>
+</html>

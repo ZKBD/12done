@@ -2,6 +2,7 @@ export * from './search.module';
 export * from './search.controller';
 export * from './recommendations.controller';
 export * from './search-agents.service';
+export * from './search-agent-digest.service';
 export * from './favorites.service';
 export * from './browsing-history.service';
 export * from './recommendations.service';
