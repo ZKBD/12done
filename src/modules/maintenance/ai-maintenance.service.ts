@@ -611,6 +611,11 @@ export class AiMaintenanceService {
     // Generate suggested slots based on provider weekly availability
     const slots = this.generateAppointmentSlotsFromWeekly(filteredProviders);
 
+    // If no slots available (providers have no availability set), fall back to defaults
+    if (slots.length === 0) {
+      return this.getDefaultAppointmentSuggestions();
+    }
+
     // Calculate average wait and recommendation
     const avgWait = this.calculateAverageWait(slots);
 
