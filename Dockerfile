@@ -33,16 +33,17 @@ CMD ["npm", "run", "start:dev"]
 # Build Stage
 # ====================
 FROM base AS builder
-ENV NODE_ENV=production
 
 COPY package*.json ./
-RUN npm install
+# Install all dependencies including devDependencies for build
+RUN npm ci --include=dev
 
 COPY . .
 RUN npx prisma generate
 RUN npm run build
 
 # Prune dev dependencies after build
+ENV NODE_ENV=production
 RUN npm prune --production
 
 # ====================
@@ -59,6 +60,11 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
+
+# Create uploads directory and fix permissions
+RUN mkdir -p /app/uploads && \
+    chown -R nestjs:nodejs /app/uploads && \
+    chmod -R 644 /app/prisma/migrations/*/migration.sql 2>/dev/null || true
 
 USER nestjs
 
