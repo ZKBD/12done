@@ -156,3 +156,12 @@ Before ending a session where tests were created or modified:
 3. Update statuses if tests were run
 4. Update the "Update History" section at the bottom
 5. Commit changes with message: `docs: update traceability matrix`
+
+---
+
+## Pending Configuration Tasks
+
+- [ ] **Restore Happy CLI in Claude Launcher** - Check if Happy Engineering's 404 issue is resolved, then restore `happy --yolo` in launcher. Currently using `claude --dangerously-skip-permissions` as workaround. To restore, run:
+  ```bash
+  sed -i '' 's|claude --dangerously-skip-permissions|happy --yolo|g' "/Users/zsoltkosinszky/Library/Mobile Documents/com~apple~CloudDocs/Claude/Claude Launcher.app/Contents/MacOS/launcher"
+  ```
