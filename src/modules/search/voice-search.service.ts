@@ -311,6 +311,42 @@ export class VoiceSearchService {
     }
   }
 
+  // Words that should not be part of a city name
+  private readonly cityExcludeWords = [
+    'under',
+    'over',
+    'below',
+    'above',
+    'between',
+    'around',
+    'about',
+    'near',
+    'from',
+    'less',
+    'more',
+    'than',
+    'max',
+    'min',
+    'maximum',
+    'minimum',
+    // Country names/keywords to exclude
+    'usa',
+    'uk',
+    'hungary',
+    'germany',
+    'france',
+    'spain',
+    'italy',
+    'netherlands',
+    'austria',
+    'czech',
+    'portugal',
+    'ireland',
+    'america',
+    'britain',
+    'england',
+  ];
+
   /**
    * Extract city from text
    */
@@ -320,7 +356,20 @@ export class VoiceSearchService {
     const matches = [...text.matchAll(inPattern)];
 
     for (const match of matches) {
-      const potentialCity = match[1].toLowerCase().trim();
+      let potentialCity = match[1].toLowerCase().trim();
+
+      // Filter out excluded words (stop words, price keywords, country names)
+      const words = potentialCity.split(/\s+/);
+      const filteredWords = words.filter(
+        (word) =>
+          !this.stopWords.includes(word) && !this.cityExcludeWords.includes(word),
+      );
+      potentialCity = filteredWords.join(' ').trim();
+
+      // Skip if nothing left after filtering
+      if (!potentialCity || potentialCity.length < 2) {
+        continue;
+      }
 
       // Check against known cities
       for (const city of this.knownCities) {
