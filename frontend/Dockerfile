@@ -43,4 +43,8 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# Health check using IPv4 to avoid localhost IPv6 resolution issues
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget -q --spider http://127.0.0.1:3000 || exit 1
+
 CMD ["node", "server.js"]
