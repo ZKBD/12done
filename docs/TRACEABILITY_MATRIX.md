@@ -452,6 +452,8 @@ Note: E2E tests require Docker/database to run.
 | PROD-044.28 | `POST /api/voice-search/parse > should reject empty transcript` | search.e2e-spec.ts | E2E test of validation | ✅ |
 | PROD-044.29 | `POST /api/voice-search/to-query > should convert transcript to query parameters` | search.e2e-spec.ts | E2E test of to-query endpoint | ✅ |
 | PROD-044.30 | `POST /api/voice-search/to-query > should include boolean features in query` | search.e2e-spec.ts | E2E test of feature conversion | ✅ |
+| PROD-044.31 | Country extraction uses word boundary matching | voice-search.service.ts:368 | Prevents false positives (e.g., "USA" detected in unrelated text) by using regex `\b` word boundaries instead of simple includes() | ✅ |
+| PROD-044.32 | City extraction filters country names and stop words | voice-search.service.ts:361-367 | Prevents capturing "Usa Under" or "Spain With" as city names by filtering cityExcludeWords (price keywords, country names) | ✅ |
 
 ### PROD-045 to PROD-047: Advanced Search Features (Future)
 
@@ -2666,6 +2668,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-31 | Claude | CI fixes: Added Prisma migration for virtual staging columns (isVirtuallyStaged, roomType, stagingStyle, timeOfDay, season, photoGroupId on PropertyMedia; VirtualStagingRequest table; RoomType/StagingStyle/TimeOfDay/Season/StagingStatus enums); Fixed revenue-share spec mock chain (3 findUnique calls needed); Added fetch/URLSearchParams to ESLint globals; Fixed AI maintenance appointment suggestions fallback; All 1964 unit tests + 529 E2E tests passing |
 | 2025-12-31 | Claude | Implemented Biometric Authentication (PROD-011.1-011.5): Prisma models (BiometricDeviceType enum, BiometricCredential for device storage, BiometricChallenge for time-limited challenges), BiometricService with challenge-response authentication (RSA-SHA256 signature verification), device enrollment/management, biometric settings, sensitive action verification; BiometricRequiredGuard for payment/profile/password actions; 7 controller endpoints at /auth/biometric/*; 34 unit tests; Total tests now 2029 |
 | 2025-12-31 | Claude | Enhanced Search Agent Notifications (PROD-041.7-041.29): NotificationFrequency enum (INSTANT, DAILY_DIGEST, WEEKLY_DIGEST), SearchAgentMatch model for digest accumulation, SearchAgentDigestService with @Cron jobs (daily 9 AM, weekly Monday 9 AM, cleanup 2 AM), unsubscribeToken generation, one-click unsubscribe endpoint at GET /search-agents/unsubscribe, search-digest.hbs email template; 23 new unit tests (12 search-agents + 11 digest); Total tests TBD |
+| 2026-01-01 | Claude | Fixed Voice Search bugs (PROD-044.31-044.32): Country extraction now uses word boundary regex matching to prevent false positives (e.g., "USA" incorrectly detected); City extraction filters out country names and stop words to prevent capturing "Usa Under" or "Spain With" as city names; Added cityExcludeWords list with price keywords and country names |
 
 ---
 
