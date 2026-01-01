@@ -364,7 +364,9 @@ export class VoiceSearchService {
   private extractCountry(text: string, criteria: ParsedSearchCriteria): void {
     for (const [code, keywords] of Object.entries(this.countryKeywords)) {
       for (const keyword of keywords) {
-        if (text.includes(keyword)) {
+        // Use word boundary matching to avoid false positives (e.g., 'usa' in other words)
+        const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+        if (regex.test(text)) {
           criteria.country = {
             value: code,
             confidence: 0.9,
