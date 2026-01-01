@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import * as sgMail from '@sendgrid/mail';
 import * as handlebars from 'handlebars';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -15,26 +15,24 @@ interface EmailOptions {
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private transporter: nodemailer.Transporter;
   private fromEmail: string;
   private frontendUrl: string;
+  private useSendGridApi: boolean;
 
   constructor(private configService: ConfigService) {
     this.fromEmail = this.configService.get<string>('mail.from') || 'noreply@12done.com';
     this.frontendUrl = this.configService.get<string>('app.frontendUrl') || 'http://localhost:3000';
 
-    this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('mail.host'),
-      port: this.configService.get<number>('mail.port'),
-      secure: false, // true for 465, false for other ports
-      auth:
-        this.configService.get<string>('mail.user') && this.configService.get<string>('mail.pass')
-          ? {
-              user: this.configService.get<string>('mail.user'),
-              pass: this.configService.get<string>('mail.pass'),
-            }
-          : undefined,
-    });
+    // Use SendGrid Web API if API key is provided (starts with SG.)
+    const apiKey = this.configService.get<string>('mail.pass');
+    this.useSendGridApi = apiKey?.startsWith('SG.') ?? false;
+
+    if (this.useSendGridApi && apiKey) {
+      sgMail.setApiKey(apiKey);
+      this.logger.log('Using SendGrid Web API for email delivery');
+    } else {
+      this.logger.warn('SendGrid API key not configured, emails will not be sent');
+    }
   }
 
   private async loadTemplate(templateName: string): Promise<handlebars.TemplateDelegate> {
@@ -59,6 +57,11 @@ export class MailService {
   }
 
   async sendMail(options: EmailOptions): Promise<void> {
+    if (!this.useSendGridApi) {
+      this.logger.warn(`Skipping email to ${options.to} - SendGrid not configured`);
+      return;
+    }
+
     try {
       const template = await this.loadTemplate(options.template);
       const html = template({
@@ -67,8 +70,11 @@ export class MailService {
         year: new Date().getFullYear(),
       });
 
-      await this.transporter.sendMail({
-        from: `"12done.com" <${this.fromEmail}>`,
+      await sgMail.send({
+        from: {
+          email: this.fromEmail,
+          name: '12done.com',
+        },
         to: options.to,
         subject: options.subject,
         html,

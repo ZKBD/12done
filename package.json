@@ -37,6 +37,7 @@
     "@nestjs/throttler": "^6.3.0",
     "@nestjs/websockets": "^10.4.20",
     "@prisma/client": "^6.19.1",
+    "@sendgrid/mail": "^8.1.6",
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.7.6",
     "cache-manager-redis-store": "^3.0.1",

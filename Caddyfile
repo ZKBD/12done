@@ -1,0 +1,36 @@
+# 12done.com Caddy Configuration
+# Replace {$DOMAIN} with your actual domain (e.g., 12done.com)
+
+{$DOMAIN:localhost} {
+    # API routes
+    handle /api/* {
+        reverse_proxy api:3000
+    }
+
+    # WebSocket for real-time messaging
+    handle /socket.io/* {
+        reverse_proxy api:3000
+    }
+
+    # Frontend
+    handle {
+        reverse_proxy frontend:3000
+    }
+
+    # Enable compression
+    encode gzip
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+
+    # Logging
+    log {
+        output file /var/log/caddy/access.log
+        format console
+    }
+}
