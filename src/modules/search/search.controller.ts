@@ -8,9 +8,12 @@ import {
   Body,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
@@ -19,11 +22,13 @@ import {
   ApiParam,
   ApiQuery,
   ApiBody,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { SearchAgentsService } from './search-agents.service';
 import { FavoritesService } from './favorites.service';
 import { VoiceSearchService } from './voice-search.service';
+import { VisualSearchService } from './visual-search.service';
 import { JwtAuthGuard } from '@/modules/auth/guards';
 import { RolesGuard } from '@/common/guards';
 import { CurrentUser, CurrentUserData } from '@/common/decorators';
@@ -35,6 +40,11 @@ import {
   FavoriteStatsDto,
   VoiceSearchDto,
   VoiceSearchResponseDto,
+  VisualSearchQueryDto,
+  VisualSearchResponseDto,
+  IndexPropertyImagesResponseDto,
+  BatchIndexPropertiesDto,
+  BatchIndexResponseDto,
 } from './dto';
 
 @ApiTags('search')
@@ -44,6 +54,7 @@ export class SearchController {
     private readonly searchAgentsService: SearchAgentsService,
     private readonly favoritesService: FavoritesService,
     private readonly voiceSearchService: VoiceSearchService,
+    private readonly visualSearchService: VisualSearchService,
   ) {}
 
   // ============ SEARCH AGENTS (PROD-040, PROD-041) ============
@@ -315,5 +326,122 @@ export class SearchController {
   ): Promise<{ isFavorite: boolean }> {
     const isFavorite = await this.favoritesService.isFavorite(propertyId, user.id);
     return { isFavorite };
+  }
+
+  // ============ VISUAL SEARCH (PROD-045) ============
+
+  @Post('visual-search')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('image', {
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    }),
+  )
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary: 'Find visually similar properties (PROD-045)',
+    description:
+      'Upload an image to find properties with visually similar photos using perceptual hashing.',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+          description: 'Image file (JPEG, PNG, WebP, GIF)',
+        },
+      },
+      required: ['image'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of visually similar properties',
+    type: VisualSearchResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid image file' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async visualSearch(
+    @UploadedFile() file: Express.Multer.File,
+    @Query() query: VisualSearchQueryDto,
+  ): Promise<VisualSearchResponseDto> {
+    this.visualSearchService.validateImageFile(file);
+    return this.visualSearchService.findSimilarProperties(file.buffer, query);
+  }
+
+  @Post('visual-search/index/:propertyId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Index property images for visual search (PROD-045)',
+    description: 'Generates perceptual hashes for all photos of a property.',
+  })
+  @ApiParam({ name: 'propertyId', description: 'Property ID to index' })
+  @ApiResponse({
+    status: 200,
+    description: 'Indexing result',
+    type: IndexPropertyImagesResponseDto,
+  })
+  async indexPropertyImages(
+    @Param('propertyId') propertyId: string,
+  ): Promise<IndexPropertyImagesResponseDto> {
+    return this.visualSearchService.indexPropertyImages(propertyId);
+  }
+
+  @Post('visual-search/index-batch')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Batch index multiple properties for visual search',
+    description: 'Index images for multiple properties at once.',
+  })
+  @ApiBody({ type: BatchIndexPropertiesDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Batch indexing results',
+    type: BatchIndexResponseDto,
+  })
+  async batchIndexProperties(
+    @Body() dto: BatchIndexPropertiesDto,
+  ): Promise<BatchIndexResponseDto> {
+    const details: IndexPropertyImagesResponseDto[] = [];
+    let totalIndexed = 0;
+    let totalFailed = 0;
+
+    for (const propertyId of dto.propertyIds) {
+      const result = await this.visualSearchService.indexPropertyImages(propertyId);
+      details.push(result);
+      totalIndexed += result.indexedCount;
+      totalFailed += result.failedCount;
+    }
+
+    return {
+      totalProcessed: dto.propertyIds.length,
+      totalIndexed,
+      totalFailed,
+      details,
+    };
+  }
+
+  @Get('visual-search/stats')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get visual search indexing statistics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Indexing statistics',
+  })
+  async getVisualSearchStats(): Promise<{
+    totalMedia: number;
+    indexedMedia: number;
+    unindexedMedia: number;
+    indexedPercentage: number;
+  }> {
+    return this.visualSearchService.getIndexingStats();
   }
 }

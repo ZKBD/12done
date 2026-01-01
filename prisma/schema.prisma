@@ -809,10 +809,27 @@ model PropertyMedia {
   season       Season?
   photoGroupId String?    // Group photos of same angle at different times/seasons
 
+  // Visual Search (PROD-045)
+  imageHash    ImageHash?
+
   @@index([propertyId])
   @@index([type])
   @@index([isVirtuallyStaged])
   @@index([photoGroupId])
+}
+
+// Visual Search Image Hash (PROD-045)
+model ImageHash {
+  id             String        @id @default(uuid())
+  mediaId        String        @unique
+  media          PropertyMedia @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  pHash          String        // 64-bit perceptual hash (16 hex chars)
+  dominantColors String[]      // Top 5 dominant colors as hex
+  aspectRatio    Float         // width/height ratio
+  brightness     Float         // 0-255 average brightness
+  createdAt      DateTime      @default(now())
+
+  @@index([pHash])
 }
 
 // Virtual Staging Request (PROD-030)

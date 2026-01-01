@@ -7,6 +7,7 @@ import { FavoritesService } from './favorites.service';
 import { BrowsingHistoryService } from './browsing-history.service';
 import { RecommendationsService } from './recommendations.service';
 import { VoiceSearchService } from './voice-search.service';
+import { VisualSearchService } from './visual-search.service';
 import { MailModule } from '@/mail';
 
 @Module({
@@ -19,6 +20,7 @@ import { MailModule } from '@/mail';
     BrowsingHistoryService,
     RecommendationsService,
     VoiceSearchService,
+    VisualSearchService,
   ],
   exports: [
     SearchAgentsService,
@@ -27,6 +29,7 @@ import { MailModule } from '@/mail';
     BrowsingHistoryService,
     RecommendationsService,
     VoiceSearchService,
+    VisualSearchService,
   ],
 })
 export class SearchModule {}

@@ -455,11 +455,56 @@ Note: E2E tests require Docker/database to run.
 | PROD-044.31 | Country extraction uses word boundary matching | voice-search.service.ts:368 | Prevents false positives (e.g., "USA" detected in unrelated text) by using regex `\b` word boundaries instead of simple includes() | ✅ |
 | PROD-044.32 | City extraction filters country names and stop words | voice-search.service.ts:361-367 | Prevents capturing "Usa Under" or "Spain With" as city names by filtering cityExcludeWords (price keywords, country names) | ✅ |
 
-### PROD-045 to PROD-047: Advanced Search Features (Future)
+### PROD-045: Visual Search
 
 | Req ID | Test Case | Test File | Purpose | Status |
 |--------|-----------|-----------|---------|--------|
-| PROD-045 | N/A | N/A | Visual search - Future feature | 🚧 |
+| PROD-045.1 | `generatePHash > should generate consistent hash for same image` | visual-search.service.spec.ts | Verifies perceptual hash consistency | ⏳ |
+| PROD-045.2 | `generatePHash > should generate 16 character hex hash` | visual-search.service.spec.ts | Verifies correct hash format (64-bit as hex) | ⏳ |
+| PROD-045.3 | `generatePHash > should generate different hashes for different images` | visual-search.service.spec.ts | Verifies distinct images produce different hashes | ⏳ |
+| PROD-045.4 | `generatePHash > should generate similar hashes for similar images` | visual-search.service.spec.ts | Verifies perceptual similarity detection | ⏳ |
+| PROD-045.5 | `generatePHash > should handle different image sizes` | visual-search.service.spec.ts | Verifies size-invariant hashing | ⏳ |
+| PROD-045.6 | `generatePHash > should handle non-square images` | visual-search.service.spec.ts | Verifies aspect ratio handling in hashing | ⏳ |
+| PROD-045.7 | `calculatePHashSimilarity > should return 1.0 for identical hashes` | visual-search.service.spec.ts | Verifies identical hash detection | ⏳ |
+| PROD-045.8 | `calculatePHashSimilarity > should return 0.0 for completely different hashes` | visual-search.service.spec.ts | Verifies maximum difference detection | ⏳ |
+| PROD-045.9 | `calculatePHashSimilarity > should be symmetric` | visual-search.service.spec.ts | Verifies similarity is bidirectional | ⏳ |
+| PROD-045.10 | `extractDominantColors > should extract colors from solid color image` | visual-search.service.spec.ts | Verifies color extraction works | ⏳ |
+| PROD-045.11 | `extractDominantColors > should return hex color format` | visual-search.service.spec.ts | Verifies colors are in #RRGGBB format | ⏳ |
+| PROD-045.12 | `extractDominantColors > should extract up to 5 colors` | visual-search.service.spec.ts | Verifies color limit | ⏳ |
+| PROD-045.13 | `calculateColorSimilarity > should return 1.0 for identical color arrays` | visual-search.service.spec.ts | Verifies identical color detection | ⏳ |
+| PROD-045.14 | `calculateColorSimilarity > should return low similarity for different colors` | visual-search.service.spec.ts | Verifies color difference detection | ⏳ |
+| PROD-045.15 | `calculateAspectRatioSimilarity > should return 1.0 for identical ratios` | visual-search.service.spec.ts | Verifies identical aspect ratio detection | ⏳ |
+| PROD-045.16 | `calculateAspectRatioSimilarity > should be symmetric` | visual-search.service.spec.ts | Verifies ratio comparison is bidirectional | ⏳ |
+| PROD-045.17 | `calculateBrightness > should return high brightness for white image` | visual-search.service.spec.ts | Verifies brightness calculation for bright images | ⏳ |
+| PROD-045.18 | `calculateBrightness > should return low brightness for black image` | visual-search.service.spec.ts | Verifies brightness calculation for dark images | ⏳ |
+| PROD-045.19 | `extractImageFeatures > should extract all features from image` | visual-search.service.spec.ts | Verifies complete feature extraction | ⏳ |
+| PROD-045.20 | `extractImageFeatures > should throw for invalid image` | visual-search.service.spec.ts | Verifies error handling for invalid images | ⏳ |
+| PROD-045.21 | `validateImageFile > should throw for missing file` | visual-search.service.spec.ts | Verifies file validation | ⏳ |
+| PROD-045.22 | `validateImageFile > should throw for unsupported format` | visual-search.service.spec.ts | Verifies format validation (JPEG/PNG/WebP/GIF only) | ⏳ |
+| PROD-045.23 | `validateImageFile > should throw for file too large` | visual-search.service.spec.ts | Verifies 10MB file size limit | ⏳ |
+| PROD-045.24 | `findSimilarProperties > should return empty when no indexed images` | visual-search.service.spec.ts | Verifies empty result handling | ⏳ |
+| PROD-045.25 | `findSimilarProperties > should find similar properties` | visual-search.service.spec.ts | Verifies similarity search works | ⏳ |
+| PROD-045.26 | `findSimilarProperties > should filter by minimum similarity` | visual-search.service.spec.ts | Verifies minSimilarity filter | ⏳ |
+| PROD-045.27 | `findSimilarProperties > should respect limit parameter` | visual-search.service.spec.ts | Verifies result limit | ⏳ |
+| PROD-045.28 | `findSimilarProperties > should include visual match details` | visual-search.service.spec.ts | Verifies detailed similarity breakdown | ⏳ |
+| PROD-045.29 | `findSimilarProperties > should include explanation` | visual-search.service.spec.ts | Verifies human-readable explanation | ⏳ |
+| PROD-045.30 | `indexPropertyImages > should skip already indexed images` | visual-search.service.spec.ts | Verifies idempotent indexing | ⏳ |
+| PROD-045.31 | `getIndexingStats > should return correct statistics` | visual-search.service.spec.ts | Verifies indexing statistics | ⏳ |
+| PROD-045.32 | `isImageIndexed > should return true for indexed image` | visual-search.service.spec.ts | Verifies index check | ⏳ |
+| PROD-045.E2E.1 | `POST /api/visual-search > should require authentication` | search.e2e-spec.ts | E2E: Verifies auth requirement | ⏳ |
+| PROD-045.E2E.2 | `POST /api/visual-search > should reject without image` | search.e2e-spec.ts | E2E: Verifies file required | ⏳ |
+| PROD-045.E2E.3 | `POST /api/visual-search > should reject non-image file` | search.e2e-spec.ts | E2E: Verifies file type validation | ⏳ |
+| PROD-045.E2E.4 | `POST /api/visual-search > should accept valid JPEG` | search.e2e-spec.ts | E2E: Verifies successful search | ⏳ |
+| PROD-045.E2E.5 | `POST /api/visual-search > should respect limit param` | search.e2e-spec.ts | E2E: Verifies limit query param | ⏳ |
+| PROD-045.E2E.6 | `POST /api/visual-search > should respect minSimilarity param` | search.e2e-spec.ts | E2E: Verifies similarity filter | ⏳ |
+| PROD-045.E2E.7 | `POST /api/visual-search > should return image features` | search.e2e-spec.ts | E2E: Verifies feature extraction in response | ⏳ |
+| PROD-045.E2E.8 | `GET /api/visual-search/stats > should require auth` | search.e2e-spec.ts | E2E: Verifies auth requirement | ⏳ |
+| PROD-045.E2E.9 | `GET /api/visual-search/stats > should return stats` | search.e2e-spec.ts | E2E: Verifies stats endpoint | ⏳ |
+
+### PROD-046 to PROD-047: Advanced Search Features (Future)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
 | PROD-046 | N/A | N/A | AR property discovery - Future feature | 🚧 |
 | PROD-047 | N/A | N/A | Lifestyle matching - Future feature | 🚧 |
 
@@ -2603,7 +2648,8 @@ The following requirements do not yet have test coverage:
 | ~~PROD-030~~ | ~~Virtual Staging~~ | ✅ **COMPLETE** - VirtualStagingService with room type (13 options) and style (12 options) parameters, mock AI provider integration, staging status tracking, before/after comparison, endpoints (POST /ai/staging, GET requests, DELETE staged, compare); 19 unit tests |
 | ~~PROD-031~~ | ~~Time-of-Day Photos~~ | ✅ **COMPLETE** - TimeOfDayPhotosService with time-of-day (6 options) and season (4 options) tagging, photo groups for same-angle linking, slider data API, filter by time/season, bulk tagging; 25 unit tests |
 | ~~PROD-044~~ | ~~Voice Search~~ | ✅ **COMPLETE** - VoiceSearchService with rule-based NLP parsing (cities, countries, prices, bedrooms, bathrooms, listing types, features, square meters, year built), confidence scoring, display text generation, PropertyQueryDto conversion; 2 endpoints (POST /voice-search/parse, POST /voice-search/to-query); 62 unit tests; 12 E2E tests |
-| PROD-045-047 | Advanced Search Features (Visual, AR, Lifestyle) | Future features |
+| ~~PROD-045~~ | ~~Visual Search~~ | ✅ **COMPLETE** - VisualSearchService with perceptual hashing (pHash), color histogram extraction, brightness calculation, weighted similarity scoring (60% structural, 25% color, 15% composition); Sharp for image processing; ImageHash Prisma model; 4 endpoints (POST /visual-search, POST /visual-search/index/:propertyId, POST /visual-search/index-batch, GET /visual-search/stats); 32 unit tests; 9 E2E tests |
+| PROD-046-047 | Advanced Search Features (AR, Lifestyle) | Future features |
 | ~~PROD-083~~ | ~~Mortgage Calculator~~ | ✅ **COMPLETE** - MortgageCalculatorService with principal+interest formula, amortization schedule (monthly/yearly breakdown), affordability calculation (DTI-based), scenario comparison, property-specific embedded calculator, 7 endpoints (calculate, amortization, affordability, compare, property calculate, property amortization, default scenarios); 27 unit tests |
 | ~~PROD-050~~ | ~~AI Recommendations~~ | ✅ **COMPLETE** - BrowsingHistoryService (view tracking, history retrieval), RecommendationsService (preference extraction from favorites/search agents, similarity calculation, scoring algorithm with 40% preference + 40% similarity + 20% popularity weights, explanation generation), RecommendationFeedback model, 4 endpoints (GET /recommendations, GET /recommendations/preferences, GET /recommendations/similar/:propertyId, POST /recommendations/:propertyId/feedback); 30 browsing history tests; 31 recommendation tests |
 | ~~PROD-060-068~~ | ~~Service Providers~~ | ✅ **COMPLETE** - Prisma models, ServiceProvidersModule (controller, service, DTOs), availability calendar, job matching, admin approval, rating system; 51 unit tests (33 service + 18 controller); 47 E2E tests covering full API flow |
