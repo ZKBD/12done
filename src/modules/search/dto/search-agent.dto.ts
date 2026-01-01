@@ -83,6 +83,26 @@ export class SearchCriteriaDto {
   @IsOptional()
   maxYearBuilt?: number;
 
+  // Geo filters (PROD-043.9 - Saved polygon/radius for search agents)
+  @ApiPropertyOptional({
+    description: 'Polygon coordinates for custom area search',
+    example: [{ lat: 47.5, lng: 19.0 }, { lat: 47.6, lng: 19.0 }, { lat: 47.6, lng: 19.2 }],
+  })
+  @IsOptional()
+  polygon?: Array<{ lat: number; lng: number }>;
+
+  @ApiPropertyOptional({ description: 'Center latitude for radius search' })
+  @IsOptional()
+  centerLat?: number;
+
+  @ApiPropertyOptional({ description: 'Center longitude for radius search' })
+  @IsOptional()
+  centerLng?: number;
+
+  @ApiPropertyOptional({ description: 'Search radius in kilometers' })
+  @IsOptional()
+  radiusKm?: number;
+
   // Allow any additional criteria
   [key: string]: unknown;
 }

@@ -10,6 +10,7 @@ import {
 import { PropertyStatus, UserRole, ListingType, EnergyEfficiencyRating, Prisma } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { PaginatedResponseDto } from '@/common/dto';
+import { isPointInPolygon, haversineDistance, GeoPoint } from '@/common/utils';
 import {
   CreatePropertyDto,
   UpdatePropertyDto,
@@ -94,7 +95,39 @@ export class PropertiesService {
     requesterRole?: UserRole,
   ): Promise<PaginatedResponseDto<PropertyListResponseDto>> {
     const where = this.buildWhereClause(query, requesterId, requesterRole);
+    const needsAccurateGeoFilter = this.needsAccurateGeoFiltering(query);
 
+    // If we need accurate geo filtering, fetch all matching records from DB
+    // (limited by bounding box), then filter in memory
+    if (needsAccurateGeoFilter) {
+      // Fetch all candidates (bounded by approximate geo filter in where clause)
+      const allProperties = await this.prisma.property.findMany({
+        where,
+        include: {
+          media: {
+            where: { isPrimary: true },
+            take: 1,
+          },
+        },
+        orderBy: { [query.sortBy || 'createdAt']: query.sortOrder || 'desc' },
+      });
+
+      // Apply accurate geo filtering
+      const filteredProperties = this.applyAccurateGeoFilter(allProperties, query);
+
+      // Calculate accurate total
+      const total = filteredProperties.length;
+
+      // Apply pagination
+      const skip = query.skip || 0;
+      const take = query.take || 20;
+      const paginatedProperties = filteredProperties.slice(skip, skip + take);
+
+      const data = paginatedProperties.map((p) => this.mapToListResponseDto(p));
+      return new PaginatedResponseDto(data, total, query.page || 1, query.limit || 20);
+    }
+
+    // Standard query without accurate geo filtering
     const [properties, total] = await Promise.all([
       this.prisma.property.findMany({
         where,
@@ -114,6 +147,64 @@ export class PropertiesService {
     const data = properties.map((p) => this.mapToListResponseDto(p));
 
     return new PaginatedResponseDto(data, total, query.page || 1, query.limit || 20);
+  }
+
+  /**
+   * Check if query requires accurate geo filtering (polygon or radius)
+   * PROD-043.5: Accurate point-in-polygon / radius check
+   */
+  private needsAccurateGeoFiltering(query: PropertyQueryDto): boolean {
+    // Polygon search requires accurate point-in-polygon check
+    if (query.polygon && query.polygon.length >= 3) {
+      return true;
+    }
+
+    // Radius search requires accurate distance calculation
+    if (
+      query.centerLat !== undefined &&
+      query.centerLng !== undefined &&
+      query.radiusKm !== undefined
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Apply accurate geo filtering to properties
+   * PROD-043.5: Uses ray-casting for polygon, Haversine for radius
+   */
+  private applyAccurateGeoFilter<T extends { latitude: number | null; longitude: number | null }>(
+    properties: T[],
+    query: PropertyQueryDto,
+  ): T[] {
+    let filtered = properties;
+
+    // Filter by polygon (accurate point-in-polygon)
+    if (query.polygon && query.polygon.length >= 3) {
+      const polygon: GeoPoint[] = query.polygon.map((p) => ({ lat: p.lat, lng: p.lng }));
+      filtered = filtered.filter((p) => {
+        if (p.latitude === null || p.longitude === null) return false;
+        return isPointInPolygon({ lat: p.latitude, lng: p.longitude }, polygon);
+      });
+    }
+
+    // Filter by radius (accurate Haversine distance)
+    if (
+      query.centerLat !== undefined &&
+      query.centerLng !== undefined &&
+      query.radiusKm !== undefined
+    ) {
+      const center: GeoPoint = { lat: query.centerLat, lng: query.centerLng };
+      filtered = filtered.filter((p) => {
+        if (p.latitude === null || p.longitude === null) return false;
+        const distance = haversineDistance(center, { lat: p.latitude, lng: p.longitude });
+        return distance <= query.radiusKm!;
+      });
+    }
+
+    return filtered;
   }
 
   async findById(
@@ -547,8 +638,8 @@ export class PropertiesService {
       );
     }
 
-    // Radius search (PROD-043) - Uses bounding box approximation
-    // For production, consider using PostGIS for accurate distance calculations
+    // Radius search (PROD-043) - Uses bounding box for initial DB filtering
+    // Accurate Haversine distance check is applied in applyAccurateGeoFilter()
     if (
       query.centerLat !== undefined &&
       query.centerLng !== undefined &&
@@ -566,8 +657,8 @@ export class PropertiesService {
       );
     }
 
-    // Polygon search (PROD-043.5) - Uses bounding box of polygon as approximation
-    // For production, use PostGIS ST_Contains for accurate point-in-polygon
+    // Polygon search (PROD-043.5) - Uses bounding box for initial DB filtering
+    // Accurate point-in-polygon check is applied in applyAccurateGeoFilter()
     if (query.polygon && query.polygon.length >= 3) {
       const lats = query.polygon.map((p) => p.lat);
       const lngs = query.polygon.map((p) => p.lng);

@@ -8,7 +8,7 @@ import {
 import { UserRole, Prisma, PropertyStatus, ListingType, NotificationFrequency } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { MailService } from '@/mail';
-import { generateSecureToken } from '@/common/utils';
+import { generateSecureToken, isPointInPolygon, haversineDistance, GeoPoint } from '@/common/utils';
 import {
   CreateSearchAgentDto,
   UpdateSearchAgentDto,
@@ -365,6 +365,8 @@ export class SearchAgentsService {
       accessible: boolean;
       noAgents: boolean;
       yearBuilt: number | null;
+      latitude: number | null;
+      longitude: number | null;
     },
     criteria: SearchCriteriaDto,
   ): boolean {
@@ -457,6 +459,34 @@ export class SearchAgentsService {
       return false;
     }
 
+    // PROD-043.9: Geo filters (saved polygon/radius in search agents)
+    // Polygon filter - property must be inside the saved polygon
+    if (criteria.polygon && criteria.polygon.length >= 3) {
+      if (property.latitude === null || property.longitude === null) {
+        return false; // Properties without coordinates can't match polygon criteria
+      }
+      const polygon: GeoPoint[] = criteria.polygon.map((p) => ({ lat: p.lat, lng: p.lng }));
+      if (!isPointInPolygon({ lat: property.latitude, lng: property.longitude }, polygon)) {
+        return false;
+      }
+    }
+
+    // Radius filter - property must be within radiusKm of center point
+    if (
+      criteria.centerLat !== undefined &&
+      criteria.centerLng !== undefined &&
+      criteria.radiusKm !== undefined
+    ) {
+      if (property.latitude === null || property.longitude === null) {
+        return false; // Properties without coordinates can't match radius criteria
+      }
+      const center: GeoPoint = { lat: criteria.centerLat, lng: criteria.centerLng };
+      const distance = haversineDistance(center, { lat: property.latitude, lng: property.longitude });
+      if (distance > criteria.radiusKm) {
+        return false;
+      }
+    }
+
     return true;
   }
 
@@ -530,6 +560,32 @@ export class SearchAgentsService {
       if (criteria.maxYearBuilt !== undefined) {
         where.yearBuilt.lte = criteria.maxYearBuilt;
       }
+    }
+
+    // PROD-043.9: Geo filters (bounding box for initial DB filtering)
+    // Note: Accurate filtering is done in propertyMatchesCriteria for checkAgainstNewProperty
+    if (criteria.polygon && criteria.polygon.length >= 3) {
+      const lats = criteria.polygon.map((p) => p.lat);
+      const lngs = criteria.polygon.map((p) => p.lng);
+      where.AND = [
+        ...(Array.isArray(where.AND) ? where.AND : []),
+        { latitude: { gte: Math.min(...lats), lte: Math.max(...lats) } },
+        { longitude: { gte: Math.min(...lngs), lte: Math.max(...lngs) } },
+      ];
+    }
+
+    if (
+      criteria.centerLat !== undefined &&
+      criteria.centerLng !== undefined &&
+      criteria.radiusKm !== undefined
+    ) {
+      const latDelta = criteria.radiusKm / 111;
+      const lngDelta = criteria.radiusKm / (111 * Math.cos((criteria.centerLat * Math.PI) / 180));
+      where.AND = [
+        ...(Array.isArray(where.AND) ? where.AND : []),
+        { latitude: { gte: criteria.centerLat - latDelta, lte: criteria.centerLat + latDelta } },
+        { longitude: { gte: criteria.centerLng - lngDelta, lte: criteria.centerLng + lngDelta } },
+      ];
     }
 
     return where;

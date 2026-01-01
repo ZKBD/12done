@@ -418,6 +418,45 @@ Note: E2E tests require Docker/database to run.
 | PROD-043.10 | `Geo-based Search > should NOT find property outside polygon` | properties.e2e-spec.ts | E2E test of polygon exclusion | ✅ |
 | PROD-043.11 | `Geo-based Search > should combine geo filters with other filters` | properties.e2e-spec.ts | E2E test of combined geo + property filters | ✅ |
 
+#### PROD-043.5 Accurate Point-in-Polygon (New Geo Utilities)
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-043.5.1 | `isPointInPolygon > should return true for point inside polygon` | geo.util.spec.ts | Verifies point inside square polygon detection | ✅ |
+| PROD-043.5.2 | `isPointInPolygon > should return false for point outside polygon` | geo.util.spec.ts | Verifies point above polygon rejected | ✅ |
+| PROD-043.5.3 | `isPointInPolygon > should return false for point to the left of polygon` | geo.util.spec.ts | Verifies point left of polygon rejected | ✅ |
+| PROD-043.5.4 | `isPointInPolygon > should return false for point below polygon` | geo.util.spec.ts | Verifies point below polygon rejected | ✅ |
+| PROD-043.5.5 | `isPointInPolygon > should return false for empty polygon` | geo.util.spec.ts | Verifies empty polygon handling | ✅ |
+| PROD-043.5.6 | `isPointInPolygon > should return false for polygon with less than 3 points` | geo.util.spec.ts | Verifies minimum 3 point requirement | ✅ |
+| PROD-043.5.7 | `isPointInPolygon (concave) > should return true for point in bottom section of L` | geo.util.spec.ts | Verifies concave L-shape polygon (bottom) | ✅ |
+| PROD-043.5.8 | `isPointInPolygon (concave) > should return true for point in vertical section of L` | geo.util.spec.ts | Verifies concave L-shape polygon (vertical) | ✅ |
+| PROD-043.5.9 | `isPointInPolygon (concave) > should return false for point in the "gap" of L` | geo.util.spec.ts | Verifies concave L-shape gap detection | ✅ |
+| PROD-043.5.10 | `isPointInPolygon (triangle) > should return true for point inside triangle` | geo.util.spec.ts | Verifies triangle polygon detection | ✅ |
+| PROD-043.5.11 | `isPointInPolygon (triangle) > should return false for point outside triangle` | geo.util.spec.ts | Verifies triangle exclusion | ✅ |
+| PROD-043.5.12 | `haversineDistance > should return 0 for same point` | geo.util.spec.ts | Verifies zero distance for identical points | ✅ |
+| PROD-043.5.13 | `haversineDistance > should calculate distance between Budapest and Vienna (~214 km)` | geo.util.spec.ts | Verifies real-world distance calculation | ✅ |
+| PROD-043.5.14 | `haversineDistance > should calculate distance between nearby points accurately` | geo.util.spec.ts | Verifies ~1km distance accuracy | ✅ |
+| PROD-043.5.15 | `getPolygonBoundingBox > should calculate bounding box correctly` | geo.util.spec.ts | Verifies bounding box calculation | ✅ |
+| PROD-043.5.16 | `getPolygonBoundingBox > should throw error for empty polygon` | geo.util.spec.ts | Verifies empty polygon error handling | ✅ |
+| PROD-043.5.17 | `isPointInBoundingBox > should return true for point inside box` | geo.util.spec.ts | Verifies point in bounding box | ✅ |
+| PROD-043.5.18 | `isPointInBoundingBox > should return true for point on boundary` | geo.util.spec.ts | Verifies boundary inclusion | ✅ |
+| PROD-043.5.19 | `isPointInBoundingBox > should return false for point outside box` | geo.util.spec.ts | Verifies bounding box exclusion | ✅ |
+| PROD-043.5.20 | `filterByPolygon > should filter properties by polygon` | geo.util.spec.ts | Verifies property filtering by polygon | ✅ |
+| PROD-043.5.21 | `filterByPolygon > should return all items if polygon has less than 3 points` | geo.util.spec.ts | Verifies graceful polygon validation | ✅ |
+| PROD-043.5.22 | `filterByRadius > should filter properties by radius` | geo.util.spec.ts | Verifies property filtering by radius | ✅ |
+| PROD-043.5.23 | `filterByRadius > should exclude properties without coordinates` | geo.util.spec.ts | Verifies null coordinate handling | ✅ |
+
+#### PROD-043.9 Save Drawn Areas to Search Agents
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-043.9.1 | SearchCriteriaDto supports polygon field | search-agent.dto.ts | DTO includes polygon array field for saved areas | ✅ |
+| PROD-043.9.2 | SearchCriteriaDto supports centerLat/centerLng/radiusKm | search-agent.dto.ts | DTO includes radius search fields | ✅ |
+| PROD-043.9.3 | propertyMatchesCriteria checks polygon criteria | search-agents.service.ts:462-472 | Matches properties using accurate point-in-polygon | ✅ |
+| PROD-043.9.4 | propertyMatchesCriteria checks radius criteria | search-agents.service.ts:474-488 | Matches properties using Haversine distance | ✅ |
+| PROD-043.9.5 | buildPropertyWhereFromCriteria includes polygon bounding box | search-agents.service.ts:567-575 | Adds bounding box for initial DB filtering | ✅ |
+| PROD-043.9.6 | buildPropertyWhereFromCriteria includes radius bounding box | search-agents.service.ts:577-589 | Adds radius bounding box for initial DB filtering | ✅ |
+
 ### PROD-044: Voice Search
 
 | Req ID | Test Case | Test File | Purpose | Status |
@@ -2587,6 +2626,7 @@ All PRs to `main` must pass all 4 CI checks before merging.
 
 | Date | Unit Tests | E2E Tests | Browser Tests | CI Status | Notes |
 |------|------------|-----------|---------------|-----------|-------|
+| 2026-01-02 | ✅ 2257 passed | - | - | ⏳ Pending | PROD-043.5 accurate point-in-polygon (23 geo utility tests), PROD-043.9 save polygon to search agents |
 | 2025-12-31 | ✅ 1964 passed | ✅ 529 passed | ✅ 5 passed | ✅ Passing | CI fixes: Prisma migration for virtual staging, revenue-share spec fixes, ESLint globals |
 | 2025-12-30 | ✅ 1157 passed | ✅ 279 passed | ✅ 5 passed | ✅ Passing | Implemented PROD-083 Mortgage Calculator (27 unit tests) |
 | 2025-12-30 | ✅ 1130 passed | ✅ 279 passed | ✅ 5 passed | ⏳ Pending | Implemented PROD-030-031 Virtual Staging & Time-of-Day Photos (44 unit tests) |
@@ -2719,6 +2759,7 @@ The following requirements do not yet have test coverage:
 | 2025-12-31 | Claude | Enhanced Search Agent Notifications (PROD-041.7-041.29): NotificationFrequency enum (INSTANT, DAILY_DIGEST, WEEKLY_DIGEST), SearchAgentMatch model for digest accumulation, SearchAgentDigestService with @Cron jobs (daily 9 AM, weekly Monday 9 AM, cleanup 2 AM), unsubscribeToken generation, one-click unsubscribe endpoint at GET /search-agents/unsubscribe, search-digest.hbs email template; 23 new unit tests (12 search-agents + 11 digest); Total tests TBD |
 | 2026-01-01 | Claude | Fixed Voice Search bugs (PROD-044.31-044.32): Country extraction now uses word boundary regex matching to prevent false positives (e.g., "USA" incorrectly detected); City extraction filters out country names and stop words to prevent capturing "Usa Under" or "Spain With" as city names; Added cityExcludeWords list with price keywords and country names |
 | 2026-01-01 | Claude | Visual Search (PROD-045) deployed and verified: All 32 unit tests passing (pHash generation, color extraction, similarity calculations, file validation, property search); 9 E2E tests; 3 production verification tests (11 images indexed at 100%); Visual similarity search returns ranked results with structural/color/composition breakdown; ImageHash Prisma model with migration applied |
+| 2026-01-02 | Claude | PROD-043.5 Accurate Polygon Search: Created geo.util.ts with ray-casting point-in-polygon algorithm and Haversine distance calculation; 23 unit tests for geo utilities; Updated PropertiesService.findAll to apply accurate geo filtering after bounding box query; PROD-043.9 Save Polygon to Search Agents: Added polygon/radius fields to SearchCriteriaDto; Updated propertyMatchesCriteria to support geo criteria |
 
 ---
 
