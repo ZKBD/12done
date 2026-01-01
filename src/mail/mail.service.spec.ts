@@ -1,40 +1,36 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import * as sgMail from '@sendgrid/mail';
 import * as fs from 'fs';
 import { MailService } from './mail.service';
 
-// Mock nodemailer
-jest.mock('nodemailer');
+// Mock SendGrid
+jest.mock('@sendgrid/mail', () => ({
+  setApiKey: jest.fn(),
+  send: jest.fn().mockResolvedValue([{ statusCode: 202 }]),
+}));
 
 // Mock fs
 jest.mock('fs');
 
 describe('MailService', () => {
   let service: MailService;
-  let mockTransporter: {
-    sendMail: jest.Mock;
-  };
 
   const mockConfig: Record<string, string | number | null> = {
     'mail.from': 'test@12done.com',
     'mail.host': 'smtp.test.com',
     'mail.port': 587,
-    'mail.user': 'testuser',
-    'mail.pass': 'testpass',
+    'mail.user': 'apikey',
+    'mail.pass': 'SG.test-api-key', // SendGrid API key format
     'app.frontendUrl': 'https://12done.com',
   };
 
   beforeEach(async () => {
-    // Reset mocks
+    // Reset mocks completely
     jest.clearAllMocks();
 
-    // Setup mock transporter
-    mockTransporter = {
-      sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' }),
-    };
-
-    (nodemailer.createTransport as jest.Mock).mockReturnValue(mockTransporter);
+    // Reset SendGrid mock to default success behavior
+    (sgMail.send as jest.Mock).mockResolvedValue([{ statusCode: 202 }]);
 
     // Setup mock template
     (fs.readFileSync as jest.Mock).mockReturnValue(
@@ -61,31 +57,21 @@ describe('MailService', () => {
   });
 
   describe('constructor', () => {
-    it('should create transporter with auth when credentials provided', () => {
-      expect(nodemailer.createTransport).toHaveBeenCalledWith({
-        host: 'smtp.test.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: 'testuser',
-          pass: 'testpass',
-        },
-      });
+    it('should set SendGrid API key when provided', () => {
+      expect(sgMail.setApiKey).toHaveBeenCalledWith('SG.test-api-key');
     });
 
-    it('should create transporter without auth when no credentials', async () => {
+    it('should not set API key when not starting with SG.', async () => {
       jest.clearAllMocks();
 
-      const configWithoutAuth: Record<string, string | number | null> = {
+      const configWithoutSendGrid: Record<string, string | number | null> = {
         'mail.from': 'test@12done.com',
         'mail.host': 'smtp.test.com',
         'mail.port': 587,
-        'mail.user': null,
-        'mail.pass': null,
+        'mail.user': 'testuser',
+        'mail.pass': 'regular-password', // Not a SendGrid key
         'app.frontendUrl': 'https://12done.com',
       };
-
-      (nodemailer.createTransport as jest.Mock).mockReturnValue(mockTransporter);
 
       await Test.createTestingModule({
         providers: [
@@ -93,24 +79,17 @@ describe('MailService', () => {
           {
             provide: ConfigService,
             useValue: {
-              get: jest.fn((key: string) => configWithoutAuth[key]),
+              get: jest.fn((key: string) => configWithoutSendGrid[key]),
             },
           },
         ],
       }).compile();
 
-      expect(nodemailer.createTransport).toHaveBeenCalledWith({
-        host: 'smtp.test.com',
-        port: 587,
-        secure: false,
-        auth: undefined,
-      });
+      expect(sgMail.setApiKey).not.toHaveBeenCalled();
     });
 
     it('should use default values when config not provided', async () => {
       jest.clearAllMocks();
-
-      (nodemailer.createTransport as jest.Mock).mockReturnValue(mockTransporter);
 
       const testModule = await Test.createTestingModule({
         providers: [
@@ -138,8 +117,11 @@ describe('MailService', () => {
         context: { firstName: 'John', verificationUrl: 'https://example.com' },
       });
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith({
-        from: '"12done.com" <test@12done.com>',
+      expect(sgMail.send).toHaveBeenCalledWith({
+        from: {
+          email: 'test@12done.com',
+          name: '12done.com',
+        },
         to: 'user@example.com',
         subject: 'Test Subject',
         html: expect.any(String),
@@ -158,7 +140,7 @@ describe('MailService', () => {
         context: {},
       });
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+      expect(sgMail.send).toHaveBeenCalledWith(
         expect.objectContaining({
           html: expect.stringContaining('https://12done.com'),
         }),
@@ -166,7 +148,7 @@ describe('MailService', () => {
     });
 
     it('should throw error when sendMail fails', async () => {
-      mockTransporter.sendMail.mockRejectedValue(new Error('SMTP error'));
+      (sgMail.send as jest.Mock).mockRejectedValue(new Error('SMTP error'));
 
       await expect(
         service.sendMail({
@@ -190,7 +172,40 @@ describe('MailService', () => {
         context: { content: 'Test content' },
       });
 
-      expect(mockTransporter.sendMail).toHaveBeenCalled();
+      expect(sgMail.send).toHaveBeenCalled();
+    });
+
+    it('should skip sending when SendGrid is not configured', async () => {
+      jest.clearAllMocks();
+
+      const configWithoutSendGrid: Record<string, string | number | null> = {
+        'mail.from': 'test@12done.com',
+        'mail.pass': null,
+        'app.frontendUrl': 'https://12done.com',
+      };
+
+      const module = await Test.createTestingModule({
+        providers: [
+          MailService,
+          {
+            provide: ConfigService,
+            useValue: {
+              get: jest.fn((key: string) => configWithoutSendGrid[key]),
+            },
+          },
+        ],
+      }).compile();
+
+      const unconfiguredService = module.get<MailService>(MailService);
+
+      await unconfiguredService.sendMail({
+        to: 'user@example.com',
+        subject: 'Test',
+        template: 'test',
+        context: {},
+      });
+
+      expect(sgMail.send).not.toHaveBeenCalled();
     });
   });
 
@@ -202,8 +217,11 @@ describe('MailService', () => {
         'verification-token-123',
       );
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith({
-        from: '"12done.com" <test@12done.com>',
+      expect(sgMail.send).toHaveBeenCalledWith({
+        from: {
+          email: 'test@12done.com',
+          name: '12done.com',
+        },
         to: 'user@example.com',
         subject: 'Verify your email - 12done.com',
         html: expect.any(String),
@@ -220,7 +238,7 @@ describe('MailService', () => {
         'my-token',
       );
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+      expect(sgMail.send).toHaveBeenCalledWith(
         expect.objectContaining({
           html: expect.stringContaining('https://12done.com/auth/verify-email?token=my-token'),
         }),
@@ -236,7 +254,7 @@ describe('MailService', () => {
         'token',
       );
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+      expect(sgMail.send).toHaveBeenCalledWith(
         expect.objectContaining({
           html: expect.stringContaining('Jane'),
         }),
@@ -248,8 +266,11 @@ describe('MailService', () => {
     it('should send welcome email with correct parameters', async () => {
       await service.sendWelcomeEmail('user@example.com', 'John');
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith({
-        from: '"12done.com" <test@12done.com>',
+      expect(sgMail.send).toHaveBeenCalledWith({
+        from: {
+          email: 'test@12done.com',
+          name: '12done.com',
+        },
         to: 'user@example.com',
         subject: 'Welcome to 12done.com!',
         html: expect.any(String),
@@ -261,7 +282,7 @@ describe('MailService', () => {
 
       await service.sendWelcomeEmail('user@example.com', 'John');
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+      expect(sgMail.send).toHaveBeenCalledWith(
         expect.objectContaining({
           html: expect.stringContaining('https://12done.com/auth/login'),
         }),
@@ -277,8 +298,11 @@ describe('MailService', () => {
         'reset-token-123',
       );
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith({
-        from: '"12done.com" <test@12done.com>',
+      expect(sgMail.send).toHaveBeenCalledWith({
+        from: {
+          email: 'test@12done.com',
+          name: '12done.com',
+        },
         to: 'user@example.com',
         subject: 'Reset your password - 12done.com',
         html: expect.any(String),
@@ -295,7 +319,7 @@ describe('MailService', () => {
         'reset-token-abc',
       );
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+      expect(sgMail.send).toHaveBeenCalledWith(
         expect.objectContaining({
           html: expect.stringContaining('https://12done.com/auth/reset-password?token=reset-token-abc'),
         }),
@@ -311,8 +335,11 @@ describe('MailService', () => {
         'invitation-token-123',
       );
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith({
-        from: '"12done.com" <test@12done.com>',
+      expect(sgMail.send).toHaveBeenCalledWith({
+        from: {
+          email: 'test@12done.com',
+          name: '12done.com',
+        },
         to: 'newuser@example.com',
         subject: 'John Doe invited you to 12done.com',
         html: expect.any(String),
@@ -329,7 +356,7 @@ describe('MailService', () => {
         'inv-token-xyz',
       );
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+      expect(sgMail.send).toHaveBeenCalledWith(
         expect.objectContaining({
           html: expect.stringContaining('https://12done.com/auth/register?invitation=inv-token-xyz'),
         }),
@@ -345,7 +372,7 @@ describe('MailService', () => {
         'token',
       );
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+      expect(sgMail.send).toHaveBeenCalledWith(
         expect.objectContaining({
           subject: 'Alice Smith invited you to 12done.com',
           html: expect.stringContaining('Alice Smith'),
@@ -364,8 +391,11 @@ describe('MailService', () => {
         '/search?agentId=123',
       );
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith({
-        from: '"12done.com" <test@12done.com>',
+      expect(sgMail.send).toHaveBeenCalledWith({
+        from: {
+          email: 'test@12done.com',
+          name: '12done.com',
+        },
         to: 'user@example.com',
         subject: 'New matches for "Budapest Apartments" - 12done.com',
         html: expect.any(String),
@@ -386,7 +416,7 @@ describe('MailService', () => {
         '/search?id=456',
       );
 
-      const callArgs = mockTransporter.sendMail.mock.calls[0][0];
+      const callArgs = (sgMail.send as jest.Mock).mock.calls[0][0];
       expect(callArgs.html).toContain('Jane');
       expect(callArgs.html).toContain('My Search');
       expect(callArgs.html).toContain('10');
@@ -402,7 +432,7 @@ describe('MailService', () => {
         '/search',
       );
 
-      expect(mockTransporter.sendMail).toHaveBeenCalled();
+      expect(sgMail.send).toHaveBeenCalled();
     });
   });
 
@@ -439,12 +469,12 @@ describe('MailService', () => {
         context: { name: 'Bob', code: '12345' },
       });
 
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+      expect(sgMail.send).toHaveBeenCalledWith(
         expect.objectContaining({
           html: expect.stringContaining('Hello Bob'),
         }),
       );
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+      expect(sgMail.send).toHaveBeenCalledWith(
         expect.objectContaining({
           html: expect.stringContaining('12345'),
         }),
@@ -455,7 +485,7 @@ describe('MailService', () => {
   describe('error handling', () => {
     it('should log error and rethrow when email fails', async () => {
       const error = new Error('Connection refused');
-      mockTransporter.sendMail.mockRejectedValue(error);
+      (sgMail.send as jest.Mock).mockRejectedValue(error);
 
       await expect(
         service.sendVerificationEmail('user@example.com', 'John', 'token'),
