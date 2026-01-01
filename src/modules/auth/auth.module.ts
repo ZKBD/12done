@@ -18,7 +18,7 @@ import { JwtAuthGuard, BiometricRequiredGuard } from './guards';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('jwt.secret'),
         signOptions: {
-          expiresIn: configService.get<string>('jwt.expiresIn') || '15m',
+          expiresIn: (configService.get<string>('jwt.expiresIn') || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}`,
         },
       }),
     }),

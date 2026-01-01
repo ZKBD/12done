@@ -427,7 +427,7 @@ export class AuthService {
     const payload = { sub: userId, email, role, status };
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<string>('jwt.expiresIn') || '15m',
+      expiresIn: (this.configService.get<string>('jwt.expiresIn') || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}`,
     });
 
     const refreshToken = generateSecureToken();

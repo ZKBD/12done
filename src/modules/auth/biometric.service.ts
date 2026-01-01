@@ -533,12 +533,12 @@ export class BiometricService {
     const payload = { sub: user.id, email: user.email, role: user.role };
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<string>('jwt.expiresIn') || '15m',
+      expiresIn: (this.configService.get<string>('jwt.expiresIn') || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}`,
     });
 
     const refreshToken = this.jwtService.sign(
       { sub: user.id, type: 'refresh' },
-      { expiresIn: this.configService.get<string>('jwt.refreshExpiresIn') || '7d' },
+      { expiresIn: (this.configService.get<string>('jwt.refreshExpiresIn') || '7d') as `${number}${'s' | 'm' | 'h' | 'd'}` },
     );
 
     // Store refresh token

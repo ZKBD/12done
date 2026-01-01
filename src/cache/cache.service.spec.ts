@@ -12,7 +12,7 @@ describe('CacheService', () => {
       get: jest.fn(),
       set: jest.fn(),
       del: jest.fn(),
-      reset: jest.fn(),
+      clear: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -116,11 +116,11 @@ describe('CacheService', () => {
 
   describe('reset', () => {
     it('should reset entire cache', async () => {
-      (cacheManager.reset as jest.Mock).mockResolvedValue(undefined);
+      (cacheManager.clear as jest.Mock).mockResolvedValue(undefined);
 
       await service.reset();
 
-      expect(cacheManager.reset).toHaveBeenCalled();
+      expect(cacheManager.clear).toHaveBeenCalled();
     });
   });
 

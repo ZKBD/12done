@@ -511,7 +511,7 @@ export class MfaService {
     const payload = { sub: user.id, email: user.email, role: user.role, status: user.status };
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<string>('jwt.expiresIn') || '15m',
+      expiresIn: (this.configService.get<string>('jwt.expiresIn') || '15m') as `${number}${'s' | 'm' | 'h' | 'd'}`,
     });
 
     const refreshToken = generateSecureToken();

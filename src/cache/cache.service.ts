@@ -7,7 +7,8 @@ export class CacheService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
   async get<T>(key: string): Promise<T | undefined> {
-    return this.cacheManager.get<T>(key);
+    const result = await this.cacheManager.get<T>(key);
+    return result ?? undefined;
   }
 
   async set<T>(key: string, value: T, ttlSeconds?: number): Promise<void> {
@@ -19,7 +20,7 @@ export class CacheService {
   }
 
   async reset(): Promise<void> {
-    await this.cacheManager.reset();
+    await this.cacheManager.clear();
   }
 
   generateKey(...parts: (string | number)[]): string {
