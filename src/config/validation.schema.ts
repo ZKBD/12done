@@ -25,6 +25,6 @@ export const validationSchema = Joi.object({
   FROM_EMAIL: Joi.string().email().default('noreply@12done.com'),
 
   // Stripe
-  STRIPE_SECRET_KEY: Joi.string().optional(),
-  STRIPE_WEBHOOK_SECRET: Joi.string().optional(),
+  STRIPE_SECRET_KEY: Joi.string().allow('').optional(),
+  STRIPE_WEBHOOK_SECRET: Joi.string().allow('').optional(),
 });
