@@ -384,6 +384,9 @@ model User {
   // Notifications (USER-020+)
   notifications Notification[]
 
+  // Push Notification Tokens (PROD-041.4)
+  pushTokens PushToken[]
+
   // Auth Tokens
   emailVerificationTokens EmailVerificationToken[]
   passwordResetTokens     PasswordResetToken[]
@@ -1216,6 +1219,34 @@ model Notification {
   @@index([isRead])
   @@index([type])
   @@index([createdAt])
+}
+
+// Push Notification Tokens (PROD-041.4)
+enum PushPlatform {
+  IOS     // Apple Push Notification Service (APNs)
+  ANDROID // Firebase Cloud Messaging (FCM)
+  WEB     // Web Push (FCM or other)
+}
+
+model PushToken {
+  id        String       @id @default(uuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  token     String       // Device push token
+  platform  PushPlatform // Platform type
+  deviceId  String?      // Optional device identifier for management
+  deviceName String?     // User-friendly device name (e.g., "iPhone 15 Pro")
+
+  isActive  Boolean      @default(true)
+  lastUsedAt DateTime?   // Track when last used for cleanup
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([userId, token])  // Prevent duplicate tokens per user
+  @@index([userId])
+  @@index([token])
+  @@index([isActive])
 }
 
 // ============================================

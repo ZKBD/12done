@@ -8,6 +8,7 @@ import {
 import { UserRole, Prisma, PropertyStatus, ListingType, NotificationFrequency } from '@prisma/client';
 import { PrismaService } from '@/database';
 import { MailService } from '@/mail';
+import { PushNotificationService } from '@/modules/notifications';
 import { generateSecureToken, isPointInPolygon, haversineDistance, GeoPoint } from '@/common/utils';
 import {
   CreateSearchAgentDto,
@@ -24,6 +25,7 @@ export class SearchAgentsService {
   constructor(
     private prisma: PrismaService,
     private mailService: MailService,
+    private pushNotificationService: PushNotificationService,
   ) {}
 
   async create(
@@ -226,6 +228,9 @@ export class SearchAgentsService {
         // Create in-app notification (always immediate, regardless of frequency)
         if (agent.inAppNotifications) {
           await this.createInAppNotification(agent, property);
+
+          // PROD-041.4: Send push notification alongside in-app notification
+          await this.sendPushNotification(agent, property);
         }
       }
     }
@@ -300,6 +305,28 @@ export class SearchAgentsService {
       });
     } catch (error) {
       this.logger.error(`Failed to create in-app notification for user ${agent.userId}:`, error);
+    }
+  }
+
+  /**
+   * Send push notification for a matched property (PROD-041.4)
+   */
+  private async sendPushNotification(
+    agent: { id: string; userId: string; name: string },
+    property: { id: string },
+  ): Promise<void> {
+    try {
+      await this.pushNotificationService.sendToUser(agent.userId, {
+        title: `New match for "${agent.name}"`,
+        body: 'A new property matching your saved search has been listed.',
+        data: {
+          type: 'SEARCH_AGENT_MATCH',
+          searchAgentId: agent.id,
+          propertyId: property.id,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to send push notification for user ${agent.userId}:`, error);
     }
   }
 

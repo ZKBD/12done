@@ -8,11 +8,13 @@ import { UserRole, PropertyStatus, ListingType, Prisma, NotificationFrequency } 
 import { SearchAgentsService } from './search-agents.service';
 import { PrismaService } from '@/database';
 import { MailService } from '@/mail';
+import { PushNotificationService } from '@/modules/notifications';
 
 describe('SearchAgentsService', () => {
   let service: SearchAgentsService;
   let prismaService: jest.Mocked<PrismaService>;
   let mailService: jest.Mocked<MailService>;
+  let pushNotificationService: jest.Mocked<PushNotificationService>;
 
   const mockSearchAgent = {
     id: 'agent-123',
@@ -84,12 +86,19 @@ describe('SearchAgentsService', () => {
             sendSearchAgentMatchEmail: jest.fn(),
           },
         },
+        {
+          provide: PushNotificationService,
+          useValue: {
+            sendToUser: jest.fn().mockResolvedValue({ sent: 1, failed: 0 }),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<SearchAgentsService>(SearchAgentsService);
     prismaService = module.get(PrismaService);
     mailService = module.get(MailService);
+    pushNotificationService = module.get(PushNotificationService);
   });
 
   it('should be defined', () => {

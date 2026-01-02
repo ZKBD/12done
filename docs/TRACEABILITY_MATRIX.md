@@ -1,8 +1,8 @@
 # Requirements Traceability Matrix
 
 **Project:** 12done.com
-**Last Updated:** 2025-12-31
-**Version:** 2.2
+**Last Updated:** 2026-01-02
+**Version:** 2.3
 
 This document traces requirements from the SRS to their implementing test cases and results. It must be updated whenever:
 - New requirements are added to the SRS
@@ -391,6 +391,29 @@ Note: E2E tests require Docker/database to run.
 | PROD-041.27 | `sendDigests > should format property prices correctly` | search-agent-digest.service.spec.ts | Verifies price formatting | ✅ |
 | PROD-041.28 | `cleanupOldMatches > should delete matches notified more than 30 days ago` | search-agent-digest.service.spec.ts | Verifies old match cleanup | ✅ |
 | PROD-041.29 | `cleanupOldMatches > should not delete unnotified matches` | search-agent-digest.service.spec.ts | Verifies pending match protection | ✅ |
+
+#### PROD-041.4: Push Notifications
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-041.4.1 | `registerToken > should register a new push token` | push-notification.service.spec.ts | Verifies device push token registration | ✅ |
+| PROD-041.4.2 | `registerToken > should update existing token if already registered` | push-notification.service.spec.ts | Verifies token upsert behavior | ✅ |
+| PROD-041.4.3 | `registerToken > should handle Android platform` | push-notification.service.spec.ts | Verifies Android FCM token support | ✅ |
+| PROD-041.4.4 | `registerToken > should handle Web platform` | push-notification.service.spec.ts | Verifies Web push token support | ✅ |
+| PROD-041.4.5 | `getTokensForUser > should return all active tokens for a user` | push-notification.service.spec.ts | Verifies token listing for user | ✅ |
+| PROD-041.4.6 | `getTokensForUser > should return empty array if no tokens` | push-notification.service.spec.ts | Verifies empty token handling | ✅ |
+| PROD-041.4.7 | `unregisterToken > should deactivate token by ID` | push-notification.service.spec.ts | Verifies token deactivation | ✅ |
+| PROD-041.4.8 | `unregisterToken > should throw NotFoundException if token not found` | push-notification.service.spec.ts | Verifies missing token handling | ✅ |
+| PROD-041.4.9 | `unregisterToken > should throw NotFoundException if token belongs to different user` | push-notification.service.spec.ts | Verifies token ownership check | ✅ |
+| PROD-041.4.10 | `unregisterTokenByValue > should deactivate token by value` | push-notification.service.spec.ts | Verifies logout token cleanup | ✅ |
+| PROD-041.4.11 | `sendToUser > should return 0 sent if no active tokens` | push-notification.service.spec.ts | Verifies no-token handling | ✅ |
+| PROD-041.4.12 | `sendToUser > should send to all active tokens in mock mode` | push-notification.service.spec.ts | Verifies multi-device notification | ✅ |
+| PROD-041.4.13 | `sendToUser > should update lastUsedAt on successful send` | push-notification.service.spec.ts | Verifies timestamp tracking | ✅ |
+| PROD-041.4.14 | `sendToUser > should include data payload in notification` | push-notification.service.spec.ts | Verifies data payload support | ✅ |
+| PROD-041.4.15 | `sendToUsers > should send to multiple users` | push-notification.service.spec.ts | Verifies batch notification | ✅ |
+| PROD-041.4.16 | `sendToUsers > should aggregate results from multiple users` | push-notification.service.spec.ts | Verifies result aggregation | ✅ |
+| PROD-041.4.17 | `cleanupInactiveTokens > should delete old inactive tokens` | push-notification.service.spec.ts | Verifies token cleanup | ✅ |
+| PROD-041.4.18 | `cleanupInactiveTokens > should use default 90 days if not specified` | push-notification.service.spec.ts | Verifies default cleanup period | ✅ |
 
 ### PROD-042: Advanced Filters
 
@@ -2760,6 +2783,7 @@ The following requirements do not yet have test coverage:
 | 2026-01-01 | Claude | Fixed Voice Search bugs (PROD-044.31-044.32): Country extraction now uses word boundary regex matching to prevent false positives (e.g., "USA" incorrectly detected); City extraction filters out country names and stop words to prevent capturing "Usa Under" or "Spain With" as city names; Added cityExcludeWords list with price keywords and country names |
 | 2026-01-01 | Claude | Visual Search (PROD-045) deployed and verified: All 32 unit tests passing (pHash generation, color extraction, similarity calculations, file validation, property search); 9 E2E tests; 3 production verification tests (11 images indexed at 100%); Visual similarity search returns ranked results with structural/color/composition breakdown; ImageHash Prisma model with migration applied |
 | 2026-01-02 | Claude | PROD-043.5 Accurate Polygon Search: Created geo.util.ts with ray-casting point-in-polygon algorithm and Haversine distance calculation; 23 unit tests for geo utilities; Updated PropertiesService.findAll to apply accurate geo filtering after bounding box query; PROD-043.9 Save Polygon to Search Agents: Added polygon/radius fields to SearchCriteriaDto; Updated propertyMatchesCriteria to support geo criteria |
+| 2026-01-02 | Claude | PROD-041.4 Push Notifications: Created PushToken Prisma model with PushPlatform enum (IOS, ANDROID, WEB), PushNotificationService with FCM integration (mock mode when no FCM_SERVER_KEY), push-notification.controller with 4 endpoints (register, devices, unregister by ID, unregister by value), integrated with SearchAgentsService.checkAgainstNewProperty to send push when property matches; 18 unit tests; Total tests ~2280 |
 
 ---
 

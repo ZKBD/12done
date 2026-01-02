@@ -9,9 +9,10 @@ import { RecommendationsService } from './recommendations.service';
 import { VoiceSearchService } from './voice-search.service';
 import { VisualSearchService } from './visual-search.service';
 import { MailModule } from '@/mail';
+import { NotificationsModule } from '@/modules/notifications';
 
 @Module({
-  imports: [MailModule],
+  imports: [MailModule, NotificationsModule],
   controllers: [SearchController, RecommendationsController],
   providers: [
     SearchAgentsService,
