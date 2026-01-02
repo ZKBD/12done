@@ -14,7 +14,7 @@ describe('SearchAgentsService', () => {
   let service: SearchAgentsService;
   let prismaService: jest.Mocked<PrismaService>;
   let mailService: jest.Mocked<MailService>;
-  let pushNotificationService: jest.Mocked<PushNotificationService>;
+  let _pushNotificationService: jest.Mocked<PushNotificationService>;
 
   const mockSearchAgent = {
     id: 'agent-123',
@@ -98,7 +98,7 @@ describe('SearchAgentsService', () => {
     service = module.get<SearchAgentsService>(SearchAgentsService);
     prismaService = module.get(PrismaService);
     mailService = module.get(MailService);
-    pushNotificationService = module.get(PushNotificationService);
+    _pushNotificationService = module.get(PushNotificationService);
   });
 
   it('should be defined', () => {

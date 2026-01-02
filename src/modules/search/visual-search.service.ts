@@ -269,7 +269,7 @@ export class VisualSearchService {
    */
   async extractDominantColors(imageBuffer: Buffer): Promise<string[]> {
     // Resize for speed and get raw RGB data
-    const { data, info } = await sharp(imageBuffer)
+    const { data, info: _info } = await sharp(imageBuffer)
       .resize(100, 100, { fit: 'fill' })
       .removeAlpha()
       .raw()

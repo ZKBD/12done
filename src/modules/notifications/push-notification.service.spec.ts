@@ -8,7 +8,7 @@ import { PrismaService } from '@/database';
 describe('PushNotificationService', () => {
   let service: PushNotificationService;
   let prismaService: jest.Mocked<PrismaService>;
-  let configService: jest.Mocked<ConfigService>;
+  let _configService: jest.Mocked<ConfigService>;
 
   const mockPushToken = {
     id: 'token-123',
@@ -58,7 +58,7 @@ describe('PushNotificationService', () => {
 
     service = module.get<PushNotificationService>(PushNotificationService);
     prismaService = module.get(PrismaService);
-    configService = module.get(ConfigService);
+    _configService = module.get(ConfigService);
   });
 
   it('should be defined', () => {

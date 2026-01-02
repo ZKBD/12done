@@ -29,6 +29,8 @@ export default [
         // Node.js 18+ globals
         fetch: 'readonly',
         URLSearchParams: 'readonly',
+        // Express types for Multer
+        Express: 'readonly',
       },
     },
     plugins: {
