@@ -72,7 +72,7 @@ export default function NotificationsPage() {
   const deleteNotification = useDeleteNotification();
   const deleteAll = useDeleteAllNotifications();
 
-  const notifications = data?.pages.flatMap((page) => page.data) || [];
+  const notifications = data?.pages.flatMap((page) => page.data).filter((n): n is Notification => n != null && n.type != null) || [];
   const unreadCount = unreadData?.count || 0;
 
   const handleMarkAsRead = (id: string) => {
