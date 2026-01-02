@@ -268,7 +268,7 @@ export class LeasesController {
     @CurrentUser() user: CurrentUserData,
     @Body() dto: { reason?: string },
   ): Promise<LeaseResponseDto> {
-    return this.leasesService.terminate(id, user.id, dto.reason);
+    return this.leasesService.terminate(id, user.id, dto?.reason);
   }
 
   // ============================================

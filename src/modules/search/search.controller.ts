@@ -338,6 +338,7 @@ export class SearchController {
     }),
   )
   @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Find visually similar properties (PROD-045)',
