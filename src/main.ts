@@ -38,7 +38,7 @@ async function bootstrap() {
     }),
   );
 
-  // CORS configuration - allow localhost for development
+  // CORS configuration - allow localhost for development and production origins
   app.enableCors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
@@ -47,9 +47,13 @@ async function bootstrap() {
       if (origin.startsWith('http://localhost:')) {
         return callback(null, true);
       }
-      // Also check FRONTEND_URL for production
-      const frontendUrl = process.env.FRONTEND_URL;
-      if (frontendUrl && origin === frontendUrl) {
+      // Allow production VPS origins (any port on the VPS IP)
+      if (origin.startsWith('http://172.104.245.236:')) {
+        return callback(null, true);
+      }
+      // Also check CORS_ORIGINS env var for additional allowed origins
+      const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [];
+      if (corsOrigins.includes(origin)) {
         return callback(null, true);
       }
       return callback(new Error('Not allowed by CORS'));
