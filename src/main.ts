@@ -51,6 +51,10 @@ async function bootstrap() {
       if (origin.startsWith('http://172.104.245.236:')) {
         return callback(null, true);
       }
+      // Allow production domain
+      if (origin === 'https://12done.com' || origin === 'https://www.12done.com') {
+        return callback(null, true);
+      }
       // Also check CORS_ORIGINS env var for additional allowed origins
       const corsOrigins = process.env.CORS_ORIGINS?.split(',') || [];
       if (corsOrigins.includes(origin)) {
