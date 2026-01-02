@@ -102,17 +102,20 @@ export function PropertyCard({
           />
         </Button>
 
-        {/* Listing Type Badge */}
-        {primaryListingType && (
-          <div className="absolute top-3 left-3 z-10">
-            <Badge
-              className={cn(
-                'shadow-sm border-0',
-                listingTypeColors[primaryListingType]
-              )}
-            >
-              {listingTypeLabels[primaryListingType]}
-            </Badge>
+        {/* Listing Type Badges */}
+        {property.listingTypes.length > 0 && (
+          <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-1">
+            {property.listingTypes.map((type) => (
+              <Badge
+                key={type}
+                className={cn(
+                  'shadow-sm border-0',
+                  listingTypeColors[type]
+                )}
+              >
+                {listingTypeLabels[type]}
+              </Badge>
+            ))}
           </div>
         )}
       </div>
