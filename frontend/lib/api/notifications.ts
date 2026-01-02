@@ -30,7 +30,8 @@ export const notificationsApi = {
   },
 
   getUnreadCount: async (): Promise<{ count: number }> => {
-    return apiClient.get<{ count: number }>('/notifications/unread-count');
+    const stats = await apiClient.get<NotificationStats>('/notifications/stats');
+    return { count: stats.unread };
   },
 
   getStats: async (): Promise<NotificationStats> => {
@@ -38,11 +39,11 @@ export const notificationsApi = {
   },
 
   markAsRead: async (id: string): Promise<Notification> => {
-    return apiClient.patch<Notification>(`/notifications/${id}/read`);
+    return apiClient.post<Notification>(`/notifications/${id}/read`);
   },
 
   markAllAsRead: async (): Promise<{ count: number }> => {
-    return apiClient.patch<{ count: number }>('/notifications/read-all');
+    return apiClient.post<{ count: number }>('/notifications/read-all');
   },
 
   delete: async (id: string): Promise<void> => {
