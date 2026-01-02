@@ -18,6 +18,14 @@ CMD ["npm", "run", "dev"]
 # Production build stage - requires network access for Google Fonts
 FROM builder AS production-build
 
+# Build args for Next.js public env vars (baked in at build time)
+ARG NEXT_PUBLIC_API_URL=https://12done.com/api
+ARG NEXT_PUBLIC_APP_URL=https://12done.com
+
+# Set them as ENV for the build process
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+
 RUN npm run build
 
 # Production stage
