@@ -415,6 +415,26 @@ Note: E2E tests require Docker/database to run.
 | PROD-041.4.17 | `cleanupInactiveTokens > should delete old inactive tokens` | push-notification.service.spec.ts | Verifies token cleanup | ✅ |
 | PROD-041.4.18 | `cleanupInactiveTokens > should use default 90 days if not specified` | push-notification.service.spec.ts | Verifies default cleanup period | ✅ |
 
+#### PROD-041.4 E2E Tests
+
+| Req ID | Test Case | Test File | Purpose | Status |
+|--------|-----------|-----------|---------|--------|
+| PROD-041.4.E2E.1 | `POST /register > should register a new iOS push token` | push-notifications.e2e-spec.ts | E2E test of iOS token registration | ✅ |
+| PROD-041.4.E2E.2 | `POST /register > should register an Android push token` | push-notifications.e2e-spec.ts | E2E test of Android token registration | ✅ |
+| PROD-041.4.E2E.3 | `POST /register > should register a Web push token` | push-notifications.e2e-spec.ts | E2E test of Web push registration | ✅ |
+| PROD-041.4.E2E.4 | `POST /register > should update existing token on re-registration` | push-notifications.e2e-spec.ts | E2E test of token upsert | ✅ |
+| PROD-041.4.E2E.5 | `POST /register > should reject without authentication` | push-notifications.e2e-spec.ts | E2E test of auth requirement | ✅ |
+| PROD-041.4.E2E.6 | `POST /register > should reject invalid platform` | push-notifications.e2e-spec.ts | E2E test of validation | ✅ |
+| PROD-041.4.E2E.7 | `POST /register > should reject without token` | push-notifications.e2e-spec.ts | E2E test of required fields | ✅ |
+| PROD-041.4.E2E.8 | `GET /devices > should list all registered devices` | push-notifications.e2e-spec.ts | E2E test of device listing | ✅ |
+| PROD-041.4.E2E.9 | `GET /devices > should reject without authentication` | push-notifications.e2e-spec.ts | E2E test of auth requirement | ✅ |
+| PROD-041.4.E2E.10 | `DELETE /devices/:id > should unregister by ID` | push-notifications.e2e-spec.ts | E2E test of device unregistration | ✅ |
+| PROD-041.4.E2E.11 | `DELETE /devices/:id > should return 404 for non-existent` | push-notifications.e2e-spec.ts | E2E test of error handling | ✅ |
+| PROD-041.4.E2E.12 | `DELETE /devices/:id > should reject without authentication` | push-notifications.e2e-spec.ts | E2E test of auth requirement | ✅ |
+| PROD-041.4.E2E.13 | `POST /unregister > should unregister by token value` | push-notifications.e2e-spec.ts | E2E test of logout flow | ✅ |
+| PROD-041.4.E2E.14 | `POST /unregister > should succeed if token does not exist` | push-notifications.e2e-spec.ts | E2E test of idempotency | ✅ |
+| PROD-041.4.E2E.15 | `POST /unregister > should reject without authentication` | push-notifications.e2e-spec.ts | E2E test of auth requirement | ✅ |
+
 ### PROD-042: Advanced Filters
 
 | Req ID | Test Case | Test File | Purpose | Status |
@@ -2784,6 +2804,7 @@ The following requirements do not yet have test coverage:
 | 2026-01-01 | Claude | Visual Search (PROD-045) deployed and verified: All 32 unit tests passing (pHash generation, color extraction, similarity calculations, file validation, property search); 9 E2E tests; 3 production verification tests (11 images indexed at 100%); Visual similarity search returns ranked results with structural/color/composition breakdown; ImageHash Prisma model with migration applied |
 | 2026-01-02 | Claude | PROD-043.5 Accurate Polygon Search: Created geo.util.ts with ray-casting point-in-polygon algorithm and Haversine distance calculation; 23 unit tests for geo utilities; Updated PropertiesService.findAll to apply accurate geo filtering after bounding box query; PROD-043.9 Save Polygon to Search Agents: Added polygon/radius fields to SearchCriteriaDto; Updated propertyMatchesCriteria to support geo criteria |
 | 2026-01-02 | Claude | PROD-041.4 Push Notifications: Created PushToken Prisma model with PushPlatform enum (IOS, ANDROID, WEB), PushNotificationService with FCM integration (mock mode when no FCM_SERVER_KEY), push-notification.controller with 4 endpoints (register, devices, unregister by ID, unregister by value), integrated with SearchAgentsService.checkAgainstNewProperty to send push when property matches; 18 unit tests; Total tests ~2280 |
+| 2026-01-02 | Claude | PROD-041.4 E2E Tests: Added 15 end-to-end tests for push notification endpoints covering registration (iOS, Android, Web), device listing, unregistration by ID, unregistration by token value, auth requirements, and validation; Deployed to production VPS with migration applied |
 
 ---
 
