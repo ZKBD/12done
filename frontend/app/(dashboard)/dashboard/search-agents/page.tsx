@@ -439,12 +439,12 @@ function CreateSearchAgentModal({
           {/* Listing Type */}
           <div className="space-y-2">
             <Label>Listing Type</Label>
-            <Select value={listingType} onValueChange={setListingType}>
+            <Select value={listingType || 'ANY'} onValueChange={(v) => setListingType(v === 'ANY' ? '' : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="ANY">Any</SelectItem>
                 <SelectItem value="SALE">For Sale</SelectItem>
                 <SelectItem value="RENT">For Rent</SelectItem>
               </SelectContent>
@@ -454,12 +454,12 @@ function CreateSearchAgentModal({
           {/* Property Type */}
           <div className="space-y-2">
             <Label>Property Type</Label>
-            <Select value={propertyType} onValueChange={setPropertyType}>
+            <Select value={propertyType || 'ANY'} onValueChange={(v) => setPropertyType(v === 'ANY' ? '' : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="ANY">Any</SelectItem>
                 <SelectItem value="APARTMENT">Apartment</SelectItem>
                 <SelectItem value="HOUSE">House</SelectItem>
                 <SelectItem value="CONDO">Condo</SelectItem>
@@ -504,12 +504,12 @@ function CreateSearchAgentModal({
           {/* Bedrooms */}
           <div className="space-y-2">
             <Label htmlFor="bedrooms">Minimum Bedrooms</Label>
-            <Select value={minBedrooms} onValueChange={setMinBedrooms}>
+            <Select value={minBedrooms || 'ANY'} onValueChange={(v) => setMinBedrooms(v === 'ANY' ? '' : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="ANY">Any</SelectItem>
                 <SelectItem value="1">1+</SelectItem>
                 <SelectItem value="2">2+</SelectItem>
                 <SelectItem value="3">3+</SelectItem>
